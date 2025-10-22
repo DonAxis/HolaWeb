@@ -1,12 +1,22 @@
  body {
       display: flex;
       justify-content: center;
-      align-items: center;
+    /* align-items: center;*/
       height: 100vh;
       background: #ddd;
       margin: 0;
     }
-    canvas {
+canvas {
       border: 2px solid black;
       background: white;
     }
+#q{
+  display: flex;
+  justify-content: center;
+ align-items: center;
+  height: 100vh;
+  background: #ddd;
+  margin: 0;
+  color: red;
+  font-size: 30px;
+}
