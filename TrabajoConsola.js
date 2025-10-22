@@ -27,7 +27,7 @@ console.log(coche.marca);
 
 //dom es el documento HTML y se usa con document
 var elDom = document.querySelector("h1");
-elDom.textContent ="ahora ya cambia";
+elDom.textContent ="ahora ya cambia x2";
 
 //evento susesos como dar click cualquier cosa
 // listener escucha o recibe los datos
