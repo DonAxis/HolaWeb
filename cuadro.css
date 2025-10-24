@@ -1,11 +1,11 @@
- body {
-      display: flex;
-      justify-content: center;
-    /* align-items: center;*/
-      height: 100vh;
-      background: #ddd;
-      margin: 0;
-    }
+body {
+  display: flex;
+  flex-direction: column; 
+  align-items: center;
+  min-height: 100vh;
+  background: #ddd;
+  margin: 0;
+}
 canvas {
       border: 2px solid black;
       background: white;
@@ -14,9 +14,13 @@ canvas {
   display: flex;
   justify-content: center;
  align-items: center;
-  height: 100vh;
+  padding: 30px;
   background: #ddd;
   margin: 0;
   color: red;
   font-size: 30px;
+}
+.documentoo{
+  width: 200px;
+  height: 200px;
 }
