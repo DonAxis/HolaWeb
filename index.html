@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dibujar un cuadrado</title>
   <link rel="stylesheet" href="cuadro.css">
+  <link rel="stylesheet" href="codigo.css">
   </head>
 <body>
 <div >
@@ -15,24 +16,85 @@
 <div >
   <p id="q">probandonos</p>
 </div>  
-<img src="id.png" class="documentoo" width="200" height="200" alt="Documento de identidad">
+<img id="imagen" src="id.png" class="documentoo"  alt="Documento de identidad">
 
 <br>
 <div >
   <h1>Tarea</h1>
-map() <br>
-filter() <br>
-reduce() <br>
-find() <br>
-sort() <br>
-includes() <br>
-indexOf() <br>
-some() <br>
-every() <br>
-slice() <br>
-splice() <br>
-join() <br>
-split() <br>
+  <h1>Métodos de Arrays en JavaScript</h1>
+    <div class="bloques-container">
+      <div class="bloque">
+        <h3>map()</h3>
+        <p>Crea un nuevo array aplicando una función a cada elemento del array original.</p>
+        <p class="codigo">array.map(elemento => elemento * 2)</p>
+      </div>
+      <div class="bloque">
+        <h3>filter()</h3>
+        <p>Crea un nuevo array con los elementos que cumplan una condición específica.</p>
+        <p class="codigo">array.filter(elemento => elemento > 10)</p>
+      </div>
+          <div class="bloque">
+        <h3>reduce()</h3>
+        <p>Reduce el array a un único valor acumulando los resultados de aplicar una función.</p>
+        <p class="codigo">array.reduce((acum, elem) => acum + elem, 0)</p>
+      </div>
+      <div class="bloque">
+        <h3>find()</h3>
+        <p>Encuentra y retorna el primer elemento que cumpla con una condición.</p>
+        <p class="codigo">array.find(elemento => elemento.id === 5)</p>
+      </div>
+      <div class="bloque">
+        <h3>sort()</h3>
+        <p>Ordena los elementos del array (modifica el array original).</p>
+        <p class="codigo">array.sort((a, b) => a - b)</p>
+      </div>
+      <div class="bloque">
+        <h3>includes()</h3>
+        <p>Verifica si un array contiene un elemento específico.</p>
+        <p class="codigo">array.includes(5)</p>
+      </div>
+      <div class="bloque">
+        <h3>indexOf()</h3>
+        <p>Retorna el índice de la primera ocurrencia de un elemento.</p>
+        <p class="codigo">array.indexOf('valor')</p>
+      </div>
+      <div class="bloque">
+        <h3>some()</h3>
+        <p>Verifica si al menos un elemento cumple con una condición.</p>
+        <p class="codigo">array.some(elemento => elemento > 100)</p>
+      </div>
+
+      <div class="bloque">
+        <h3>every()</h3>
+        <p>Verifica si todos los elementos cumplen con una condición.</p>
+        <p class="codigo">array.every(elemento => elemento > 0)</p>
+      </div>
+      <div class="bloque">
+        <h3>slice()</h3>
+        <p>Extrae una porción del array sin modificar el original.</p>
+        <p class="codigo">array.slice(inicio, fin)</p>
+      </div>
+      <div class="bloque">
+        <h3>splice()</h3>
+        <p>Añade, elimina o reemplaza elementos (modifica el array original).</p>
+        <p class="codigo">array.splice(inicio, cantidad, ...nuevos)</p>
+      </div>
+      <div class="bloque">
+        <h3>indexOf()</h3>
+        <p>Retorna el índice de la primera ocurrencia de un elemento.</p>
+        <p class="codigo">array.indexOf('valor')</p>
+      </div>
+      <div class="bloque">
+        <h3>join()</h3>
+        <p>Une todos los elementos del array en un string.</p>
+        <p class="codigo">array.join(', ')</p>
+      </div>
+      <div class="bloque">
+        <h3>split()</h3>
+        <p>Divide un string en un array usando un separador.</p>
+        <p class="codigo">string.split(',')</p>
+      </div>
+    </div>
 <br>
 </div>
   <script src="TrabajoConsola.js"></script>

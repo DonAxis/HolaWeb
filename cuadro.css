@@ -1,26 +1,34 @@
 body {
   display: flex;
   flex-direction: column; 
-  align-items: center;
+  align-items: flex-start; 
   min-height: 100vh;
   background: #ddd;
-  margin: 0;
+  margin: 10px;   
 }
 canvas {
       border: 2px solid black;
       background: white;
     }
-#q{
+#q {
   display: flex;
-  justify-content: center;
- align-items: center;
+  justify-content: center; 
+  align-items: center;    
   padding: 30px;
   background: #ddd;
   margin: 0;
   color: red;
   font-size: 30px;
 }
-.documentoo{
-  width: 200px;
+.documentoo {
+  display: block; 
+  margin: 20px auto; 
+  width: 300px;
   height: 200px;
+}
+.imagen{
+  align-items: center;
+}
+p{
+  font-size: 18px;
 }
