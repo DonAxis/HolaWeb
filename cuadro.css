@@ -31,11 +31,20 @@ canvas {
 }
 p{
   font-size: 18px;
+  margin-right: 10px;
 }
-.letras{
+
+.letras,
+.letras:visited,
+.letras:hover,
+.letras:active {
   font-size: 17px;
   color: #007BFF;
+  color: red;
+  /*text-decoration: none; */
+  color: red;      
 }
+
 .botAlumnos{
   background-color: #007BFF;
   color: white;
