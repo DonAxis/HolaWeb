@@ -32,3 +32,16 @@ canvas {
 p{
   font-size: 18px;
 }
+.letras{
+  font-size: 17px;
+  color: #007BFF;
+}
+.botAlumnos{
+  background-color: #007BFF;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+}
