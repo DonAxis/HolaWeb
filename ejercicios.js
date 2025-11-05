@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-
-=======
 const productos = [
   { nombre: "compu", precio: 15000, categoria: "tecnologia" },
   { nombre: "Mouse", precio: 300, categoria: "tecnologia" },
@@ -18,4 +15,31 @@ const productos = [
   { nombre: "Pantalon", precio: 1200, categoria: "ropa" },
   { nombre: "taza", precio: 300, categoria: "cafe" }
 ];
->>>>>>> a4b2a19 (ajustes)
+
+//espera a que la pagina cargue
+document.addEventListener("DOMContentLoaded", () => {  
+      const eje1 = document.getElementById("eje1"); //toma boton
+      const resul = document.getElementById("resultado"); //toma el text resultado
+  eje1.addEventListener("click", () => {
+   
+    const resultado = productos
+      .filter(p => p.categoria === "tecnologia")
+      .sort((a, b) => a.precio - b.precio)
+      .map(p => p.nombre)
+      .join(" + ");
+
+    resul.textContent = "Quedaria:\n" + resultado;
+  });
+});
+
+
+/*
+
+const resultado = productos
+    .filter(p => p.categoria === "tecnologia")
+    .sort((a, b) => a.precio - b.precio)
+    .map(p => p.nombre)
+  .join(" > ");
+console.warn("Productos de tecnología ordenados por precio:", resultado);
+ document.getElementById("resultado").textContent = "Productos tecnología ordenados por precio:\n" + resultado;
+*/

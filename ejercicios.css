@@ -6,24 +6,42 @@ body {
 
     h1 {
       text-align: center;
-      color: #333;
+      color: #ff1100;
     }
 
-    .producto {
+    .produ {
       background: #fff;
       border: 1px solid #ddd;
       border-radius: 8px;
       padding: 10px 15px;
-      margin: 10px 0;
+     margin: 10px 20px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        max-width: 500px;
+    }
+.contenedor {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 30px;
+    }
+  
+        .botones {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 10px;
     }
 
-    .categoria {
-      font-weight: bold;
-      color: #0077cc;
-    }
 
-    .precio {
-      color: #008000;
-      font-weight: bold;
+    .botones button {
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      padding: 12px;
+      font-size: 18px;
+      cursor: pointer;
+      transition: background-color 0.3s;
+       max-width: 400px;
     }
