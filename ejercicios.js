@@ -1,87 +1,99 @@
 const productos = [
-{ nombre: "compu", precio: 15000, categoria: "tecnologia" },
-  { nombre: "Mouse", precio: 300, categoria: "tecnologia" },
-  { nombre: "Teclado", precio: 800, categoria: "tecnologia" },
-  { nombre: "Monitor", precio: 4500, categoria: "tecnologia" },
-  { nombre: "Auriculares", precio: 1200, categoria: "tecnologia" },
-  { nombre: "Router", precio: 2000, categoria: "tecnologia" },
-  { nombre: "telefono", precio: 8000, categoria: "tecnologia" },
-  { nombre: "SillaGamer", precio: 3500, categoria: "muebles" },
-  { nombre: "tenis", precio: 2000, categoria: "ropa" },
-  { nombre: "Escritorio", precio: 4000, categoria: "muebles" },
-  { nombre: "blusa", precio: 500, categoria: "ropa" },
-  { nombre: "Cafetera", precio: 1800, categoria: "cafe" },
-  { nombre: "CamisaGodin", precio: 100, categoria: "ropa" },
-  { nombre: "Pantalon", precio: 1200, categoria: "ropa" },
-  { nombre: "taza", precio: 300, categoria: "cafe" },
-  { nombre: "compu", precio: 15000, catalogo: "tecnologia" },
-{ nombre: "mini panditas", precio:10 , catalogo: "dulces" },
-{ nombre: "vivo V50", precio: 5000, catalogo: "tecnologia" },
-{ nombre: "zapatos", precio: 1400, catalogo: "calzado" },
-{ nombre: "laptop HP", precio: 18000, catalogo: "tecnologia" },
-{ nombre: "mouse gamer", precio: 450, catalogo: "tecnologia" },
-{ nombre: "teclado", precio: 1200, catalogo: "tecnologia" },
-{ nombre: "audifonos bluetooth", precio: 800, catalogo: "tecnologia" },
-{ nombre: "monitor Samsung", precio: 3500, catalogo: "tecnologia" },
-{ nombre: "taza", precio: 120, catalogo: "hogar" },
-{ nombre: "mochila", precio: 600, catalogo: "accesorios" },
-{ nombre: "libreta", precio: 80, catalogo: "papeleria" },
-{ nombre: "pelota", precio: 250, catalogo: "deportes" },
-{ nombre: "reloj", precio: 900, catalogo: "moda" },
-{ nombre: "Compu", precio: 15000, tipo: "tecnologia" },
-  { nombre: "Pecocitas", precio: 3, tipo: "dulces" },
-  { nombre: "Vivo V50", precio: 5000, tipo: "tecnologia" },
-  { nombre: "Zapatos", precio: 1400, tipo: "calzado" },
-  { nombre: "Tablet", precio: 8000, tipo: "tecnologia" },
-  { nombre: "Smartphone", precio: 6000, tipo: "tecnologia" },
-  { nombre: "Monitor", precio: 7000, tipo: "tecnologia" },
-  { nombre: "Auriculares", precio: 1200, tipo: "tecnologia" },
-  { nombre: "Disco Duro", precio: 2500, tipo: "tecnologia" },
-  { nombre: "Libro", precio: 200, tipo: "papeleria" },
-  { nombre: "Camisa", precio: 600, tipo: "ropa" },
-  { nombre: "Mueble", precio: 4500, tipo: "hogar" },
-  { nombre: "Juguete", precio: 350, tipo: "niños" },
-  { nombre: "Lámpara", precio: 900, tipo: "hogar" },
-     { nombre: "compu", precio: 15000, catalogo: "tecnologia" },
-    { nombre: "pocoritos", precio: 3, catalogo: "dulces" },
-    { nombre: "vivo V50", precio: 5000, catalogo: "tecnologia" },
-    { nombre: "zapatos", precio: 1400, catalogo: "calzado" },
-   { nombre: "mouse inalambrico", precio: 350, catalogo: "tecnologia" },
-    { nombre: "monitor 27", precio: 4500, catalogo: "tecnologia" },
-    { nombre: "teclado mecanico", precio: 800, catalogo: "tecnologia" },
-    { nombre: "audifonos BT", precio: 600, catalogo: "tecnologia" },
-    { nombre: "disco duro ext.", precio: 1200, catalogo: "tecnologia" },
-   { nombre: "cuaderno prof.", precio: 65, catalogo: "papeleria" },
-    { nombre: "pluma gel", precio: 20, catalogo: "belleza" },
-    { nombre: "botella agua", precio: 150, catalogo: "liquidos" },
-    { nombre: "pilas AA (4)", precio: 50, catalogo: "tecnologia" },
-    { nombre: "cargador portatil", precio: 400, catalogo: "tecnologia" }
+{ nombre: "compu", precio: 15000, categoria: "tecnologia", imagen: "imagenes/im1.jpg" },
+  { nombre: "Mouse", precio: 300, categoria: "tecnologia", imagen: "imagenes/im2.jpg" },
+  { nombre: "Teclado", precio: 800, categoria: "tecnologia", imagen: "imagenes/im3.jpg" },
+  { nombre: "Monitor", precio: 4500, categoria: "tecnologia", imagen: "imagenes/im4.jpg" },
+  { nombre: "Auriculares", precio: 1200, categoria: "tecnologia", imagen: "imagenes/im5.jpg" },
+  { nombre: "Router", precio: 2000, categoria: "tecnologia", imagen: "imagenes/im6.jpg" },
+  { nombre: "telefono", precio: 8000, categoria: "tecnologia", imagen: "imagenes/im7.jpg" },
+  { nombre: "SillaGamer", precio: 3500, categoria: "muebles", imagen: "imagenes/im8.jpg" },
+  { nombre: "tenis", precio: 2000, categoria: "ropa", imagen: "imagenes/im7.jpg" },
+  { nombre: "Escritorio", precio: 4000, categoria: "muebles", imagen: "imagenes/im13.jpg" },
+  { nombre: "blusa", precio: 500, categoria: "ropa", imagen: "imagenes/im6.jpg" },
+  { nombre: "Cafetera", precio: 1800, categoria: "cafe", imagen: "imagenes/im4.jpg" },
+  { nombre: "CamisaGodin", precio: 100, categoria: "ropa", imagen: "imagenes/im4.jpg" },
+  { nombre: "Pantalon", precio: 1200, categoria: "ropa", imagen: "imagenes/im9.jpg" },
+  { nombre: "taza", precio: 300, categoria: "cafe", imagen: "imagenes/im8.jpg" },
+  { nombre: "compu", precio: 15000, categoria: "tecnologia", imagen: "imagenes/im4.jpg" },
+{ nombre: "mini panditas", precio:10 , categoria: "dulces", imagen: "imagenes/im15.jpg" },
+{ nombre: "vivo V50", precio: 5000, categoria: "tecnologia", imagen: "imagenes/im10.jpg" },
+{ nombre: "zapatos", precio: 1400, categoria: "calzado", imagen: "imagenes/im11.jpg" },
+{ nombre: "laptop HP", precio: 18000, categoria: "tecnologia", imagen: "imagenes/im19.jpg" },
+{ nombre: "mouse gamer", precio: 450, categoria: "tecnologia", imagen: "imagenes/im18.jpg" },
+{ nombre: "teclado", precio: 1200, categoria: "tecnologia", imagen: "imagenes/im10.jpg" },
+{ nombre: "audifonos bluetooth", precio: 800, categoria: "tecnologia", imagen: "imagenes/im17.jpg" },
+{ nombre: "monitor Samsung", precio: 3500, categoria: "tecnologia" , imagen: "imagenes/im15.jpg"},
+{ nombre: "taza", precio: 120, categoria: "hogar", imagen: "imagenes/im17.jpg"},
+{ nombre: "mochila", precio: 600, categoria: "accesorios", imagen: "imagenes/im14.jpg" },
+{ nombre: "libreta", precio: 80, categoria: "papeleria", imagen: "imagenes/im15.jpg" },
+{ nombre: "pelota", precio: 250, categoria: "deportes", imagen: "imagenes/im18.jpg" },
+{ nombre: "reloj", precio: 900, categoria: "moda", imagen: "imagenes/im19.jpg" },
+{ nombre: "Compu", precio: 15000, categoria: "tecnologia", imagen: "imagenes/im20.jpg" },
+  { nombre: "Pecocitas", precio: 3, categoria: "dulces" , imagen: "imagenes/im21.jpg"},
+  { nombre: "Vivo V50", precio: 5000, categoria: "tecnologia", imagen: "imagenes/im22.jpg" },
+  { nombre: "Zapatos", precio: 1400, categoria: "calzado" , imagen: "imagenes/im24.jpg"},
+  { nombre: "Tablet", precio: 8000, categoria: "tecnologia", imagen: "imagenes/im23.jpg" },
+  { nombre: "Smartphone", precio: 6000, categoria: "tecnologia", imagen: "imagenes/im25.jpg" },
+  { nombre: "Monitor", precio: 7000, categoria: "tecnologia" , imagen: "imagenes/im21.jpg"},
+  { nombre: "Auriculares", precio: 1200, categoria: "tecnologia" , imagen: "imagenes/im23.jpg"},
+  { nombre: "Disco Duro", precio: 2500, categoria: "tecnologia", imagen: "imagenes/im21.jpg" },
+  { nombre: "Libro", precio: 200, categoria: "papeleria" , imagen: "imagenes/im24.jpg"},
+  { nombre: "Camisa", precio: 600, categoria: "ropa", imagen: "imagenes/im25.jpg" },
+  { nombre: "Mueble", precio: 4500, categoria: "hogar", imagen: "imagenes/im21.jpg" },
+  { nombre: "Juguete", precio: 350, categoria: "niños" , imagen: "imagenes/im20.jpg"},
+  { nombre: "Lámpara", precio: 900, categoria: "hogar", imagen: "imagenes/im21.jpg" },
+     { nombre: "compu", precio: 15000, categoria: "tecnologia", imagen: "imagenes/im22.jpg" },
+    { nombre: "pocoritos", precio: 3, categoria: "dulces", imagen: "imagenes/im21.jpg"},
+    { nombre: "vivo V50", precio: 5000, categoria: "tecnologia" , imagen: "imagenes/im19.jpg"},
+    { nombre: "zapatos", precio: 1400, categoria: "calzado", imagen: "imagenes/im12.jpg" },
+   { nombre: "mouse inalambrico", precio: 350, categoria: "tecnologia", imagen: "imagenes/im18.jpg" },
+    { nombre: "monitor 27", precio: 4500, categoria: "tecnologia", imagen: "imagenes/im16.jpg" },
+    { nombre: "teclado mecanico", precio: 800, categoria: "tecnologia", imagen: "imagenes/im17.jpg" },
+    { nombre: "audifonos BT", precio: 600, categoria: "tecnologia", imagen: "imagenes/im11.jpg" },
+    { nombre: "disco duro ext.", precio: 1200, categoria: "tecnologia", imagen: "imagenes/im7.jpg" },
+   { nombre: "cuaderno prof.", precio: 65, categoria: "papeleria", imagen: "imagenes/im12.jpg" },
+    { nombre: "pluma gel", precio: 20, categoria: "belleza", imagen: "imagenes/im4.jpg" },
+    { nombre: "botella agua", precio: 150, categoria: "liquidos", imagen: "imagenes/im5.jpg" },
+    { nombre: "pilas AA (4)", precio: 50, categoria: "tecnologia", imagen: "imagenes/im19.jpg" },
+    { nombre: "cargador portatil", precio: 400, categoria: "tecnologia" , imagen: "imagenes/im3.jpg"}
 ];
+actual = 0;
 
-//espera a que la pagina cargue
-document.addEventListener("DOMContentLoaded", () => {  
-      const eje1 = document.getElementById("eje1"); //toma boton
-      const resul = document.getElementById("resultado"); //toma el text resultado
-  eje1.addEventListener("click", () => {
-   
-    const resultado = productos
-      .filter(p => p.categoria === "tecnologia")
-      .sort((a, b) => a.precio - b.precio)
-      .map(p => p.nombre)
-      .join(" + ");
+let tabla1 = "<table border='1' cellspacing='0' cellpadding='5'>";
+tabla1 += "<tr><th>Imagen</th><th>Nombre</th><th>Precio</th><th>Categoría</th></tr>";
 
-    resul.textContent = "Quedaria:\n" + resultado;
-  });
-});
+for (p of productos) { 
+  tabla1 += `
+    <tr>
+      <td><img src="${p.imagen}" width="80"></td>
+      <td>${p.nombre}</td>
+      <td>${p.precio}</td>
+      <td>${p.categoria}</td>
+    </tr>`;
+    /*" <tr><td>${p.nombre}</td><td>${p.precio}</td><td>${p.categoria}</td></tr>`;"*/
+}
+
+tabla1 += "</table>";
+document.getElementById("control1").innerHTML = tabla1;
 
 
-/*
 
-const resultado = productos
-    .filter(p => p.categoria === "tecnologia")
-    .sort((a, b) => a.precio - b.precio)
-    .map(p => p.nombre)
-  .join(" > ");
-console.warn("Productos de tecnología ordenados por precio:", resultado);
- document.getElementById("resultado").textContent = "Productos tecnología ordenados por precio:\n" + resultado;
-*/
+function mostrarProductos(arreglo) {
+  tabla2 = "";
+  for (let p of arreglo) {
+    
+    tabla2 += `
+      <div class="producto">
+        <img src="${p.imagen}" alt="${p.nombre} " width="80">
+        <h3>${p.nombre}</h3>
+        <p>$${p.precio}</p>
+        <p>${p.categoria}</p>
+      </div>
+    `;
+  }
+  document.getElementById("control2").innerHTML = tabla2;
+}
+
+mostrarProductos(productos);
+
+

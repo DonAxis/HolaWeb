@@ -4,44 +4,44 @@ body {
       margin: 40px;
     }
 
-    h1 {
+    h1,
+    #titulos {
       text-align: center;
       color: #ff1100;
     }
-
-    .produ {
-      background: #fff;
-      border: 1px solid #ddd;
-      border-radius: 8px;
-      padding: 10px 15px;
-     margin: 10px 20px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-        max-width: 500px;
-    }
-.contenedor {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      gap: 30px;
-    }
-  
-        .botones {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: stretch;
-      gap: 10px;
-    }
-
-
-    .botones button {
+     button {
       background-color: #007BFF;
       color: white;
       border: none;
-      border-radius: 5px;
+      border-radius: 10px;
       padding: 12px;
       font-size: 18px;
       cursor: pointer;
       transition: background-color 0.3s;
        max-width: 400px;
     }
+
+#control2 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+  padding: 20px;
+}
+
+.producto {
+  border: 1px solid #b28e8e;
+  border-radius: 20px;
+  text-align: center;
+  padding: 10px;
+  background: rgb(137, 200, 247);
+  box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+  transition: transform 0.2s;
+}
+
+
+.producto img {
+  width: 100%;
+  height: 150px;
+ 
+  border-radius: 10px;
+}
