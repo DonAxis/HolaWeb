@@ -23,6 +23,11 @@ function mostrarProductos(arreglo) {
   `;
   
   for (let p of arreglo) {
+    let color = "black";
+    if(p.califica.includes("IA")){
+      color="red";
+    }
+
     tabla += `
       <tr>
         <td>${p.nombre}</td>
@@ -30,7 +35,7 @@ function mostrarProductos(arreglo) {
         <td>
             <a href="${p.pagina}">  ${p.pagina} </a>
         </td>
-        <td id="cali">${p.califica} </td>
+        <td style="color: ${color}">${p.califica}</td>
       </tr>
     `;
   }
