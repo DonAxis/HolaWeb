@@ -1,4 +1,4 @@
-.bloques-container {
+.bloques{
     display: grid;
     grid-template-columns: 1fr; /*acomodado para 1 columna*/
     gap: 20px; 
@@ -30,13 +30,13 @@
 }
 
 @media screen and (min-width: 600px) { /*aqui 2 columnas despues de 600px*/
-    .bloques-container {
+    .bloques {
         grid-template-columns: 1fr 1fr; 
     }
 }
 
 @media screen and (min-width: 1000px) { /*aqi 3 columnas despues de 1000*/
-    .bloques-container {
+    .bloques {
         grid-template-columns: 1fr 1fr 1fr; 
     }
 }

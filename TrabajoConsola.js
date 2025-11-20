@@ -1,14 +1,15 @@
 let activa=false;
 
-var elDom = document.querySelector("h1");
-elDom.textContent ="ahora ya cambia";
+var elDom = document.getElementById("camiaText");
+
+elDom.textContent ="Si das click en la imagen, descarga txt. En otro lado, el texto cambia";
 function Colorea(){
     this.classList.toggle("cambia");
     console.log("ajam");
     if (activa){
         elDom.textContent ="guardaste un documento";
     }else{
-        elDom.textContent ="uwu";
+        elDom.textContent ="Actualiza la pagina y vuelve a dar click";
     }
 }
 document.querySelector("body").addEventListener("click", Colorea);
