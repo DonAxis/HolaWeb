@@ -45,15 +45,7 @@ p{
   color: red;      
 }
 
-.botGene{
-  background-color: #007BFF;
-  color: #021526;
-  border: none;
-  padding: 10px 20px;
-  border-radius: 5px;
-  cursor: pointer;
-  font-size: 18px;
-}
+
 #cali{
   text-align:center; 
   font-weight:bold;

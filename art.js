@@ -1,35 +1,38 @@
+function  casita(){
+
+
   const canvas = document.createElement('canvas');
-canvas.width=500;
-canvas.height=500;
-document.body.appendChild(canvas);
-const ctx = canvas.getContext('2d');
+  canvas.width=400;
+  canvas.height=300;
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
 
-ctx.lineWidth = 8; // ancho linea
+  ctx.lineWidth = 8; // ancho linea
 
-ctx.fillStyle='yellow';
-ctx.fillRect(230, 160, 50, 50); //rectangulo luz
+  ctx.fillStyle='yellow';
+  ctx.fillRect(230, 160, 50, 50); //rectangulo luz
 
-ctx.strokeRect(230, 160, 50, 50); //rectangulo ventana
-ctx.strokeRect(230, 160, 25, 25); //rectangulo ventana marco
-ctx.strokeRect(230, 185, 25, 25); //rectangulo ventana marco
-ctx.strokeRect(255, 160, 25, 25); //rectangulo ventana marco
-ctx.fillStyle='brown';
-ctx.strokeRect(130, 190, 40, 60); //rectangulo puerta
-ctx.fillRect(130, 190, 40, 60); //rectangulo puerta
-ctx.strokeRect(75, 140, 250, 110); //rectangulo casa
+  ctx.strokeRect(230, 160, 50, 50); //rectangulo ventana
+  ctx.strokeRect(230, 160, 25, 25); //rectangulo ventana marco
+  ctx.strokeRect(230, 185, 25, 25); //rectangulo ventana marco
+  ctx.strokeRect(255, 160, 25, 25); //rectangulo ventana marco
+  ctx.fillStyle='brown';
+  ctx.strokeRect(130, 190, 40, 60); //rectangulo puerta
+  ctx.fillRect(130, 190, 40, 60); //rectangulo puerta
+  ctx.strokeRect(75, 140, 250, 110); //rectangulo casa
 
-ctx.beginPath(); //poligono techo
-ctx.moveTo(50, 140);
-ctx.lineTo(200, 60);
-ctx.lineTo(350, 140);
-ctx.closePath();
-ctx.stroke();  //fin poligono
+  ctx.beginPath(); //poligono techo
+  ctx.moveTo(50, 140);
+  ctx.lineTo(200, 60);
+  ctx.lineTo(350, 140);
+  ctx.closePath();
+  ctx.stroke();  //fin poligono
 
-ctx.fillStyle='red';
+  ctx.fillStyle='red';
 
-ctx.font = "30px serif"; //texto
-ctx.fillText("Casita", 90, 170)
-
+  ctx.font = "30px serif"; //texto
+  ctx.fillText("Casita", 90, 170)
+}
 
 
 /*const canvasSketch = require('canvas-sketch');
