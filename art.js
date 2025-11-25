@@ -1,15 +1,25 @@
+function borracasita(){
+  const primera = document.getElementById("miCanvas");
+  if (primera) primera.remove();
+
+}
+XX=0;
 function  casita(){
-
-
+  
   const canvas = document.createElement('canvas');
+   canvas.remove();
   canvas.width=400;
   canvas.height=300;
   document.body.appendChild(canvas);
   const ctx = canvas.getContext('2d');
 
   ctx.lineWidth = 8; // ancho linea
-
-  ctx.fillStyle='yellow';
+let colores = ['#FF5733','#33FF57','#3357FF','#F1C40F','#9B59B6','#E67E22','#1ABC9C','#E74C3C','#34495E','#95A5A6']; 
+  ctx.fillStyle=colores[XX];
+  XX++;
+  if (XX >= colores.length) {
+    XX = 0;
+  }
   ctx.fillRect(230, 160, 50, 50); //rectangulo luz
 
   ctx.strokeRect(230, 160, 50, 50); //rectangulo ventana
@@ -32,6 +42,7 @@ function  casita(){
 
   ctx.font = "30px serif"; //texto
   ctx.fillText("Casita", 90, 170)
+  canvas.id = "miCanvas";
 }
 
 
