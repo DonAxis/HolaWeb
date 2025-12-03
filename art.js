@@ -5,8 +5,11 @@ canvas-sketch art.js --new --open
 */
 // info https://github.com/mattdesl/canvas-sketch
 
-const canvasSketch = require('canvas-sketch'); //importamos
+//uso canvas
+//const canvasSketch = require('canvas-sketch'); //importamos para pc
+const canvasSketch = window.canvasSketch; // este es para la github
 
+///
 const settings = {
   dimensions: [1080, 1080], //tamaño de canvas
   animate: true, //se llama la funcion renderizado (abajo) 60 veces por segundo
@@ -46,23 +49,8 @@ if (XX>=800){
   YY+=100;
 }
 
-
-    /////////////
   };
 };
 
 canvasSketch(sketch, settings);
-
-
-
-
-
-
-
-
-
-
-
-
-
 
