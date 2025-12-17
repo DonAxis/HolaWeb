@@ -17,4 +17,35 @@
   border-radius: 5px;
   cursor: pointer;
   font-size: 18px;
+  font-weight: bold; /* texto en negrita */
+}
+
+.layout-index {
+  width: 100%;
+  max-width: 1200px;
+  margin: auto;
+  padding: 20px;
+}
+
+.botonera-index {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  margin-top: 20px;
+}
+
+.link-boton {
+  text-decoration: none;      /* quita subrayado */
+  text-align: center;
+  min-width: 200px;
+  display: inline-block;
+  line-height: normal;
+}
+
+
+@media (max-width: 600px) {
+  .link-boton {
+    width: 100%;
+  }
 }

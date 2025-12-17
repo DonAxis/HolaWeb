@@ -1,19 +1,18 @@
-/* layout exclusivo del index */
 .layout-index {
   width: 100%;
-  max-width: 1200px;
+  max-width: 1500px;
   margin: auto;
   padding: 20px;
+
 }
 
-/* secciones */
 .seccion {
   border: 3px solid black;
   margin-bottom: 40px;
   padding: 20px;
+
 }
 
-/* galería */
 .galeria {
   display: grid;
   grid-template-columns: 1fr;
@@ -23,10 +22,9 @@
 
 .galeria img {
   max-width: 180px;
-  border: 3px solid orange;
+  border: 3px solid black;
 }
 
-/* botones ejercicios */
 .botonera {
   display: flex;
   flex-wrap: wrap;
@@ -34,7 +32,6 @@
   justify-content: center;
 }
 
-/* CV */
 .cv-links {
   display: flex;
   gap: 30px;
@@ -42,7 +39,6 @@
   flex-wrap: wrap;
 }
 
-/* Responsive */
 @media (min-width: 768px) {
   .galeria {
     grid-template-columns: repeat(3, 1fr);

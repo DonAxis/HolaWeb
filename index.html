@@ -4,47 +4,15 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dibujar un cuadrado</title>
-<link rel="stylesheet" href="barraboton.css">
-<link rel="stylesheet" href="botones.css">
-  <link rel="stylesheet" type="text/css" href="soloIndex.css">
+    <link rel="stylesheet" href="barraboton.css"><!--menu principal-->
+    <link rel="stylesheet" href="botones.css">  <!-- estilos botones -->
+    <link rel="stylesheet" href="soloIndex.css"><!-- Estructura de index-->
+    <link rel="stylesheet" href="codigo.css"> <!-- Estructura de los Métodos de Arrays -->
   </head>
 <body>
   <div class="layout-index margenInicial">
 
-  <!-- Alumnos -->
-  <section class="seccion alumnos">
-    <h2>Alumnos</h2>
-    <a href="alumnos.html">
-      <button class="botAzu">Ir a alumnos</button>
-    </a>
-  </section>
-
-  <!-- Logos -->
-  <section class="seccion galeria">
-    <img src="ipn.png">
-    <img src="FA.png">
-    <img src="ilb.png">
-  </section>
-
-  <!-- Ejercicios -->
-  <section class="seccion ejercicios">
-    <h2>Ejercicios</h2>
-
-    <div class="botonera">
-      <button class="botAzu">Métodos de Arrays</button>
-      <button class="botAzu">Ejercicio del examen</button>
-      <button class="botAzu">Dibujo simple</button>
-      <button class="botAzu">Canvas-sketch</button>
-      <button class="botAzu">Login sketch</button>
-    </div>
-  </section>
-
-  <!-- Imagen -->
-  <section class="seccion imagen-central">
-    <img src="id.png" class="documentoo">
-  </section>
-
-  <!-- CV -->
+<!-- CV -->
   <section class="seccion cv">
     <h2>CV</h2>
 
@@ -59,6 +27,50 @@
     </div>
   </section>
 
+
+
+  <!-- Logos -->
+  <section class="seccion galeria">
+    <img src="ipn.png">
+    <img src="FA.png">
+    <img src="ilb.png">
+  </section>
+
+  <!-- Ejercicios -->
+  <section class="seccion ejercicios">
+    <h2>Ejercicios</h2>
+
+    <div class="botonera-index">
+      <a href="alumnos.html" class="botAzu link-boton"> Métodos de Arrays</a>
+      <a href="ejercicios.html" class="botAzu link-boton"> Ejercicio del examen</a>
+      <a href="dibujo.html" class="botAzu link-boton"> Dibujo simple</a>
+      <a href="art.html" class="botAzu link-boton"> Ej 1 Canvas-sketch</a>
+      <a href="loggin.html" class="botAzu link-boton"> Login en sketch</a>
+    </div>
+
+  </section>
+
+    <!-- Alumnos -->
+  <section class="seccion alumnos">
+    <h2>Alumnos</h2>
+    <a href="alumnos.html">
+      <button class="botAzu">Ir a alumnos</button>
+    </a>
+  </section>
+
+<!-- Imagen -->
+<section class="seccion imagen-central">
+  <img id="imagen" src="id.png" class="documentoo" alt="Documento de identidad">
+  <h2 id="camiaText">No puedes leer esto</h2>
+</section>
+
+<!-- Métodos de Arrays -->
+<section class="seccion metodos-section">
+  <h1>Métodos de Arrays en JavaScript</h1>
+  <button id="btnMetodos" class="botAzu">Mostrar métodos</button>
+  <div class="bloques oculto" id="metodos"></div>
+</section>
+
 </div>
 
 
@@ -66,7 +78,7 @@
 
 <script src="TrabajoConsola.js"></script>
 <script src="arreglos.js"></script>
-<script src="ejexamen.js"></script>
+<script src="ejexamen.js"></script> <!-- Estructura de los Métodos de Arrays -->
 <script src="dibujo.js"></script>
 </body>
 </html>
