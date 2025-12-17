@@ -1,13 +1,13 @@
 const Califica = [
-  { pagina: "https://danaromero960120.github.io/holaWeb/examen.html", evaluacion: "examen", nombre: "Dana" , califica:"6.575" },
-  { pagina: "https://evelyndominguez-oss.github.io/HolaWeb/examen.html", evaluacion: "examen", nombre: "Vanesa" , califica:"7.62" },
-  { pagina: "https://yoramruiz-sys.github.io/HolaWeb/examen.html", evaluacion: "examen", nombre: "Yoram" , califica:"4.0 <10% IA " },
-  { pagina: "https://t3lacomex.github.io/Holaweb/Examen.html", evaluacion: "examen", nombre: "Franco" , califica:"6.8 30% IA" },
-  { pagina: "https://github.com/Moises8907/examen/tree/main", evaluacion: "examen", nombre: "Moises" , califica:"55% a 82% IA" },
-  { pagina: "https://barullada245-web.github.io/HolaWeb/Examen.html", evaluacion: "examen", nombre: "Bryan" , califica:"3.8" },
-  { pagina: "https://valbenitezs1216.github.io/holaWeb/ExamenP2.html", evaluacion: "examen", nombre: "Valentina" , califica:"7.85" },
-  { pagina: "https://fatimadiaz-spec.github.io/HolaWeb/faty.html", evaluacion: "examen", nombre: "Fatima" , califica:"6.7" },
-  { pagina: "https://wakanda9715.github.io/HolaWeb/examen.html", evaluacion: "examen", nombre: "Wakanda" , califica:"5.725" },
+  { pagina: "https://danaromero960120.github.io/holaWeb/dreams.html", evaluacion: "examenF", nombre: "Dana" , califica:"¿font" },
+  { pagina: "https://github.com/evelyndominguez-oss", evaluacion: "examenF", nombre: "Vanesa" , califica:"N" },
+  { pagina: "https://github.com/yoramruiz-sys", evaluacion: "examenF", nombre: "Yoram" , califica:"N" },
+  { pagina: "https://github.com/T3laComex", evaluacion: "examenF", nombre: "Franco" , califica:"N" },
+  { pagina: "https://github.com/Moises8907", evaluacion: "examenF", nombre: "Moises" , califica:"N" },
+  { pagina: "https://github.com/barullada245-web", evaluacion: "examenF", nombre: "Bryan" , califica:"N" },
+  { pagina: "https://github.com/valbenitezs1216", evaluacion: "examenF", nombre: "Valentina" , califica:"N" },
+  { pagina: "https://github.com/fatimadiaz-spec", evaluacion: "examenF", nombre: "Fatima" , califica:"N" },
+  { pagina: "https://github.com/wakanda9715", evaluacion: "examenF", nombre: "Wakanda" , califica:"N" },
 ];
 
 
