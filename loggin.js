@@ -58,7 +58,27 @@
 
         // el cuadrado
         context.fillStyle = color;
-        context.fillRect(125, 20, 150, 150);
+       // context.fillRect(125, 20, 150, 150);
+    
+      context.beginPath();
+      context.ellipse(200, 150, 100, 50, 0, 0, Math.PI * 2);
+      context.fillStyle = 'white';
+      context.fill();
+      context.strokeStyle = 'black';
+      context.lineWidth = 3;
+      context.stroke();
+      context.beginPath();
+      context.arc(200, 150, 25, 0, Math.PI * 2);
+      context.fillStyle = color;
+      context.fill();
+
+     
+      context.beginPath();
+      context.arc(200, 150, 10, 0, Math.PI * 2);
+      context.fillStyle = 'black';
+      context.fill();
+
+        
       };
     };
 
