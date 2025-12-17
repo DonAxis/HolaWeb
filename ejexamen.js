@@ -1,7 +1,4 @@
-/**
- * array aqui
- * 
- */
+/*array aqui */
 const metodosArray = [
     {
         titulo: "map()",
@@ -89,4 +86,15 @@ metodosArray.forEach(metodo => {
 
    
     contenedorMetodos.appendChild(bloqueDiv);
+});
+
+
+btnMetodos.addEventListener('click', () => {
+    contenedorMetodos.classList.toggle('oculto');
+
+    if (contenedorMetodos.classList.contains('oculto')) {
+        btnMetodos.textContent = 'Mostrar métodos';
+    } else {
+        btnMetodos.textContent = 'Ocultar métodos';
+    }
 });

@@ -40,3 +40,7 @@
         grid-template-columns: 1fr 1fr 1fr; 
     }
 }
+
+.oculto {
+    display: none;
+}
