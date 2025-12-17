@@ -4,44 +4,63 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dibujar un cuadrado</title>
-  <link rel="stylesheet" href="cuadro.css">
-  <link rel="stylesheet" href="codigo.css">
-  <link rel="stylesheet" type="text/css" href="barraboton.css">
-  <link rel="stylesheet" href="botones.css">
+<link rel="stylesheet" href="barraboton.css">
+<link rel="stylesheet" href="botones.css">
+  <link rel="stylesheet" type="text/css" href="soloIndex.css">
   </head>
 <body>
-  <nav class="top-bar">
-      
-<a href="alumnos.html" class="letras">
-  <button class="botAzu">Evidencia Alumnos </button>
-</a>
-<a href="ejercicios.html" class="letras">
-  <button class="botAzu">Ejercicio del examen </button>
-</a>
-<a href="dibujo.html" class="letras">
-  <button class="botAzu">Dibujo simple</button>
-</a>
-<a href="art.html" class="letras">
-  <button class="botAzu">Ejem1 canvas-sketch</button>
-</a>
-<a href="loggin.html" class="letras">
-  <button class="botAzu">login sketch</button>
-</a>
-     
-  </nav>
+  <div class="layout-index margenInicial">
 
-<div class="margenInicial">
-  <img id="imagen" src="id.png" class="documentoo"  alt="Documento de identidad">
-  <h2 id="camiaText">No puedes leer aqi</h2>
-  <br>
-  <div >
-    <h1>Métodos de Arrays en JavaScript</h1>
+  <!-- Alumnos -->
+  <section class="seccion alumnos">
+    <h2>Alumnos</h2>
+    <a href="alumnos.html">
+      <button class="botAzu">Ir a alumnos</button>
+    </a>
+  </section>
 
-    <button id="btnMetodos" class="botAzu">Mostrar métodos</button>
+  <!-- Logos -->
+  <section class="seccion galeria">
+    <img src="ipn.png">
+    <img src="FA.png">
+    <img src="ilb.png">
+  </section>
 
-  <div class="bloques oculto" id="metodos"></div> 
-  </div>
+  <!-- Ejercicios -->
+  <section class="seccion ejercicios">
+    <h2>Ejercicios</h2>
+
+    <div class="botonera">
+      <button class="botAzu">Métodos de Arrays</button>
+      <button class="botAzu">Ejercicio del examen</button>
+      <button class="botAzu">Dibujo simple</button>
+      <button class="botAzu">Canvas-sketch</button>
+      <button class="botAzu">Login sketch</button>
+    </div>
+  </section>
+
+  <!-- Imagen -->
+  <section class="seccion imagen-central">
+    <img src="id.png" class="documentoo">
+  </section>
+
+  <!-- CV -->
+  <section class="seccion cv">
+    <h2>CV</h2>
+
+    <div class="cv-links">
+      <a href="https://donaxis.github.io/NocheMuseo/" target="_blank">
+        <button class="botAzu">Museo</button>
+      </a>
+
+      <a href="https://orcid.org/0000-0002-7975-4993" target="_blank">
+        <button class="botAzu">ORCID</button>
+      </a>
+    </div>
+  </section>
+
 </div>
+
 
 
 
