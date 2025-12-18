@@ -4,49 +4,49 @@
         nombre: "Dana",
         pagina: "https://danaromero960120.github.io/holaWeb/dreams.html",
         paginaCanva: "https://www.canva.com/design/DAG7IMxAW0o/L3pVUYwiSMYlj3M7GUul3w/edit",
-        calificaGit: "",
-        calificaC: "",
-        proyect: ""
+        calificaGit: "10",
+        calificaC: "10",
+        proyect: "8"
       },
       {
         nombre: "Vanesa",
         pagina: "https://evelyndominguez-oss.github.io/HolaWeb/",
         paginaCanva: "https://www.canva.com/design/DAG6AnzEgPk/5x99ee5lp3qtWjZE715NWg/edit",
-        calificaGit: "",
-        calificaC: "N",
-        proyect: ""
+        calificaGit: "10",
+        calificaC: "10",
+        proyect: "7"
       },
       {
         nombre: "Yoram",
-        pagina: "https://github.com/yoramruiz-sys",
+        pagina: "https://yoramruiz-sys.github.io/MiPaginaWeb/",
         paginaCanva: "https://estampaloka.my.canva.site/",
-        calificaGit: "N",
-        calificaC: "",
-        proyect: ""
+        calificaGit: "5",
+        calificaC: "7",
+        proyect: "6"
       },
       {
         nombre: "Franco",
         pagina: "https://t3lacomex.github.io/Camaron/",
         paginaCanva: "https://lacuevadelcamaron.my.canva.site/",
-        calificaGit: "",
-        calificaC: "",
-        proyect: ""
+        calificaGit: "8",
+        calificaC: "9",
+        proyect: "8"
       },
       {
         nombre: "Moises",
         pagina: "https://github.com/Moises8907",
         paginaCanva: "https://www.figma.com/make/UMPNM5476rQfOhwWRcpCzV/",
         calificaGit: "N",
-        calificaC: "",
-        proyect: ""
+        calificaC: "9",
+        proyect: "8"
       },
       {
         nombre: "Bryan",
         pagina: "https://barullada245-web.github.io/HolaWeb/",
         paginaCanva: "https://www.canva.com/design/DAG6ar3yit8/Vjc6vQe48Um9Ebx_YKD1Sg/edit",
-        calificaGit: "",
-        calificaC: "",
-        proyect: ""
+        calificaGit: "9",
+        calificaC: "9",
+        proyect: "7"
       },
       {
         nombre: "Valentina",
