@@ -11,7 +11,7 @@
       {
         nombre: "Vanesa",
         pagina: "https://evelyndominguez-oss.github.io/HolaWeb/",
-        paginaCanva: "",
+        paginaCanva: "https://www.canva.com/design/DAG6AnzEgPk/5x99ee5lp3qtWjZE715NWg/edit",
         calificaGit: "",
         calificaC: "N",
         proyect: ""
