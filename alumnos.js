@@ -7,8 +7,8 @@
         calificaGit: "10",
         calificaC: "10",
         proyect: "8",
-        examen:"",
-        ev:""
+        examen:"4.5",
+        ev:"8"
 
       },
       {
@@ -18,8 +18,8 @@
         calificaGit: "10",
         calificaC: "10",
         proyect: "7",
-        examen:"",
-        ev:""
+        examen:"3.5",
+        ev:"8"
       },
       {
         nombre: "Yoram",
@@ -28,8 +28,8 @@
         calificaGit: "3GPT",
         calificaC: "7",
         proyect: "6",
-        examen:"",
-        ev:""
+        examen:"2.5",
+        ev:"2"
       },
       {
         nombre: "Franco",
@@ -37,19 +37,19 @@
         paginaCanva: "https://lacuevadelcamaron.my.canva.site/",
         calificaGit: "3GPT",
         calificaC: "9",
-        proyect: "8",
-        examen:"",
-        ev:""
+        proyect: "6",
+        examen:"3",
+        ev:"4"
       },
       {
         nombre: "Moises",
         pagina: "https://github.com/Moises8907",
         paginaCanva: "https://www.figma.com/make/UMPNM5476rQfOhwWRcpCzV/",
-        calificaGit: "N",
+        calificaGit: "3N",
         calificaC: "9",
         proyect: "8",
-        examen:"",
-        ev:""
+        examen:"5.5",
+        ev:"0"
       },
       {
         nombre: "Bryan",
@@ -58,8 +58,8 @@
         calificaGit: "9",
         calificaC: "9",
         proyect: "7",
-        examen:"",
-        ev:""
+        examen:"3.5",
+        ev:"7"
       },
       {
         nombre: "Valentina",
@@ -68,12 +68,12 @@
         calificaGit: "8GPT",
         calificaC: "0",
         proyect: "10",
-        examen:"",
-        ev:""
+        examen:"7",
+        ev:"8"
       }
     ];
 
-    // ====== FUNCIÓN PARA MOSTRAR TABLA ======
+ 
     function mostrarTabla(alumnos) {
       let tabla = `
         <table>
@@ -118,8 +118,9 @@
       document.getElementById("alumnos").innerHTML = tabla;
     }
 
-    // ====== EJECUCIÓN final ======
-    mostrarTabla(Califica);
+    
+
+    mostrarTabla(Califica); ///aqui imprime
 
 
 
@@ -127,7 +128,7 @@
 function calcularPromedio(a) {
   function nota(n) {
     if (typeof n === "string") {
-      const num = parseFloat(n); // toma el número de "3G"
+      const num = parseFloat(n);  
       return isNaN(num) ? 0 : num;
     }
     return Number(n) || 0;
@@ -149,7 +150,7 @@ function calcularPromedio2(a) {
     return Number(n) || 0;
   }
 
-  const proyect = Number(calcularPromedio(a)) || 0; // promedio 1
+  const proyect = Number(calcularPromedio(a)) || 0; 
   const examen = nota(a.examen);
   const ev = nota(a.ev);
 
