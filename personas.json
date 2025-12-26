@@ -1,0 +1,97 @@
+{
+  "alumnos": [
+    {
+      "id": 1,     
+      "nombre": "Duran",
+      "pagina": "https://danaromero960120.github.io/holaWeb/dreams.html",
+      "paginaCanva": "https://www.canva.com/design/DAG7IMxAW0o/L3pVUYwiSMYlj3M7GUul3w/edit",
+      "calificaciones": {        
+        "calificaGit": "10",
+        "calificaC": "10",
+        "proyect": "8",
+        "examen": "4.5",
+        "ev": "8"
+      }
+    },
+    {
+      "id": 2,
+      "nombre": "Vanelope",
+      "pagina": "https://evelyndominguez-oss.github.io/HolaWeb/",
+      "paginaCanva": "https://www.canva.com/design/DAG6AnzEgPk/5x99ee5lp3qtWjZE715NWg/edit",
+      "calificaciones": {
+        "calificaGit": "10",
+        "calificaC": "10",
+        "proyect": "7",
+        "examen": "3.5",
+        "ev": "8"
+      }
+    },
+    {
+      "id": 3,
+      "nombre": "Yey",
+      "pagina": "https://yoramruiz-sys.github.io/MiPaginaWeb/",
+      "paginaCanva": "https://estampaloka.my.canva.site/",
+      "calificaciones": {
+        "calificaGit": "3GPT",
+        "calificaC": "7",
+        "proyect": "6",
+        "examen": "2.5",
+        "ev": "2"
+      }
+    },
+    {
+      "id": 4,
+      "nombre": "Frans",
+      "pagina": "https://t3lacomex.github.io/Camaron/",
+      "paginaCanva": "https://lacuevadelcamaron.my.canva.site/",
+      "calificaciones": {
+        "calificaGit": "3GPT",
+        "calificaC": "9",
+        "proyect": "6",
+        "examen": "3",
+        "ev": "4"
+      }
+    },
+    {
+      "id": 5,
+      "nombre": "Monster",
+      "pagina": "https://github.com/Moises8907",
+      "paginaCanva": "https://www.figma.com/make/UMPNM5476rQfOhwWRcpCzV/",
+      "calificaciones": {
+        "calificaGit": "3N",
+        "calificaC": "9",
+        "proyect": "8",
+        "examen": "5.5",
+        "ev": "0"
+      }
+    },
+    {
+      "id": 6,
+      "nombre": "Brioso",
+      "pagina": "https://barullada245-web.github.io/HolaWeb/",
+      "paginaCanva": "https://www.canva.com/design/DAG6ar3yit8/Vjc6vQe48Um9Ebx_YKD1Sg/edit",
+      "calificaciones": {
+        "calificaGit": "9",
+        "calificaC": "9",
+        "proyect": "7",
+        "examen": "3.5",
+        "ev": "7"
+      }
+    },
+    {
+      "id": 7,
+      "nombre": "Tabasco",
+      "pagina": "https://valbenitezs1216.github.io/ExamenP3/",
+      "paginaCanva": "",
+      "calificaciones": {
+        "calificaGit": "8GPT",
+        "calificaC": "0",
+        "proyect": "10",
+        "examen": "7",
+        "ev": "8"
+      }
+    }
+  ]
+}
+
+

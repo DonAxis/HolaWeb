@@ -11,7 +11,7 @@ async function cargarDatos() {
   } catch (error) {
     console.error('Error al cargar los datos:', error);
     document.getElementById("alumnos").innerHTML = 
-      '<p style="color: red;">Error al cargar los datos. Verifica que el archivo alumnos.json existe.</p>';
+      '<p style="color: red;">Error el ".json" no aparece o no existe.</p>';
   }
 }
 
