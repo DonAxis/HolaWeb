@@ -1,11 +1,11 @@
 {
   "alumnos": [
     {
-      "id": 1,      //agrego ID
+      "id": 1,     
       "nombre": "Dana",
       "pagina": "https://danaromero960120.github.io/holaWeb/dreams.html",
       "paginaCanva": "https://www.canva.com/design/DAG7IMxAW0o/L3pVUYwiSMYlj3M7GUul3w/edit",
-      "calificaciones": {         //aqui se esta actualizando todo
+      "calificaciones": {        
         "calificaGit": "10",
         "calificaC": "10",
         "proyect": "8",
@@ -95,17 +95,3 @@
 }
 
 
-/*antes en el js era asi
-    const Califica = [
-      {
-        nombre: "Dana",
-        pagina: "https://danaromero960120.github.io/holaWeb/dreams.html",
-        paginaCanva: "https://www.canva.com/design/DAG7IMxAW0o/L3pVUYwiSMYlj3M7GUul3w/edit",
-        calificaGit: "10",
-        calificaC: "10",
-        proyect: "8",
-        examen:"4.5",
-        ev:"8"
-
-      },
-      ]
