@@ -2,21 +2,19 @@
 let alumnosData = [];
 
 // Función para cargar los datos desde el JSON
-
 async function cargarDatos() {
   try {
-    const response = await fetch('alumnos-data.json');
+    const response = await fetch('alumnos.json');
     const data = await response.json();
     alumnosData = data.alumnos;
     mostrarTabla(alumnosData);
   } catch (error) {
     console.error('Error al cargar los datos:', error);
     document.getElementById("alumnos").innerHTML = 
-      '<p style="color: red;">Error al cargar los datos. Verifica que el archivo alumnos-data.json existe.</p>';
+      '<p style="color: red;">Error al cargar los datos. Verifica que el archivo alumnos.json existe.</p>';
   }
 }
 
-// Función para mostrar la tabla
 function mostrarTabla(alumnos) {
   let tabla = `
     <table>
@@ -101,3 +99,9 @@ function calcularPromedio2(cal) {
 
 // Cargar datos cuando la página esté lista
 cargarDatos();
+
+
+
+
+
+
