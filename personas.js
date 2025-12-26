@@ -5,9 +5,7 @@ async function cargarDatos() {
     const response = await fetch('personas.json');
     const data = await response.json();
 
-    // 👇 aquí está la clave correcta del JSON
     alumnosData = data.alumnos;
-
     mostrarTabla(alumnosData);
   } catch (error) {
     console.error('Error al cargar los datos:', error);
@@ -20,38 +18,31 @@ function mostrarTabla(alumnos) {
   let tabla = `
     <table border="1">
       <tr>
+        <th>ID</th>
         <th>Nombre</th>
-        <th>GitHub</th>
-        <th>Canva</th>
-        <th>Git</th>
-        <th>Canva</th>
-        <th>Proyecto</th>
-        <th>Examen</th>
-        <th>Evaluación</th>
+        <th>Grupo</th>
+        <th>Actividad 1</th>
+        <th>Actividad 2</th>
+        <th>Actividad 3</th>
+        <th>Promedio</th>
       </tr>
   `;
 
   alumnos.forEach(alumno => {
-    const cal = alumno.calificaciones;
+    const a1 = parseFloat(alumno.actividad1);
+    const a2 = parseFloat(alumno.actividad2);
+    const a3 = parseFloat(alumno.actividad3);
+    const promedio = ((a1 + a2 + a3) / 3).toFixed(2);
 
     tabla += `
       <tr>
+        <td>${alumno.id}</td>
         <td>${alumno.nombre}</td>
-        <td>
-          <a href="${alumno.pagina}" target="_blank">
-            ${alumno.pagina ? "Ver" : "No hay"}
-          </a>
-        </td>
-        <td>
-          <a href="${alumno.paginaCanva}" target="_blank">
-            ${alumno.paginaCanva ? "Ver" : "No hay"}
-          </a>
-        </td>
-        <td>${cal.calificaGit}</td>
-        <td>${cal.calificaC}</td>
-        <td>${cal.proyect}</td>
-        <td>${cal.examen}</td>
-        <td>${cal.ev}</td>
+        <td>${alumno.grupoNum}${alumno.grupoSig}</td>
+        <td>${alumno.actividad1}</td>
+        <td>${alumno.actividad2}</td>
+        <td>${alumno.actividad3}</td>
+        <td>${promedio}</td>
       </tr>
     `;
   });
