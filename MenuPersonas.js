@@ -1,23 +1,16 @@
-// personas-editable.js
-// Sistema adaptado a la nueva estructura con grupos y actividades
-
 let alumnosData = [];
 
-// Al cargar la página, intentar obtener datos de localStorage primero
 async function inicializar() {
   const datosGuardados = localStorage.getItem('personasData');
   
   if (datosGuardados) {
-    console.log('📦 Cargando datos desde LocalStorage');
     alumnosData = JSON.parse(datosGuardados);
     mostrarTabla(alumnosData);
   } else {
-    console.log('📥 Cargando datos desde JSON por primera vez');
     await cargarDatosJSON();
   }
 }
 
-// Cargar datos del JSON original
 async function cargarDatosJSON() {
   try {
     const response = await fetch('personas.json');
@@ -27,19 +20,15 @@ async function cargarDatosJSON() {
     guardarEnLocalStorage();
     mostrarTabla(alumnosData);
   } catch (error) {
-    console.error('Error al cargar los datos:', error);
     document.getElementById("tabla-alumnos").innerHTML = 
       '<p style="color: red;">Error al cargar los datos. Verifica que el archivo .json existe.</p>';
   }
 }
 
-// Guardar datos en localStorage
 function guardarEnLocalStorage() {
   localStorage.setItem('personasData', JSON.stringify(alumnosData));
-  console.log('💾 Datos guardados en LocalStorage');
 }
 
-// Mostrar la tabla con botones de acción
 function mostrarTabla(alumnos) {
   if (alumnos.length === 0) {
     document.getElementById("tabla-alumnos").innerHTML = 
@@ -51,7 +40,7 @@ function mostrarTabla(alumnos) {
     <table>
       <thead>
         <tr>
-          <th>ID</th>
+          <th>Matrícula</th>
           <th>Nombre</th>
           <th>Grupo</th>
           <th>Actividad 1</th>
@@ -70,8 +59,8 @@ function mostrarTabla(alumnos) {
     
     tabla += `
       <tr>
-        <td>${alumno.id || "-"}</td>
-        <td><strong>${alumno.nombre || "-"}</strong></td>
+        <td><strong>${alumno.matricula || "-"}</strong></td>
+        <td>${alumno.nombre || "-"}</td>
         <td>${grupo || "-"}</td>
         <td>${alumno.actividad1 || "P"}</td>
         <td>${alumno.actividad2 || "P"}</td>
@@ -93,7 +82,6 @@ function mostrarTabla(alumnos) {
   document.getElementById("tabla-alumnos").innerHTML = tabla;
 }
 
-// Calcular promedio de las 3 actividades
 function calcularPromedio(alumno) {
   function nota(n) {
     if (typeof n === "string") {
