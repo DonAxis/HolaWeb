@@ -2,21 +2,13 @@
   "alumnos": [
     {
       "id": "1",
-      "nombre": "Juan Pérez",
-      "grupoNum": "3",
-      "grupoSig": "A",
+      "matricula": "A12345",
+      "nombre": "Mari Mar",
+      "grupoNum": "3101",
+      "grupoSig": "TT",
       "actividad1": "8.5",
-      "actividad2": "9.0",
+      "actividad2": "9",
       "actividad3": "7.5"
-    },
-    {
-      "id": "2",
-      "nombre": "María García",
-      "grupoNum": "3",
-      "grupoSig": "A",
-      "actividad1": "9.5",
-      "actividad2": "8.0",
-      "actividad3": "9.0"
     }
   ]
 }
