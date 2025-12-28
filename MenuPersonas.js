@@ -1,34 +1,37 @@
+// MenuPersonas-firebase.js
+// Sistema con Firebase en lugar de LocalStorage
+
 let alumnosData = [];
 
+// Inicializar: cargar datos desde Firebase
 async function inicializar() {
-  const datosGuardados = localStorage.getItem('personasData');
-  
-  if (datosGuardados) {
-    alumnosData = JSON.parse(datosGuardados);
-    mostrarTabla(alumnosData);
-  } else {
-    await cargarDatosJSON();
-  }
+  console.log(' Cargando datos desde Firebase...');
+  await cargarDatosFirebase();
 }
 
-async function cargarDatosJSON() {
+// Cargar datos desde Firebase
+async function cargarDatosFirebase() {
   try {
-    const response = await fetch('personas.json');
-    const data = await response.json();
-    alumnosData = data.alumnos;
+    const snapshot = await db.collection('alumnos').orderBy('matricula').get();
     
-    guardarEnLocalStorage();
+    alumnosData = [];
+    snapshot.forEach(doc => {
+      alumnosData.push({
+        docId: doc.id,  // ID de Firebase
+        ...doc.data()   // Todos los datos del alumno
+      });
+    });
+    
+    console.log(` ${alumnosData.length} alumnos cargados desde Firebase`);
     mostrarTabla(alumnosData);
   } catch (error) {
+    console.error(' Error al cargar datos:', error);
     document.getElementById("tabla-alumnos").innerHTML = 
-      '<p style="color: red;">Error al cargar los datos. Verifica que el archivo .json existe.</p>';
+      '<p style="color: red;">Error al cargar datos de Firebase. Verifica tu conexión.</p>';
   }
 }
 
-function guardarEnLocalStorage() {
-  localStorage.setItem('personasData', JSON.stringify(alumnosData));
-}
-
+// Mostrar tabla
 function mostrarTabla(alumnos) {
   if (alumnos.length === 0) {
     document.getElementById("tabla-alumnos").innerHTML = 
@@ -82,6 +85,7 @@ function mostrarTabla(alumnos) {
   document.getElementById("tabla-alumnos").innerHTML = tabla;
 }
 
+// Calcular promedio
 function calcularPromedio(alumno) {
   function nota(n) {
     if (typeof n === "string") {
@@ -95,7 +99,6 @@ function calcularPromedio(alumno) {
   const act2 = nota(alumno.actividad2);
   const act3 = nota(alumno.actividad3);
 
-  // Si todas son 0, mostrar "P" (pendiente)
   if (act1 === 0 && act2 === 0 && act3 === 0) {
     return "P";
   }
@@ -103,33 +106,25 @@ function calcularPromedio(alumno) {
   return ((act1 + act2 + act3) / 3).toFixed(1);
 }
 
-// Mostrar formulario para agregar alumno
+// Mostrar formulario para agregar
 function mostrarFormularioAgregar() {
   document.getElementById('tituloModal').textContent = 'Agregar Nuevo Alumno';
   document.getElementById('indiceAlumno').value = '';
-  
-  // Limpiar formulario
+  document.getElementById('docId').value = '';
   document.getElementById('formAlumno').reset();
   
-  // Generar nuevo ID automáticamente
-  const nuevoId = alumnosData.length > 0 
-    ? Math.max(...alumnosData.map(a => parseInt(a.id) || 0)) + 1 
-    : 1;
-  document.getElementById('id').value = nuevoId;
-  
-  // Mostrar modal
   document.getElementById('modalFormulario').style.display = 'block';
 }
 
-// Editar alumno existente
+// Editar alumno
 function editarAlumno(index) {
   const alumno = alumnosData[index];
   
   document.getElementById('tituloModal').textContent = 'Editar Alumno';
   document.getElementById('indiceAlumno').value = index;
+  document.getElementById('docId').value = alumno.docId;
   
-  // Llenar formulario con datos actuales
-  document.getElementById('id').value = alumno.id || '';
+  document.getElementById('matricula').value = alumno.matricula || '';
   document.getElementById('nombre').value = alumno.nombre || '';
   document.getElementById('grupoNum').value = alumno.grupoNum || '';
   document.getElementById('grupoSig').value = alumno.grupoSig || '';
@@ -137,52 +132,63 @@ function editarAlumno(index) {
   document.getElementById('actividad2').value = alumno.actividad2 || '';
   document.getElementById('actividad3').value = alumno.actividad3 || '';
   
-  // Mostrar modal
   document.getElementById('modalFormulario').style.display = 'block';
 }
 
-// Guardar alumno (crear o actualizar)
-function guardarAlumno(event) {
+// Guardar alumno en Firebase
+async function guardarAlumno(event) {
   event.preventDefault();
   
-  const index = document.getElementById('indiceAlumno').value;
-  const nuevoAlumno = {
-    id: document.getElementById('id').value,
-    nombre: document.getElementById('nombre').value,
+  const docId = document.getElementById('docId').value;
+  const alumnoData = {
+    matricula: document.getElementById('matricula').value.trim(),
+    nombre: document.getElementById('nombre').value.trim(),
     grupoNum: document.getElementById('grupoNum').value,
     grupoSig: document.getElementById('grupoSig').value.toUpperCase(),
     actividad1: document.getElementById('actividad1').value,
     actividad2: document.getElementById('actividad2').value,
-    actividad3: document.getElementById('actividad3').value
+    actividad3: document.getElementById('actividad3').value,
+    fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
   };
   
-  if (index === '') {
-    // Agregar nuevo
-    alumnosData.push(nuevoAlumno);
-    console.log('➕ Alumno agregado');
-    mostrarMensaje('Alumno agregado correctamente', 'exito');
-  } else {
-    // Actualizar existente
-    alumnosData[index] = nuevoAlumno;
-    console.log('✏️ Alumno actualizado');
-    mostrarMensaje('Alumno actualizado correctamente', 'exito');
+  try {
+    if (docId === '') {
+      // Agregar nuevo alumno
+      await db.collection('alumnos').add(alumnoData);
+      console.log(' Alumno agregado a Firebase');
+      mostrarMensaje('Alumno agregado correctamente', 'exito');
+    } else {
+      // Actualizar alumno existente
+      await db.collection('alumnos').doc(docId).update(alumnoData);
+      console.log(' Alumno actualizado en Firebase');
+      mostrarMensaje('Alumno actualizado correctamente', 'exito');
+    }
+    
+    // Recargar datos
+    await cargarDatosFirebase();
+    cerrarModal();
+  } catch (error) {
+    console.error(' Error al guardar:', error);
+    mostrarMensaje('Error al guardar: ' + error.message, 'error');
   }
-  
-  guardarEnLocalStorage();
-  mostrarTabla(alumnosData);
-  cerrarModal();
 }
 
-// Eliminar alumno
-function eliminarAlumno(index) {
+// Eliminar alumno de Firebase
+async function eliminarAlumno(index) {
   const alumno = alumnosData[index];
   
   if (confirm(`¿Estás seguro de eliminar a ${alumno.nombre}?`)) {
-    alumnosData.splice(index, 1);
-    guardarEnLocalStorage();
-    mostrarTabla(alumnosData);
-    console.log('🗑️ Alumno eliminado');
-    mostrarMensaje('Alumno eliminado correctamente', 'exito');
+    try {
+      await db.collection('alumnos').doc(alumno.docId).delete();
+      console.log(' Alumno eliminado de Firebase');
+      mostrarMensaje('Alumno eliminado correctamente', 'exito');
+      
+      // Recargar datos
+      await cargarDatosFirebase();
+    } catch (error) {
+      console.error(' Error al eliminar:', error);
+      mostrarMensaje('Error al eliminar: ' + error.message, 'error');
+    }
   }
 }
 
@@ -191,13 +197,27 @@ function cerrarModal() {
   document.getElementById('modalFormulario').style.display = 'none';
 }
 
-// Resetear datos (volver al JSON original)
-function resetearDatos() {
-  if (confirm('⚠️ Esto borrará todos los cambios y volverá a los datos originales. ¿Continuar?')) {
-    localStorage.removeItem('personasData');
-    console.log('🔄 Datos reseteados');
-    mostrarMensaje('Datos reseteados correctamente', 'exito');
-    cargarDatosJSON();
+// Resetear datos (eliminar todo de Firebase)
+async function resetearDatos() {
+  if (confirm(' Esto eliminará TODOS los alumnos de Firebase. ¿Continuar?')) {
+    try {
+      const snapshot = await db.collection('alumnos').get();
+      const batch = db.batch();
+      
+      snapshot.forEach(doc => {
+        batch.delete(doc.ref);
+      });
+      
+      await batch.commit();
+      console.log('Todos los datos eliminados de Firebase');
+      mostrarMensaje('Datos reseteados correctamente', 'exito');
+      
+      // Recargar datos (debería estar vacío)
+      await cargarDatosFirebase();
+    } catch (error) {
+      console.error(' Error al resetear:', error);
+      mostrarMensaje('Error al resetear: ' + error.message, 'error');
+    }
   }
 }
 
@@ -223,5 +243,5 @@ window.onclick = function(event) {
   }
 }
 
-// Inicializar al cargar la página
+// Inicializar cuando la página cargue
 inicializar();
