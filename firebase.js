@@ -1,6 +1,5 @@
-
-import { initializeApp } from "firebase/app";
-import { getAnalytics } from "firebase/analytics";
+// firebase.js
+// Configuración de Firebase (versión compat)
 
 const firebaseConfig = {
   apiKey: "AIzaSyCajdNO6U7xTRPD8xwy2hVoGqJX8506i2A",
@@ -12,6 +11,10 @@ const firebaseConfig = {
   measurementId: "G-HJ8YJG8V3W"
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+
+// Referencia a Firestore
+const db = firebase.firestore();
+
+console.log('🔥 Firebase conectado correctamente');
