@@ -3,14 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="botones.css">  <!-- estilos botones -->
-<link rel="stylesheet" href="Personas.css"> 
+  <link rel="stylesheet" href="botones.css">
+  <link rel="stylesheet" href="Personas.css"> 
   
   <title>Registro</title>
 </head>
 <body>
 
-  <h1>Agregar Usuario (Firebase)</h1>
+  <h1>Agregar Usuario</h1>
   
   <div class="botones-accion">
     <button onclick="mostrarFormularioAgregar()" class="botAzu">
@@ -23,7 +23,7 @@
 
   <div id="contenido">
     <div id="tabla-alumnos">
-      <p>Cargando datos desde Firebase...</p>
+      <p>Cargando datos...</p>
     </div>
   </div>
 
@@ -79,15 +79,15 @@
         </div>
 
         <div class="form-botones">
-          <button type="submit" class="btn-guardar"> Guardar</button>
-          <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
+          <button type="submit" class="botAzu">Guardar</button>
+          <button type="button" onclick="cerrarModal()" class="botAzu">Cancelar</button>
         </div>
       </form>
     </div>
   </div>
 
-  <!-- Firebase SDK -->
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
   
   <script src="firebase.js"></script>

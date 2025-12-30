@@ -1,11 +1,87 @@
-// MenuPersonas-firebase.js
-// Sistema con Firebase en lugar de LocalStorage
+// MenuPersonas.js - MIGRADO A FIREBASE
+// Sistema con autenticación y Firebase
 
+const auth = firebase.auth();
 let alumnosData = [];
+let usuarioActual = null;
 
-// Inicializar: cargar datos desde Firebase
+// ===== PROTECCIÓN DE PÁGINA =====
+auth.onAuthStateChanged(async (user) => {
+  if (!user) {
+    console.log('❌ No hay sesión activa');
+    alert('Debes iniciar sesión para acceder');
+    window.location.href = 'login.html';
+    return;
+  }
+
+  // Verificar rol del usuario
+  try {
+    const userDoc = await db.collection('usuarios').doc(user.uid).get();
+    
+    if (!userDoc.exists) {
+      console.log('❌ Usuario no encontrado en Firestore');
+      await auth.signOut();
+      window.location.href = 'login.html';
+      return;
+    }
+
+    usuarioActual = userDoc.data();
+    usuarioActual.uid = user.uid;
+
+    // Verificar que tenga permiso (profesor o admin)
+    if (usuarioActual.rol !== 'profesor' && usuarioActual.rol !== 'admin') {
+      console.log('❌ No tienes permisos para acceder');
+      alert('No tienes permisos para acceder a esta página');
+      window.location.href = 'login.html';
+      return;
+    }
+
+    console.log('✅ Usuario autorizado:', usuarioActual.nombre, '- Rol:', usuarioActual.rol);
+    
+    // Mostrar info del usuario en la página
+    mostrarInfoUsuario();
+    
+    // Inicializar la aplicación
+    inicializar();
+    
+  } catch (error) {
+    console.error('❌ Error al verificar usuario:', error);
+    alert('Error al verificar permisos');
+    window.location.href = 'login.html';
+  }
+});
+
+// Mostrar información del usuario en la página
+function mostrarInfoUsuario() {
+  const h1 = document.querySelector('h1');
+  if (h1 && usuarioActual) {
+    h1.innerHTML = `
+      Agregar Usuario 
+      <span style="float: right; font-size: 0.6em; color: #666;">
+        👤 ${usuarioActual.nombre} (${usuarioActual.rol})
+        <button onclick="cerrarSesion()" class="botAzu" style="margin-left: 10px;">🚪 Salir</button>
+      </span>
+    `;
+  }
+}
+
+// Cerrar sesión
+async function cerrarSesion() {
+  if (confirm('¿Cerrar sesión?')) {
+    try {
+      await auth.signOut();
+      sessionStorage.clear();
+      window.location.href = 'login.html';
+    } catch (error) {
+      console.error('Error al cerrar sesión:', error);
+      alert('Error al cerrar sesión');
+    }
+  }
+}
+
+// ===== INICIALIZACIÓN CON FIREBASE =====
 async function inicializar() {
-  console.log(' Cargando datos desde Firebase...');
+  console.log('📥 Cargando datos desde Firebase...');
   await cargarDatosFirebase();
 }
 
@@ -17,17 +93,17 @@ async function cargarDatosFirebase() {
     alumnosData = [];
     snapshot.forEach(doc => {
       alumnosData.push({
-        docId: doc.id,  // ID de Firebase
-        ...doc.data()   // Todos los datos del alumno
+        docId: doc.id,
+        ...doc.data()
       });
     });
     
-    console.log(` ${alumnosData.length} alumnos cargados desde Firebase`);
+    console.log(`✅ ${alumnosData.length} alumnos cargados desde Firebase`);
     mostrarTabla(alumnosData);
   } catch (error) {
-    console.error(' Error al cargar datos:', error);
+    console.error('❌ Error al cargar datos:', error);
     document.getElementById("tabla-alumnos").innerHTML = 
-      '<p style="color: red;">Error al cargar datos de Firebase. Verifica tu conexión.</p>';
+      '<p style="color: red;">Error al cargar datos de Firebase.</p>';
   }
 }
 
@@ -57,7 +133,7 @@ function mostrarTabla(alumnos) {
   `;
 
   alumnos.forEach((alumno, index) => {
-    const grupo = `${alumno.grupoNum}${alumno.grupoSig}`;
+    const grupo = `${alumno.grupoNum || ''}${alumno.grupoSig || ''}`;
     const promedio = calcularPromedio(alumno);
     
     tabla += `
@@ -77,10 +153,7 @@ function mostrarTabla(alumnos) {
     `;
   });
 
-  tabla += `
-      </tbody>
-    </table>
-  `;
+  tabla += `</tbody></table>`;
   
   document.getElementById("tabla-alumnos").innerHTML = tabla;
 }
@@ -148,27 +221,25 @@ async function guardarAlumno(event) {
     actividad1: document.getElementById('actividad1').value,
     actividad2: document.getElementById('actividad2').value,
     actividad3: document.getElementById('actividad3').value,
-    fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
+    fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp(),
+    actualizadoPor: usuarioActual.uid
   };
   
   try {
     if (docId === '') {
-      // Agregar nuevo alumno
       await db.collection('alumnos').add(alumnoData);
-      console.log(' Alumno agregado a Firebase');
+      console.log('✅ Alumno agregado a Firebase');
       mostrarMensaje('Alumno agregado correctamente', 'exito');
     } else {
-      // Actualizar alumno existente
       await db.collection('alumnos').doc(docId).update(alumnoData);
-      console.log(' Alumno actualizado en Firebase');
+      console.log('✅ Alumno actualizado en Firebase');
       mostrarMensaje('Alumno actualizado correctamente', 'exito');
     }
     
-    // Recargar datos
     await cargarDatosFirebase();
     cerrarModal();
   } catch (error) {
-    console.error(' Error al guardar:', error);
+    console.error('❌ Error al guardar:', error);
     mostrarMensaje('Error al guardar: ' + error.message, 'error');
   }
 }
@@ -180,13 +251,12 @@ async function eliminarAlumno(index) {
   if (confirm(`¿Estás seguro de eliminar a ${alumno.nombre}?`)) {
     try {
       await db.collection('alumnos').doc(alumno.docId).delete();
-      console.log(' Alumno eliminado de Firebase');
+      console.log('✅ Alumno eliminado de Firebase');
       mostrarMensaje('Alumno eliminado correctamente', 'exito');
       
-      // Recargar datos
       await cargarDatosFirebase();
     } catch (error) {
-      console.error(' Error al eliminar:', error);
+      console.error('❌ Error al eliminar:', error);
       mostrarMensaje('Error al eliminar: ' + error.message, 'error');
     }
   }
@@ -197,9 +267,9 @@ function cerrarModal() {
   document.getElementById('modalFormulario').style.display = 'none';
 }
 
-// Resetear datos (eliminar todo de Firebase)
+// Resetear datos
 async function resetearDatos() {
-  if (confirm(' Esto eliminará TODOS los alumnos de Firebase. ¿Continuar?')) {
+  if (confirm('⚠️ Esto eliminará TODOS los alumnos de Firebase. ¿Continuar?')) {
     try {
       const snapshot = await db.collection('alumnos').get();
       const batch = db.batch();
@@ -209,13 +279,12 @@ async function resetearDatos() {
       });
       
       await batch.commit();
-      console.log('Todos los datos eliminados de Firebase');
+      console.log('✅ Todos los datos eliminados');
       mostrarMensaje('Datos reseteados correctamente', 'exito');
       
-      // Recargar datos (debería estar vacío)
       await cargarDatosFirebase();
     } catch (error) {
-      console.error(' Error al resetear:', error);
+      console.error('❌ Error al resetear:', error);
       mostrarMensaje('Error al resetear: ' + error.message, 'error');
     }
   }
@@ -243,5 +312,4 @@ window.onclick = function(event) {
   }
 }
 
-// Inicializar cuando la página cargue
-inicializar();
+console.log('📱 MenuPersonas con Firebase cargado');
