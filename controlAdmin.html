@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="botones.css">
+  <link rel="stylesheet" href="Personas.css">
+  <title>Panel de Administrador</title>
+  <style>
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      color: white;
+      margin: 0;
+    }
+
+    .user-info {
+      text-align: right;
+    }
+
+    .user-info p {
+      margin: 5px 0;
+      font-size: 0.9rem;
+    }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+      transition: all 0.3s;
+    }
+
+    .btn-logout:hover {
+      background: white;
+      color: #667eea;
+    }
+
+    .menu-opciones {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .opcion {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      border: 2px solid transparent;
+    }
+
+    .opcion:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+      border-color: #667eea;
+    }
+
+    .opcion h3 {
+      color: #667eea;
+      margin-bottom: 10px;
+    }
+
+    .opcion p {
+      color: #666;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>🔐 Panel de Administrador</h1>
+      <p style="margin: 5px 0;">Sistema Escolar</p>
+    </div>
+    <div class="user-info">
+      <p><strong id="userName">Cargando...</strong></p>
+      <p id="userEmail"></p>
+      <button onclick="cerrarSesion()" class="btn-logout">🚪 Cerrar Sesión</button>
+    </div>
+  </div>
+
+  <div class="menu-opciones">
+    <div class="opcion" onclick="window.location.href='MenuPersonas.html'">
+      <h3>👥 Gestionar Alumnos</h3>
+      <p>Crear, editar y eliminar alumnos</p>
+    </div>
+
+    <div class="opcion" onclick="alert('Próximamente')">
+      <h3>🎓 Gestionar Carreras</h3>
+      <p>Crear y administrar carreras</p>
+    </div>
+
+    <div class="opcion" onclick="alert('Próximamente')">
+      <h3>📚 Gestionar Materias</h3>
+      <p>Crear y administrar materias</p>
+    </div>
+
+    <div class="opcion" onclick="alert('Próximamente')">
+      <h3>👨‍🏫 Gestionar Profesores</h3>
+      <p>Asignar profesores a materias</p>
+    </div>
+
+    <div class="opcion" onclick="alert('Próximamente')">
+      <h3>📊 Ver Reportes</h3>
+      <p>Reportes y estadísticas</p>
+    </div>
+
+    <div class="opcion" onclick="alert('Próximamente')">
+      <h3>⚙️ Configuración</h3>
+      <p>Configuración del sistema</p>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase.js"></script>
+  
+  <script>
+    const auth = firebase.auth();
+
+    // Proteger la página - solo admin
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        console.log('❌ No hay usuario autenticado');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Verificar rol
+      const userDoc = await db.collection('usuarios').doc(user.uid).get();
+      
+      if (!userDoc.exists) {
+        console.log('❌ Usuario no encontrado en Firestore');
+        await auth.signOut();
+        window.location.href = 'login.html';
+        return;
+      }
+
+      const userData = userDoc.data();
+
+      if (userData.rol !== 'admin') {
+        console.log('❌ No tienes permisos de administrador');
+        alert('No tienes permisos para acceder a esta página');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      // Mostrar datos del usuario
+      document.getElementById('userName').textContent = userData.nombre;
+      document.getElementById('userEmail').textContent = user.email;
+      
+      console.log('✅ Dashboard de admin cargado');
+    });
+
+    // Función para cerrar sesión
+    async function cerrarSesion() {
+      if (confirm('¿Estás seguro de cerrar sesión?')) {
+        try {
+          await auth.signOut();
+          sessionStorage.clear();
+          window.location.href = 'login.html';
+        } catch (error) {
+          console.error('Error al cerrar sesión:', error);
+          alert('Error al cerrar sesión');
+        }
+      }
+    }
+  </script>
+</body>
+</html>

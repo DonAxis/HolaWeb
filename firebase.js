@@ -17,4 +17,4 @@ firebase.initializeApp(firebaseConfig);
 // Referencia a Firestore
 const db = firebase.firestore();
 
-console.log('🔥 Firebase conectado correctamente');
+console.log('Firebase conectado correctamente');
