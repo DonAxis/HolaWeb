@@ -27,7 +27,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     
     // 2. Obtener datos del usuario desde Firestore
     console.log('📥 Obteniendo datos del usuario...');
-    const userDoc = await db.collection('usuarios').doc(user.uid).get();
+    const userDoc = await db.collection('Usuarios').doc(user.uid).get();
     
     if (!userDoc.exists) {
       throw new Error('Usuario no encontrado en la base de datos');
