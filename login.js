@@ -149,7 +149,7 @@ auth.onAuthStateChanged(async (user) => {
     
     try {
       // Obtener rol del usuario
-      const userDoc = await db.collection('usuarios').doc(user.uid).get();
+      const userDoc = await db.collection('Usuarios').doc(user.uid).get();
       
       if (userDoc.exists) {
         const userData = userDoc.data();
