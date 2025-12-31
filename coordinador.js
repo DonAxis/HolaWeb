@@ -500,21 +500,430 @@ async function guardarGrupo(event, grupoId) {
   }
 }
 
-// ===== FUNCIONES PLACEHOLDERS =====
-function cargarAsignaciones() {
-  document.getElementById('listaAsignaciones').innerHTML = '<div class="sin-datos">Próximamente: Asignar profesores a materias</div>';
+// ===== ASIGNAR PROFESORES A MATERIAS =====
+async function cargarAsignaciones() {
+  try {
+    // Cargar asignaciones activas
+    let query = db.collection('profesorMaterias').where('activa', '==', true);
+    
+    // Filtrar por carrera si es coordinador
+    if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+      query = query.where('carreraId', '==', usuarioActual.carreraId);
+    }
+    
+    const snapshot = await query.get();
+    const container = document.getElementById('listaAsignaciones');
+    
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="sin-datos">No hay profesores asignados a materias</div>';
+      return;
+    }
+    
+    let html = '';
+    snapshot.forEach(doc => {
+      const asignacion = doc.data();
+      html += `
+        <div class="item">
+          <div class="item-info">
+            <h4>📚 ${asignacion.materiaNombre} (${asignacion.materiaId})</h4>
+            <p>👨‍🏫 Profesor: ${asignacion.profesorNombre}</p>
+            <p>👥 Grupo: ${asignacion.grupoNombre} | 📅 Periodo: ${asignacion.periodo}</p>
+          </div>
+          <div class="item-acciones">
+            <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar">🔄 Reasignar</button>
+            <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar">❌ Desactivar</button>
+          </div>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+  } catch (error) {
+    console.error('Error al cargar asignaciones:', error);
+    document.getElementById('listaAsignaciones').innerHTML = 
+      '<p style="color: red;">Error al cargar asignaciones</p>';
+  }
 }
 
-function cargarInscripciones() {
-  document.getElementById('listaInscripciones').innerHTML = '<div class="sin-datos">Próximamente: Inscribir alumnos a materias</div>';
+async function mostrarFormAsignarProfesor() {
+  document.getElementById('tituloModal').textContent = 'Asignar Profesor a Materia';
+  
+  // Cargar profesores
+  const profesoresSnap = await db.collection('usuarios').where('rol', '==', 'profesor').get();
+  let profesoresHtml = '<option value="">Seleccionar profesor...</option>';
+  profesoresSnap.forEach(doc => {
+    const prof = doc.data();
+    profesoresHtml += `<option value="${doc.id}" data-nombre="${prof.nombre}">${prof.nombre} (${prof.email})</option>`;
+  });
+  
+  // Cargar materias de la carrera
+  let materiasQuery = db.collection('materias');
+  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+    materiasQuery = materiasQuery.where('carreraId', '==', usuarioActual.carreraId);
+  }
+  const materiasSnap = await materiasQuery.get();
+  let materiasHtml = '<option value="">Seleccionar materia...</option>';
+  materiasSnap.forEach(doc => {
+    const mat = doc.data();
+    materiasHtml += `<option value="${doc.id}" data-nombre="${mat.nombre}" data-codigo="${mat.codigo}">${mat.nombre} (${mat.codigo})</option>`;
+  });
+  
+  // Cargar grupos de la carrera
+  let gruposQuery = db.collection('grupos');
+  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+    gruposQuery = gruposQuery.where('carreraId', '==', usuarioActual.carreraId);
+  }
+  const gruposSnap = await gruposQuery.get();
+  let gruposHtml = '<option value="">Seleccionar grupo...</option>';
+  gruposSnap.forEach(doc => {
+    const grp = doc.data();
+    gruposHtml += `<option value="${doc.id}" data-nombre="${grp.nombre}">${grp.nombre} (Semestre ${grp.semestre})</option>`;
+  });
+  
+  const html = `
+    <form onsubmit="guardarAsignacionProfesor(event)">
+      <div class="form-grupo">
+        <label>Materia: *</label>
+        <select id="materiaAsignar" required>
+          ${materiasHtml}
+        </select>
+      </div>
+      
+      <div class="form-grupo">
+        <label>Profesor: *</label>
+        <select id="profesorAsignar" required>
+          ${profesoresHtml}
+        </select>
+      </div>
+      
+      <div class="form-grupo">
+        <label>Grupo: *</label>
+        <select id="grupoAsignar" required>
+          ${gruposHtml}
+        </select>
+      </div>
+      
+      <div class="form-grupo">
+        <label>Periodo: *</label>
+        <input type="text" id="periodoAsignar" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
+      </div>
+      
+      <div class="form-botones">
+        <button type="submit" class="btn-guardar">💾 Asignar Profesor</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+      </div>
+    </form>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'block';
 }
 
-function mostrarFormAsignarProfesor() {
-  alert('Próximamente: Formulario para asignar profesores');
+async function guardarAsignacionProfesor(event) {
+  event.preventDefault();
+  
+  const materiaSelect = document.getElementById('materiaAsignar');
+  const profesorSelect = document.getElementById('profesorAsignar');
+  const grupoSelect = document.getElementById('grupoAsignar');
+  
+  const materiaId = materiaSelect.value;
+  const materiaNombre = materiaSelect.options[materiaSelect.selectedIndex].dataset.nombre;
+  const materiaCodigo = materiaSelect.options[materiaSelect.selectedIndex].dataset.codigo;
+  
+  const profesorId = profesorSelect.value;
+  const profesorNombre = profesorSelect.options[profesorSelect.selectedIndex].dataset.nombre;
+  
+  const grupoId = grupoSelect.value;
+  const grupoNombre = grupoSelect.options[grupoSelect.selectedIndex].dataset.nombre;
+  
+  const periodo = document.getElementById('periodoAsignar').value.trim();
+  
+  // Verificar si ya existe esta asignación activa
+  const existe = await db.collection('profesorMaterias')
+    .where('materiaId', '==', materiaId)
+    .where('grupoId', '==', grupoId)
+    .where('periodo', '==', periodo)
+    .where('activa', '==', true)
+    .get();
+  
+  if (!existe.empty) {
+    if (!confirm('Ya existe un profesor asignado a esta materia y grupo en este periodo.\n¿Deseas desactivar la asignación anterior y crear una nueva?')) {
+      return;
+    }
+    
+    // Desactivar asignaciones anteriores
+    const batch = db.batch();
+    existe.forEach(doc => {
+      batch.update(doc.ref, { 
+        activa: false,
+        fechaFin: firebase.firestore.FieldValue.serverTimestamp()
+      });
+    });
+    await batch.commit();
+  }
+  
+  // Crear nueva asignación
+  const asignacion = {
+    materiaId: materiaId,
+    materiaNombre: materiaNombre,
+    materiaCodigo: materiaCodigo,
+    profesorId: profesorId,
+    profesorNombre: profesorNombre,
+    grupoId: grupoId,
+    grupoNombre: grupoNombre,
+    carreraId: usuarioActual.carreraId || null,
+    periodo: periodo,
+    activa: true,
+    fechaAsignacion: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  
+  try {
+    await db.collection('profesorMaterias').add(asignacion);
+    alert('✅ Profesor asignado correctamente');
+    cerrarModal();
+    cargarAsignaciones();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al asignar profesor');
+  }
 }
 
-function mostrarFormInscribirAlumno() {
-  alert('Próximamente: Formulario para inscribir alumnos');
+async function desactivarAsignacion(asignacionId) {
+  if (!confirm('¿Desactivar esta asignación?\n\nEl profesor ya no aparecerá como responsable de esta materia.')) {
+    return;
+  }
+  
+  try {
+    await db.collection('profesorMaterias').doc(asignacionId).update({
+      activa: false,
+      fechaFin: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    alert('✅ Asignación desactivada');
+    cargarAsignaciones();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al desactivar');
+  }
+}
+
+async function reasignarProfesor(asignacionId) {
+  // Obtener datos de la asignación actual
+  const asignDoc = await db.collection('profesorMaterias').doc(asignacionId).get();
+  const asignActual = asignDoc.data();
+  
+  if (!confirm(`Reasignar profesor para:\n\nMateria: ${asignActual.materiaNombre}\nGrupo: ${asignActual.grupoNombre}\nProfesor actual: ${asignActual.profesorNombre}\n\n¿Continuar?`)) {
+    return;
+  }
+  
+  // Desactivar asignación actual
+  await db.collection('profesorMaterias').doc(asignacionId).update({
+    activa: false,
+    fechaFin: firebase.firestore.FieldValue.serverTimestamp()
+  });
+  
+  // Mostrar formulario para nueva asignación
+  mostrarFormAsignarProfesor();
+}
+
+// ===== INSCRIBIR ALUMNOS A MATERIAS =====
+async function cargarInscripciones() {
+  try {
+    // Cargar inscripciones activas
+    let query = db.collection('alumnoMaterias').where('inscrito', '==', true);
+    
+    // Filtrar por carrera si es coordinador
+    if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+      query = query.where('carreraId', '==', usuarioActual.carreraId);
+    }
+    
+    const snapshot = await query.get();
+    const container = document.getElementById('listaInscripciones');
+    
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="sin-datos">No hay alumnos inscritos a materias</div>';
+      return;
+    }
+    
+    let html = '';
+    snapshot.forEach(doc => {
+      const inscripcion = doc.data();
+      html += `
+        <div class="item">
+          <div class="item-info">
+            <h4>👨‍🎓 ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
+            <p>📚 Materia: ${inscripcion.materiaNombre}</p>
+            <p>👥 Grupo: ${inscripcion.grupoNombre} | 📅 Periodo: ${inscripcion.periodo}</p>
+          </div>
+          <div class="item-acciones">
+            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar">❌ Dar de Baja</button>
+          </div>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+  } catch (error) {
+    console.error('Error al cargar inscripciones:', error);
+    document.getElementById('listaInscripciones').innerHTML = 
+      '<p style="color: red;">Error al cargar inscripciones</p>';
+  }
+}
+
+async function mostrarFormInscribirAlumno() {
+  document.getElementById('tituloModal').textContent = 'Inscribir Alumno a Materia';
+  
+  // Cargar alumnos
+  const alumnosSnap = await db.collection('usuarios').where('rol', '==', 'alumno').get();
+  let alumnosHtml = '<option value="">Seleccionar alumno...</option>';
+  alumnosSnap.forEach(doc => {
+    const alum = doc.data();
+    alumnosHtml += `<option value="${doc.id}" data-nombre="${alum.nombre}" data-matricula="${alum.matricula}">${alum.nombre} (${alum.matricula})</option>`;
+  });
+  
+  // Cargar materias de la carrera
+  let materiasQuery = db.collection('materias');
+  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+    materiasQuery = materiasQuery.where('carreraId', '==', usuarioActual.carreraId);
+  }
+  const materiasSnap = await materiasQuery.get();
+  let materiasHtml = '<option value="">Seleccionar materia...</option>';
+  materiasSnap.forEach(doc => {
+    const mat = doc.data();
+    materiasHtml += `<option value="${doc.id}" data-nombre="${mat.nombre}" data-codigo="${mat.codigo}">${mat.nombre} (${mat.codigo})</option>`;
+  });
+  
+  // Cargar grupos de la carrera
+  let gruposQuery = db.collection('grupos');
+  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+    gruposQuery = gruposQuery.where('carreraId', '==', usuarioActual.carreraId);
+  }
+  const gruposSnap = await gruposQuery.get();
+  let gruposHtml = '<option value="">Seleccionar grupo...</option>';
+  gruposSnap.forEach(doc => {
+    const grp = doc.data();
+    gruposHtml += `<option value="${doc.id}" data-nombre="${grp.nombre}">${grp.nombre} (Semestre ${grp.semestre})</option>`;
+  });
+  
+  const html = `
+    <form onsubmit="guardarInscripcionAlumno(event)">
+      <div class="form-grupo">
+        <label>Alumno: *</label>
+        <select id="alumnoInscribir" required>
+          ${alumnosHtml}
+        </select>
+      </div>
+      
+      <div class="form-grupo">
+        <label>Materia: *</label>
+        <select id="materiaInscribir" required>
+          ${materiasHtml}
+        </select>
+      </div>
+      
+      <div class="form-grupo">
+        <label>Grupo: *</label>
+        <select id="grupoInscribir" required>
+          ${gruposHtml}
+        </select>
+      </div>
+      
+      <div class="form-grupo">
+        <label>Periodo: *</label>
+        <input type="text" id="periodoInscribir" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
+      </div>
+      
+      <div class="form-botones">
+        <button type="submit" class="btn-guardar">💾 Inscribir Alumno</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+      </div>
+    </form>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'block';
+}
+
+async function guardarInscripcionAlumno(event) {
+  event.preventDefault();
+  
+  const alumnoSelect = document.getElementById('alumnoInscribir');
+  const materiaSelect = document.getElementById('materiaInscribir');
+  const grupoSelect = document.getElementById('grupoInscribir');
+  
+  const alumnoId = alumnoSelect.value;
+  const alumnoNombre = alumnoSelect.options[alumnoSelect.selectedIndex].dataset.nombre;
+  const alumnoMatricula = alumnoSelect.options[alumnoSelect.selectedIndex].dataset.matricula;
+  
+  const materiaId = materiaSelect.value;
+  const materiaNombre = materiaSelect.options[materiaSelect.selectedIndex].dataset.nombre;
+  const materiaCodigo = materiaSelect.options[materiaSelect.selectedIndex].dataset.codigo;
+  
+  const grupoId = grupoSelect.value;
+  const grupoNombre = grupoSelect.options[grupoSelect.selectedIndex].dataset.nombre;
+  
+  const periodo = document.getElementById('periodoInscribir').value.trim();
+  
+  // Verificar si ya está inscrito
+  const existe = await db.collection('alumnoMaterias')
+    .where('alumnoId', '==', alumnoId)
+    .where('materiaId', '==', materiaId)
+    .where('grupoId', '==', grupoId)
+    .where('periodo', '==', periodo)
+    .where('inscrito', '==', true)
+    .get();
+  
+  if (!existe.empty) {
+    alert('❌ Este alumno ya está inscrito en esta materia y grupo');
+    return;
+  }
+  
+  // Crear inscripción
+  const inscripcion = {
+    alumnoId: alumnoId,
+    alumnoNombre: alumnoNombre,
+    alumnoMatricula: alumnoMatricula,
+    materiaId: materiaId,
+    materiaNombre: materiaNombre,
+    materiaCodigo: materiaCodigo,
+    grupoId: grupoId,
+    grupoNombre: grupoNombre,
+    carreraId: usuarioActual.carreraId || null,
+    periodo: periodo,
+    inscrito: true,
+    fechaInscripcion: firebase.firestore.FieldValue.serverTimestamp()
+  };
+  
+  try {
+    await db.collection('alumnoMaterias').add(inscripcion);
+    alert('✅ Alumno inscrito correctamente');
+    cerrarModal();
+    cargarInscripciones();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al inscribir alumno');
+  }
+}
+
+async function darDeBajaAlumno(inscripcionId) {
+  if (!confirm('¿Dar de baja a este alumno de la materia?')) {
+    return;
+  }
+  
+  try {
+    await db.collection('alumnoMaterias').doc(inscripcionId).update({
+      inscrito: false,
+      fechaBaja: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    alert('✅ Alumno dado de baja');
+    cargarInscripciones();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al dar de baja');
+  }
 }
 
 // ===== FUNCIONES DE ELIMINACIÓN =====
