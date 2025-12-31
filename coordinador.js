@@ -41,6 +41,11 @@ auth.onAuthStateChanged(async (user) => {
     document.getElementById('userName').textContent = usuarioActual.nombre;
     document.getElementById('userEmail').textContent = user.email;
     
+    // Mostrar opción de carreras solo para admin
+    if (usuarioActual.rol === 'admin') {
+      document.getElementById('menuCarreras').style.display = 'block';
+    }
+    
     // Cargar carrera del coordinador
     await cargarCarrera();
     
@@ -59,7 +64,11 @@ async function cargarCarrera() {
   }
 
   if (!usuarioActual.carreraId) {
-    document.getElementById('carreraInfo').textContent = 'Sin carrera asignada';
+    document.getElementById('carreraInfo').textContent = '⚠️ Sin carrera asignada - Contacta al administrador';
+    document.getElementById('carreraInfo').style.color = '#ff5252';
+    
+    // Deshabilitar acceso si no tiene carrera
+    alert('No tienes una carrera asignada. Contacta al administrador.');
     return;
   }
 
@@ -68,7 +77,10 @@ async function cargarCarrera() {
     if (carreraDoc.exists) {
       carreraActual = carreraDoc.data();
       carreraActual.id = carreraDoc.id;
-      document.getElementById('carreraInfo').textContent = `Carrera: ${carreraActual.nombre}`;
+      document.getElementById('carreraInfo').textContent = `📚 Carrera: ${carreraActual.nombre}`;
+    } else {
+      document.getElementById('carreraInfo').textContent = '⚠️ Carrera no encontrada';
+      document.getElementById('carreraInfo').style.color = '#ff5252';
     }
   } catch (error) {
     console.error('Error al cargar carrera:', error);
@@ -129,15 +141,15 @@ function volverMenu() {
 
 // ===== GESTIÓN DE CARRERAS =====
 async function cargarCarreras() {
+  // Solo admin puede ver carreras
+  if (usuarioActual.rol !== 'admin') {
+    const container = document.getElementById('listaCarreras');
+    container.innerHTML = '<div class="sin-datos">No tienes permisos para gestionar carreras</div>';
+    return;
+  }
+  
   try {
-    let query = db.collection('carreras');
-    
-    // Si es coordinador (no admin), solo su carrera
-    if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
-      query = query.where(firebase.firestore.FieldPath.documentId(), '==', usuarioActual.carreraId);
-    }
-    
-    const snapshot = await query.get();
+    const snapshot = await db.collection('carreras').get();
     const container = document.getElementById('listaCarreras');
     
     if (snapshot.empty) {
@@ -507,6 +519,11 @@ function mostrarFormInscribirAlumno() {
 
 // ===== FUNCIONES DE ELIMINACIÓN =====
 async function eliminarCarrera(id) {
+  if (usuarioActual.rol !== 'admin') {
+    alert('Solo el administrador puede eliminar carreras');
+    return;
+  }
+  
   if (confirm('¿Eliminar esta carrera?')) {
     try {
       await db.collection('carreras').doc(id).delete();
