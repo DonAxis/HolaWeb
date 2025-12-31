@@ -121,7 +121,7 @@ function redirigirSegunRol(rol) {
       window.location.href = 'MenuPersonas.html';  // Tu página actual
       break;
     case 'alumno':
-      window.location.href = 'dashboard-alumno.html';
+      window.location.href = 'controlAlumno.html';
       break;
     default:
       mostrarMensaje('Rol no reconocido. Contacta al administrador', 'error');
