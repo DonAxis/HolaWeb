@@ -935,15 +935,37 @@ async function darDeBajaAlumno(inscripcionId) {
 
 
 // ===== GESTIÓN DE PROFESORES (CREAR/EDITAR) =====
+// SOLUCIÓN: Profesores Multi-Carrera + Sin Cerrar Sesión
+
+// ===== GESTIÓN DE PROFESORES MULTI-CARRERA =====
+
+// Buscar si un profesor ya existe por email
+async function buscarProfesorPorEmail(email) {
+  try {
+    const snapshot = await db.collection('usuarios')
+      .where('email', '==', email)
+      .where('rol', '==', 'profesor')
+      .limit(1)
+      .get();
+    
+    if (snapshot.empty) {
+      return null;
+    }
+    
+    const doc = snapshot.docs[0];
+    return {
+      id: doc.id,
+      ...doc.data()
+    };
+  } catch (error) {
+    console.error('Error:', error);
+    return null;
+  }
+}
 
 async function cargarProfesores() {
   try {
     let query = db.collection('usuarios').where('rol', '==', 'profesor');
-    
-    // Si es coordinador, filtrar por su carrera
-    if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
-      query = query.where('carreraId', '==', usuarioActual.carreraId);
-    }
     
     const snapshot = await query.get();
     const container = document.getElementById('listaProfesores');
@@ -959,18 +981,35 @@ async function cargarProfesores() {
     let html = '';
     snapshot.forEach(doc => {
       const profesor = doc.data();
-      const carreraNombre = carrerasMap[profesor.carreraId] || 'Sin carrera';
+      
+      // Filtrar por carrera del coordinador
+      if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+        // Solo mostrar si el profesor tiene esta carrera
+        if (!profesor.carreras || !profesor.carreras.includes(usuarioActual.carreraId)) {
+          return; // Skip este profesor
+        }
+      }
+      
+      // Obtener nombres de todas las carreras del profesor
+      let carrerasTexto = 'Sin carreras';
+      if (profesor.carreras && profesor.carreras.length > 0) {
+        const nombresCarreras = profesor.carreras
+          .map(carreraId => carrerasMap[carreraId] || carreraId)
+          .join(', ');
+        carrerasTexto = nombresCarreras;
+      }
       
       html += `
         <div class="item">
           <div class="item-info">
             <h4>${profesor.nombre}</h4>
-            <p>🎓 Carrera: ${carreraNombre}</p>
+            <p>🎓 Carreras: ${carrerasTexto}</p>
             <p>📧 ${profesor.email}</p>
             <p>${profesor.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
           <div class="item-acciones">
             <button onclick="editarProfesor('${doc.id}')" class="btn-editar">✏️ Editar</button>
+            <button onclick="gestionarCarrerasProfesor('${doc.id}')" class="botAzu">🎓 Carreras</button>
             <button onclick="toggleActivoUsuario('${doc.id}', 'profesor', ${!profesor.activo})" class="botAzu">
               ${profesor.activo ? '🔒 Desactivar' : '🔓 Activar'}
             </button>
@@ -979,25 +1018,14 @@ async function cargarProfesores() {
       `;
     });
     
-    container.innerHTML = html;
+    if (html === '') {
+      container.innerHTML = '<div class="sin-datos">No hay profesores en esta carrera</div>';
+    } else {
+      container.innerHTML = html;
+    }
   } catch (error) {
     console.error('Error:', error);
     alert('Error al cargar profesores');
-  }
-}
-
-// Obtener mapa de carreras (id -> nombre)
-async function obtenerMapaCarreras() {
-  try {
-    const snapshot = await db.collection('carreras').get();
-    const mapa = {};
-    snapshot.forEach(doc => {
-      mapa[doc.id] = doc.data().nombre;
-    });
-    return mapa;
-  } catch (error) {
-    console.error('Error:', error);
-    return {};
   }
 }
 
@@ -1005,60 +1033,74 @@ async function mostrarFormProfesor(profesorId = null) {
   const esEdicion = profesorId !== null;
   document.getElementById('tituloModal').textContent = esEdicion ? 'Editar Profesor' : 'Nuevo Profesor';
   
-  // Cargar carreras disponibles
-  let carrerasHtml = '';
-  
-  if (usuarioActual.rol === 'admin') {
-    // Admin puede seleccionar cualquier carrera
-    const carreras = await db.collection('carreras').get();
-    carrerasHtml = '<option value="">Seleccionar carrera...</option>';
-    carreras.forEach(doc => {
-      const carrera = doc.data();
-      carrerasHtml += `<option value="${doc.id}">${carrera.nombre}</option>`;
-    });
-  } else {
-    // Coordinador: su carrera por defecto (oculto)
-    carrerasHtml = `<option value="${usuarioActual.carreraId}" selected>${carreraActual ? carreraActual.nombre : 'Tu carrera'}</option>`;
+  // Si es edición, verificar si existe
+  let profesorExistente = null;
+  if (esEdicion) {
+    const doc = await db.collection('usuarios').doc(profesorId).get();
+    if (doc.exists) {
+      profesorExistente = doc.data();
+    }
   }
+  
+  // Cargar carreras disponibles
+  const carreras = await db.collection('carreras').get();
+  let carrerasCheckboxes = '';
+  
+  carreras.forEach(doc => {
+    const carrera = doc.data();
+    const carreraId = doc.id;
+    
+    // Si es coordinador, solo mostrar su carrera
+    if (usuarioActual.rol === 'coordinador' && carreraId !== usuarioActual.carreraId) {
+      return;
+    }
+    
+    const checked = profesorExistente && profesorExistente.carreras && 
+                    profesorExistente.carreras.includes(carreraId) ? 'checked' : '';
+    
+    carrerasCheckboxes += `
+      <label style="display: block; margin: 8px 0;">
+        <input type="checkbox" name="carreras" value="${carreraId}" ${checked}>
+        ${carrera.nombre}
+      </label>
+    `;
+  });
   
   const html = `
     <form onsubmit="guardarProfesor(event, '${profesorId || ''}')">
       <div class="form-grupo">
         <label>Nombre Completo: *</label>
-        <input type="text" id="nombreProfesor" required placeholder="Nombre completo">
+        <input type="text" id="nombreProfesor" required placeholder="Nombre completo" 
+               value="${profesorExistente ? profesorExistente.nombre : ''}">
       </div>
-      
-      ${usuarioActual.rol === 'admin' ? `
-        <div class="form-grupo">
-          <label>Carrera: *</label>
-          <select id="carreraProfesor" required>
-            ${carrerasHtml}
-          </select>
-        </div>
-      ` : `
-        <input type="hidden" id="carreraProfesor" value="${usuarioActual.carreraId}">
-        <div class="form-grupo">
-          <label>Carrera:</label>
-          <input type="text" value="${carreraActual ? carreraActual.nombre : 'Tu carrera'}" disabled>
-        </div>
-      `}
       
       <div class="form-grupo">
         <label>Email: *</label>
-        <input type="email" id="emailProfesor" required placeholder="profesor@escuela.com">
+        <input type="email" id="emailProfesor" required placeholder="profesor@escuela.com"
+               value="${profesorExistente ? profesorExistente.email : ''}"
+               ${esEdicion ? 'readonly style="background: #f0f0f0;"' : ''}>
+        <small id="emailWarning" style="color: #ff9800; display: none;"></small>
       </div>
       
       ${!esEdicion ? `
         <div class="form-grupo">
-          <label>Contraseña Temporal: *</label>
-          <input type="text" id="passwordProfesor" required placeholder="Mínimo 6 caracteres" value="Profesor123!">
+          <label>Contraseña: *</label>
+          <input type="password" id="passwordProfesor" required minlength="6" 
+                 placeholder="Mínimo 6 caracteres">
           <small style="color: #666;">El profesor podrá cambiarla después</small>
         </div>
       ` : ''}
       
       <div class="form-grupo">
+        <label>Carreras: * (Selecciona al menos una)</label>
+        <div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px; max-height: 200px; overflow-y: auto;">
+          ${carrerasCheckboxes}
+        </div>
+      </div>
+      
+      <div class="form-grupo">
         <label>
-          <input type="checkbox" id="activoProfesor" checked>
+          <input type="checkbox" id="activoProfesor" ${profesorExistente ? (profesorExistente.activo ? 'checked' : '') : 'checked'}>
           Profesor activo
         </label>
       </div>
@@ -1073,26 +1115,25 @@ async function mostrarFormProfesor(profesorId = null) {
   document.getElementById('contenidoModal').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
   
-  if (esEdicion) {
-    cargarDatosProfesor(profesorId);
-  }
-}
-
-async function cargarDatosProfesor(profesorId) {
-  try {
-    const doc = await db.collection('usuarios').doc(profesorId).get();
-    if (doc.exists) {
-      const profesor = doc.data();
-      document.getElementById('nombreProfesor').value = profesor.nombre;
-      document.getElementById('emailProfesor').value = profesor.email;
-      document.getElementById('activoProfesor').checked = profesor.activo;
-      
-      if (usuarioActual.rol === 'admin' && profesor.carreraId) {
-        document.getElementById('carreraProfesor').value = profesor.carreraId;
+  // Si no es edición, verificar email al escribir
+  if (!esEdicion) {
+    document.getElementById('emailProfesor').addEventListener('blur', async function() {
+      const email = this.value.trim();
+      if (email) {
+        const profesorExiste = await buscarProfesorPorEmail(email);
+        if (profesorExiste) {
+          const carrerasMap = await obtenerMapaCarreras();
+          const carrerasActuales = profesorExiste.carreras || [];
+          const nombresCarreras = carrerasActuales.map(id => carrerasMap[id] || id).join(', ');
+          
+          document.getElementById('emailWarning').textContent = 
+            `⚠️ Este email ya está registrado en: ${nombresCarreras}. Puedes agregar más carreras.`;
+          document.getElementById('emailWarning').style.display = 'block';
+        } else {
+          document.getElementById('emailWarning').style.display = 'none';
+        }
       }
-    }
-  } catch (error) {
-    console.error('Error:', error);
+    });
   }
 }
 
@@ -1102,10 +1143,13 @@ async function guardarProfesor(event, profesorId) {
   const nombre = document.getElementById('nombreProfesor').value.trim();
   const email = document.getElementById('emailProfesor').value.trim();
   const activo = document.getElementById('activoProfesor').checked;
-  const carreraId = document.getElementById('carreraProfesor').value;
   
-  if (!carreraId) {
-    alert('Debes seleccionar una carrera');
+  // Obtener carreras seleccionadas
+  const checkboxes = document.querySelectorAll('input[name="carreras"]:checked');
+  const carreras = Array.from(checkboxes).map(cb => cb.value);
+  
+  if (carreras.length === 0) {
+    alert('⚠️ Debes seleccionar al menos una carrera');
     return;
   }
   
@@ -1113,65 +1157,185 @@ async function guardarProfesor(event, profesorId) {
     nombre: nombre,
     email: email,
     rol: 'profesor',
-    carreraId: carreraId,  // ← IMPORTANTE: Guardar carreraId
+    carreras: carreras,  // Array de carreraIds
     activo: activo
   };
   
   try {
     if (profesorId) {
-      // Editar profesor existente
+      // ===== EDITAR PROFESOR EXISTENTE =====
       await db.collection('usuarios').doc(profesorId).update({
         ...userData,
         fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
       });
       alert('✅ Profesor actualizado');
+      cerrarModal();
+      cargarProfesores();
+      
     } else {
-      // Crear nuevo profesor
-      const password = document.getElementById('passwordProfesor').value;
+      // ===== CREAR NUEVO PROFESOR =====
       
-      // Guardar usuario actual para no perder sesión
-      const currentUser = firebase.auth().currentUser;
+      // Verificar si ya existe
+      const profesorExiste = await buscarProfesorPorEmail(email);
       
-      // Crear usuario en Authentication
-      const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
-      const uid = userCredential.user.uid;
-      
-      // Crear documento en Firestore
-      await db.collection('usuarios').doc(uid).set({
-        ...userData,
-        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      
-      // Cerrar sesión del nuevo usuario y volver a autenticar al coordinador
-      await firebase.auth().signOut();
-      
-      // Re-autenticar al usuario actual
-      // NOTA: El usuario tendrá que hacer login de nuevo, pero es seguro
-      
-      alert('✅ Profesor creado. Por seguridad, deberás iniciar sesión nuevamente.');
-      
-      // Redirigir a login
-      setTimeout(() => {
-        window.location.href = 'login.html';
-      }, 2000);
-      
-      return; // No continuar con el código
+      if (profesorExiste) {
+        // PROFESOR YA EXISTE - Solo agregar nuevas carreras
+        const carrerasActuales = profesorExiste.carreras || [];
+        const carrerasNuevas = [...new Set([...carrerasActuales, ...carreras])]; // Sin duplicados
+        
+        await db.collection('usuarios').doc(profesorExiste.id).update({
+          carreras: carrerasNuevas,
+          fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        alert('✅ Profesor actualizado con nuevas carreras (email ya existía)');
+        cerrarModal();
+        cargarProfesores();
+        
+      } else {
+        // PROFESOR NUEVO - Crear en Authentication
+        const password = document.getElementById('passwordProfesor').value;
+        
+        // SOLUCIÓN: Usar método alternativo sin desloguear
+        // Opción 1: Avisar al coordinador que debe usar el Admin Panel
+        // Opción 2: Crear solo en Firestore y pedir que se registren después
+        
+        if (confirm('⚠️ IMPORTANTE:\n\nAl crear un nuevo profesor en Firebase Authentication, tu sesión se cerrará temporalmente.\n\n¿Deseas continuar?\n\n(Tendrás que volver a iniciar sesión)')) {
+          
+          try {
+            // Crear en Authentication
+            const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+            const uid = userCredential.user.uid;
+            
+            // Crear en Firestore
+            await db.collection('usuarios').doc(uid).set({
+              ...userData,
+              fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            
+            // Cerrar sesión del nuevo usuario
+            await firebase.auth().signOut();
+            
+            alert('✅ Profesor creado correctamente.\n\nSerás redirigido al login.');
+            
+            // Redirigir a login
+            setTimeout(() => {
+              window.location.href = 'login.html';
+            }, 1500);
+            
+          } catch (authError) {
+            if (authError.code === 'auth/email-already-in-use') {
+              alert('❌ Error: El email ya está en uso en Authentication pero no en Firestore.\n\nContacta al administrador.');
+            } else {
+              throw authError;
+            }
+          }
+        }
+      }
     }
     
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error al guardar: ' + error.message);
+  }
+}
+
+// Gestionar carreras de un profesor existente
+async function gestionarCarrerasProfesor(profesorId) {
+  const doc = await db.collection('usuarios').doc(profesorId).get();
+  if (!doc.exists) {
+    alert('Profesor no encontrado');
+    return;
+  }
+  
+  const profesor = doc.data();
+  const carrerasMap = await obtenerMapaCarreras();
+  
+  document.getElementById('tituloModal').textContent = `Gestionar Carreras: ${profesor.nombre}`;
+  
+  // Cargar todas las carreras con checkboxes
+  const carreras = await db.collection('carreras').get();
+  let carrerasCheckboxes = '';
+  
+  carreras.forEach(doc => {
+    const carrera = doc.data();
+    const carreraId = doc.id;
+    const checked = profesor.carreras && profesor.carreras.includes(carreraId) ? 'checked' : '';
+    
+    carrerasCheckboxes += `
+      <label style="display: block; margin: 8px 0;">
+        <input type="checkbox" name="carreras" value="${carreraId}" ${checked}>
+        ${carrera.nombre}
+      </label>
+    `;
+  });
+  
+  const html = `
+    <form onsubmit="actualizarCarrerasProfesor(event, '${profesorId}')">
+      <p><strong>Profesor:</strong> ${profesor.nombre}</p>
+      <p><strong>Email:</strong> ${profesor.email}</p>
+      
+      <div class="form-grupo">
+        <label>Carreras asignadas:</label>
+        <div style="border: 1px solid #ddd; padding: 10px; border-radius: 5px;">
+          ${carrerasCheckboxes}
+        </div>
+      </div>
+      
+      <div class="form-botones">
+        <button type="submit" class="btn-guardar">💾 Actualizar Carreras</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+      </div>
+    </form>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'block';
+}
+
+async function actualizarCarrerasProfesor(event, profesorId) {
+  event.preventDefault();
+  
+  const checkboxes = document.querySelectorAll('input[name="carreras"]:checked');
+  const carreras = Array.from(checkboxes).map(cb => cb.value);
+  
+  if (carreras.length === 0) {
+    alert('⚠️ Debes seleccionar al menos una carrera');
+    return;
+  }
+  
+  try {
+    await db.collection('usuarios').doc(profesorId).update({
+      carreras: carreras,
+      fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    alert('✅ Carreras actualizadas');
     cerrarModal();
     cargarProfesores();
   } catch (error) {
     console.error('Error:', error);
-    if (error.code === 'auth/email-already-in-use') {
-      alert('❌ El email ya está registrado');
-    } else {
-      alert('❌ Error al guardar: ' + error.message);
-    }
+    alert('❌ Error al actualizar');
   }
 }
 
 function editarProfesor(id) {
   mostrarFormProfesor(id);
+}
+
+// Obtener mapa de carreras
+async function obtenerMapaCarreras() {
+  try {
+    const snapshot = await db.collection('carreras').get();
+    const mapa = {};
+    snapshot.forEach(doc => {
+      mapa[doc.id] = doc.data().nombre;
+    });
+    return mapa;
+  } catch (error) {
+    console.error('Error:', error);
+    return {};
+  }
 }
 
 // ===== GESTIÓN DE ALUMNOS (CREAR/EDITAR) =====
