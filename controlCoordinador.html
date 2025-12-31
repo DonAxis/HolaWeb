@@ -210,12 +210,22 @@
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('profesores')">
-      <h3>👨‍🏫 Asignar Profesores</h3>
-      <p>Asignar profesores a materias</p>
+      <h3>👨‍🏫 Gestionar Profesores</h3>
+      <p>Crear y administrar profesores</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('alumnos')">
-      <h3>👨‍🎓 Inscribir Alumnos</h3>
+      <h3>👨‍🎓 Gestionar Alumnos</h3>
+      <p>Crear y administrar alumnos</p>
+    </div>
+
+    <div class="menu-card" onclick="mostrarSeccion('asignaciones')">
+      <h3>🔗 Asignar Profesores</h3>
+      <p>Asignar profesores a materias</p>
+    </div>
+
+    <div class="menu-card" onclick="mostrarSeccion('inscripciones')">
+      <h3>📝 Inscribir Alumnos</h3>
       <p>Inscribir alumnos a materias</p>
     </div>
 
@@ -261,8 +271,32 @@
     <div id="listaGrupos" class="lista-items"></div>
   </div>
 
-  <!-- SECCIÓN: ASIGNAR PROFESORES -->
+  <!-- SECCIÓN: GESTIONAR PROFESORES -->
   <div id="seccionProfesores" class="seccion-contenido">
+    <div class="seccion-header">
+      <h2>👨‍🏫 Gestión de Profesores</h2>
+      <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
+    </div>
+    <div class="botones-accion">
+      <button onclick="mostrarFormProfesor()" class="botAzu">➕ Nuevo Profesor</button>
+    </div>
+    <div id="listaProfesores" class="lista-items"></div>
+  </div>
+
+  <!-- SECCIÓN: GESTIONAR ALUMNOS -->
+  <div id="seccionAlumnos" class="seccion-contenido">
+    <div class="seccion-header">
+      <h2>👨‍🎓 Gestión de Alumnos</h2>
+      <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
+    </div>
+    <div class="botones-accion">
+      <button onclick="mostrarFormAlumno()" class="botAzu">➕ Nuevo Alumno</button>
+    </div>
+    <div id="listaAlumnos" class="lista-items"></div>
+  </div>
+
+  <!-- SECCIÓN: ASIGNAR PROFESORES -->
+  <div id="seccionAsignaciones" class="seccion-contenido">
     <div class="seccion-header">
       <h2>👨‍🏫 Asignar Profesores a Materias</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
@@ -274,7 +308,7 @@
   </div>
 
   <!-- SECCIÓN: INSCRIBIR ALUMNOS -->
-  <div id="seccionAlumnos" class="seccion-contenido">
+  <div id="seccionInscripciones" class="seccion-contenido">
     <div class="seccion-header">
       <h2>👨‍🎓 Inscribir Alumnos a Materias</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
