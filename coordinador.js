@@ -932,10 +932,20 @@ async function darDeBajaAlumno(inscripcionId) {
   }
 }
 
+
+
 // ===== GESTIÓN DE PROFESORES (CREAR/EDITAR) =====
+
 async function cargarProfesores() {
   try {
-    const snapshot = await db.collection('usuarios').where('rol', '==', 'profesor').get();
+    let query = db.collection('usuarios').where('rol', '==', 'profesor');
+    
+    // Si es coordinador, filtrar por su carrera
+    if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+      query = query.where('carreraId', '==', usuarioActual.carreraId);
+    }
+    
+    const snapshot = await query.get();
     const container = document.getElementById('listaProfesores');
     
     if (snapshot.empty) {
@@ -943,13 +953,19 @@ async function cargarProfesores() {
       return;
     }
     
+    // Cargar nombres de carreras
+    const carrerasMap = await obtenerMapaCarreras();
+    
     let html = '';
     snapshot.forEach(doc => {
       const profesor = doc.data();
+      const carreraNombre = carrerasMap[profesor.carreraId] || 'Sin carrera';
+      
       html += `
         <div class="item">
           <div class="item-info">
             <h4>${profesor.nombre}</h4>
+            <p>🎓 Carrera: ${carreraNombre}</p>
             <p>📧 ${profesor.email}</p>
             <p>${profesor.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
@@ -970,9 +986,40 @@ async function cargarProfesores() {
   }
 }
 
-function mostrarFormProfesor(profesorId = null) {
+// Obtener mapa de carreras (id -> nombre)
+async function obtenerMapaCarreras() {
+  try {
+    const snapshot = await db.collection('carreras').get();
+    const mapa = {};
+    snapshot.forEach(doc => {
+      mapa[doc.id] = doc.data().nombre;
+    });
+    return mapa;
+  } catch (error) {
+    console.error('Error:', error);
+    return {};
+  }
+}
+
+async function mostrarFormProfesor(profesorId = null) {
   const esEdicion = profesorId !== null;
   document.getElementById('tituloModal').textContent = esEdicion ? 'Editar Profesor' : 'Nuevo Profesor';
+  
+  // Cargar carreras disponibles
+  let carrerasHtml = '';
+  
+  if (usuarioActual.rol === 'admin') {
+    // Admin puede seleccionar cualquier carrera
+    const carreras = await db.collection('carreras').get();
+    carrerasHtml = '<option value="">Seleccionar carrera...</option>';
+    carreras.forEach(doc => {
+      const carrera = doc.data();
+      carrerasHtml += `<option value="${doc.id}">${carrera.nombre}</option>`;
+    });
+  } else {
+    // Coordinador: su carrera por defecto (oculto)
+    carrerasHtml = `<option value="${usuarioActual.carreraId}" selected>${carreraActual ? carreraActual.nombre : 'Tu carrera'}</option>`;
+  }
   
   const html = `
     <form onsubmit="guardarProfesor(event, '${profesorId || ''}')">
@@ -980,6 +1027,21 @@ function mostrarFormProfesor(profesorId = null) {
         <label>Nombre Completo: *</label>
         <input type="text" id="nombreProfesor" required placeholder="Nombre completo">
       </div>
+      
+      ${usuarioActual.rol === 'admin' ? `
+        <div class="form-grupo">
+          <label>Carrera: *</label>
+          <select id="carreraProfesor" required>
+            ${carrerasHtml}
+          </select>
+        </div>
+      ` : `
+        <input type="hidden" id="carreraProfesor" value="${usuarioActual.carreraId}">
+        <div class="form-grupo">
+          <label>Carrera:</label>
+          <input type="text" value="${carreraActual ? carreraActual.nombre : 'Tu carrera'}" disabled>
+        </div>
+      `}
       
       <div class="form-grupo">
         <label>Email: *</label>
@@ -1024,6 +1086,10 @@ async function cargarDatosProfesor(profesorId) {
       document.getElementById('nombreProfesor').value = profesor.nombre;
       document.getElementById('emailProfesor').value = profesor.email;
       document.getElementById('activoProfesor').checked = profesor.activo;
+      
+      if (usuarioActual.rol === 'admin' && profesor.carreraId) {
+        document.getElementById('carreraProfesor').value = profesor.carreraId;
+      }
     }
   } catch (error) {
     console.error('Error:', error);
@@ -1036,67 +1102,76 @@ async function guardarProfesor(event, profesorId) {
   const nombre = document.getElementById('nombreProfesor').value.trim();
   const email = document.getElementById('emailProfesor').value.trim();
   const activo = document.getElementById('activoProfesor').checked;
+  const carreraId = document.getElementById('carreraProfesor').value;
+  
+  if (!carreraId) {
+    alert('Debes seleccionar una carrera');
+    return;
+  }
   
   const userData = {
     nombre: nombre,
     email: email,
     rol: 'profesor',
+    carreraId: carreraId,  // ← IMPORTANTE: Guardar carreraId
     activo: activo
   };
   
   try {
     if (profesorId) {
-      // Editar
-      await db.collection('usuarios').doc(profesorId).update(userData);
+      // Editar profesor existente
+      await db.collection('usuarios').doc(profesorId).update({
+        ...userData,
+        fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
+      });
       alert('✅ Profesor actualizado');
     } else {
-      // Crear nuevo
+      // Crear nuevo profesor
       const password = document.getElementById('passwordProfesor').value;
       
-      if (password.length < 6) {
-        alert('La contraseña debe tener al menos 6 caracteres');
-        return;
-      }
+      // Guardar usuario actual para no perder sesión
+      const currentUser = firebase.auth().currentUser;
       
-      // Guardar usuario admin actual
-      const adminUser = auth.currentUser;
+      // Crear usuario en Authentication
+      const userCredential = await firebase.auth().createUserWithEmailAndPassword(email, password);
+      const uid = userCredential.user.uid;
       
-      // Crear en Authentication
-      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-      const newUid = userCredential.user.uid;
+      // Crear documento en Firestore
+      await db.collection('usuarios').doc(uid).set({
+        ...userData,
+        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+      });
       
-      // Guardar en Firestore
-      userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('usuarios').doc(newUid).set(userData);
+      // Cerrar sesión del nuevo usuario y volver a autenticar al coordinador
+      await firebase.auth().signOut();
       
-      // Cerrar sesión del nuevo usuario y restaurar admin
-      await auth.signOut();
-      const adminPass = prompt('Por seguridad, ingresa tu contraseña de admin:');
-      await auth.signInWithEmailAndPassword(adminUser.email, adminPass);
+      // Re-autenticar al usuario actual
+      // NOTA: El usuario tendrá que hacer login de nuevo, pero es seguro
       
-      alert(`✅ Profesor creado!\n\nEmail: ${email}\nPassword: ${password}`);
+      alert('✅ Profesor creado. Por seguridad, deberás iniciar sesión nuevamente.');
+      
+      // Redirigir a login
+      setTimeout(() => {
+        window.location.href = 'login.html';
+      }, 2000);
+      
+      return; // No continuar con el código
     }
     
     cerrarModal();
     cargarProfesores();
   } catch (error) {
     console.error('Error:', error);
-    
-    let mensaje = 'Error al guardar profesor';
     if (error.code === 'auth/email-already-in-use') {
-      mensaje = 'Este email ya está registrado';
-    } else if (error.code === 'auth/invalid-email') {
-      mensaje = 'Email inválido';
-    } else if (error.code === 'auth/weak-password') {
-      mensaje = 'La contraseña debe tener al menos 6 caracteres';
+      alert('❌ El email ya está registrado');
+    } else {
+      alert('❌ Error al guardar: ' + error.message);
     }
-    
-    alert('❌ ' + mensaje);
   }
 }
 
-function editarProfesor(profesorId) {
-  mostrarFormProfesor(profesorId);
+function editarProfesor(id) {
+  mostrarFormProfesor(id);
 }
 
 // ===== GESTIÓN DE ALUMNOS (CREAR/EDITAR) =====
