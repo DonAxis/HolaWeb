@@ -1175,9 +1175,17 @@ function editarProfesor(id) {
 }
 
 // ===== GESTIÓN DE ALUMNOS (CREAR/EDITAR) =====
+
 async function cargarAlumnos() {
   try {
-    const snapshot = await db.collection('usuarios').where('rol', '==', 'alumno').get();
+    let query = db.collection('usuarios').where('rol', '==', 'alumno');
+    
+    // Filtrar por carrera si es coordinador
+    if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+      query = query.where('carreraId', '==', usuarioActual.carreraId);
+    }
+    
+    const snapshot = await query.get();
     const container = document.getElementById('listaAlumnos');
     
     if (snapshot.empty) {
@@ -1185,14 +1193,20 @@ async function cargarAlumnos() {
       return;
     }
     
+    // Cargar nombres de carreras
+    const carrerasMap = await obtenerMapaCarreras();
+    
     let html = '';
     snapshot.forEach(doc => {
       const alumno = doc.data();
+      const carreraNombre = carrerasMap[alumno.carreraId] || 'Sin carrera';
+      
       html += `
         <div class="item">
           <div class="item-info">
             <h4>${alumno.nombre}</h4>
-            <p>🎓 Matrícula: ${alumno.matricula || 'N/A'}</p>
+            <p>🎓 Carrera: ${carreraNombre}</p>
+            <p>🆔 Matrícula: ${alumno.matricula || 'N/A'}</p>
             <p>📧 ${alumno.email}</p>
             <p>${alumno.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
@@ -1212,6 +1226,7 @@ async function cargarAlumnos() {
     alert('Error al cargar alumnos');
   }
 }
+
 
 function mostrarFormAlumno(alumnoId = null) {
   const esEdicion = alumnoId !== null;
