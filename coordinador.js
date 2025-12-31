@@ -125,9 +125,15 @@ function mostrarSeccion(seccion) {
         cargarGrupos();
         break;
       case 'profesores':
-        cargarAsignaciones();
+        cargarProfesores();
         break;
       case 'alumnos':
+        cargarAlumnos();
+        break;
+      case 'asignaciones':
+        cargarAsignaciones();
+        break;
+      case 'inscripciones':
         cargarInscripciones();
         break;
     }
@@ -923,6 +929,369 @@ async function darDeBajaAlumno(inscripcionId) {
   } catch (error) {
     console.error('Error:', error);
     alert('Error al dar de baja');
+  }
+}
+
+// ===== GESTIÓN DE PROFESORES (CREAR/EDITAR) =====
+async function cargarProfesores() {
+  try {
+    const snapshot = await db.collection('usuarios').where('rol', '==', 'profesor').get();
+    const container = document.getElementById('listaProfesores');
+    
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="sin-datos">No hay profesores registrados</div>';
+      return;
+    }
+    
+    let html = '';
+    snapshot.forEach(doc => {
+      const profesor = doc.data();
+      html += `
+        <div class="item">
+          <div class="item-info">
+            <h4>${profesor.nombre}</h4>
+            <p>📧 ${profesor.email}</p>
+            <p>${profesor.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
+          </div>
+          <div class="item-acciones">
+            <button onclick="editarProfesor('${doc.id}')" class="btn-editar">✏️ Editar</button>
+            <button onclick="toggleActivoUsuario('${doc.id}', 'profesor', ${!profesor.activo})" class="botAzu">
+              ${profesor.activo ? '🔒 Desactivar' : '🔓 Activar'}
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar profesores');
+  }
+}
+
+function mostrarFormProfesor(profesorId = null) {
+  const esEdicion = profesorId !== null;
+  document.getElementById('tituloModal').textContent = esEdicion ? 'Editar Profesor' : 'Nuevo Profesor';
+  
+  const html = `
+    <form onsubmit="guardarProfesor(event, '${profesorId || ''}')">
+      <div class="form-grupo">
+        <label>Nombre Completo: *</label>
+        <input type="text" id="nombreProfesor" required placeholder="Nombre completo">
+      </div>
+      
+      <div class="form-grupo">
+        <label>Email: *</label>
+        <input type="email" id="emailProfesor" required placeholder="profesor@escuela.com">
+      </div>
+      
+      ${!esEdicion ? `
+        <div class="form-grupo">
+          <label>Contraseña Temporal: *</label>
+          <input type="text" id="passwordProfesor" required placeholder="Mínimo 6 caracteres" value="Profesor123!">
+          <small style="color: #666;">El profesor podrá cambiarla después</small>
+        </div>
+      ` : ''}
+      
+      <div class="form-grupo">
+        <label>
+          <input type="checkbox" id="activoProfesor" checked>
+          Profesor activo
+        </label>
+      </div>
+      
+      <div class="form-botones">
+        <button type="submit" class="btn-guardar">💾 Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+      </div>
+    </form>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'block';
+  
+  if (esEdicion) {
+    cargarDatosProfesor(profesorId);
+  }
+}
+
+async function cargarDatosProfesor(profesorId) {
+  try {
+    const doc = await db.collection('usuarios').doc(profesorId).get();
+    if (doc.exists) {
+      const profesor = doc.data();
+      document.getElementById('nombreProfesor').value = profesor.nombre;
+      document.getElementById('emailProfesor').value = profesor.email;
+      document.getElementById('activoProfesor').checked = profesor.activo;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+async function guardarProfesor(event, profesorId) {
+  event.preventDefault();
+  
+  const nombre = document.getElementById('nombreProfesor').value.trim();
+  const email = document.getElementById('emailProfesor').value.trim();
+  const activo = document.getElementById('activoProfesor').checked;
+  
+  const userData = {
+    nombre: nombre,
+    email: email,
+    rol: 'profesor',
+    activo: activo
+  };
+  
+  try {
+    if (profesorId) {
+      // Editar
+      await db.collection('usuarios').doc(profesorId).update(userData);
+      alert('✅ Profesor actualizado');
+    } else {
+      // Crear nuevo
+      const password = document.getElementById('passwordProfesor').value;
+      
+      if (password.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return;
+      }
+      
+      // Guardar usuario admin actual
+      const adminUser = auth.currentUser;
+      
+      // Crear en Authentication
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const newUid = userCredential.user.uid;
+      
+      // Guardar en Firestore
+      userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('usuarios').doc(newUid).set(userData);
+      
+      // Cerrar sesión del nuevo usuario y restaurar admin
+      await auth.signOut();
+      const adminPass = prompt('Por seguridad, ingresa tu contraseña de admin:');
+      await auth.signInWithEmailAndPassword(adminUser.email, adminPass);
+      
+      alert(`✅ Profesor creado!\n\nEmail: ${email}\nPassword: ${password}`);
+    }
+    
+    cerrarModal();
+    cargarProfesores();
+  } catch (error) {
+    console.error('Error:', error);
+    
+    let mensaje = 'Error al guardar profesor';
+    if (error.code === 'auth/email-already-in-use') {
+      mensaje = 'Este email ya está registrado';
+    } else if (error.code === 'auth/invalid-email') {
+      mensaje = 'Email inválido';
+    } else if (error.code === 'auth/weak-password') {
+      mensaje = 'La contraseña debe tener al menos 6 caracteres';
+    }
+    
+    alert('❌ ' + mensaje);
+  }
+}
+
+function editarProfesor(profesorId) {
+  mostrarFormProfesor(profesorId);
+}
+
+// ===== GESTIÓN DE ALUMNOS (CREAR/EDITAR) =====
+async function cargarAlumnos() {
+  try {
+    const snapshot = await db.collection('usuarios').where('rol', '==', 'alumno').get();
+    const container = document.getElementById('listaAlumnos');
+    
+    if (snapshot.empty) {
+      container.innerHTML = '<div class="sin-datos">No hay alumnos registrados</div>';
+      return;
+    }
+    
+    let html = '';
+    snapshot.forEach(doc => {
+      const alumno = doc.data();
+      html += `
+        <div class="item">
+          <div class="item-info">
+            <h4>${alumno.nombre}</h4>
+            <p>🎓 Matrícula: ${alumno.matricula || 'N/A'}</p>
+            <p>📧 ${alumno.email}</p>
+            <p>${alumno.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
+          </div>
+          <div class="item-acciones">
+            <button onclick="editarAlumno('${doc.id}')" class="btn-editar">✏️ Editar</button>
+            <button onclick="toggleActivoUsuario('${doc.id}', 'alumno', ${!alumno.activo})" class="botAzu">
+              ${alumno.activo ? '🔒 Desactivar' : '🔓 Activar'}
+            </button>
+          </div>
+        </div>
+      `;
+    });
+    
+    container.innerHTML = html;
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar alumnos');
+  }
+}
+
+function mostrarFormAlumno(alumnoId = null) {
+  const esEdicion = alumnoId !== null;
+  document.getElementById('tituloModal').textContent = esEdicion ? 'Editar Alumno' : 'Nuevo Alumno';
+  
+  const html = `
+    <form onsubmit="guardarAlumno(event, '${alumnoId || ''}')">
+      <div class="form-grupo">
+        <label>Nombre Completo: *</label>
+        <input type="text" id="nombreAlumno" required placeholder="Nombre completo">
+      </div>
+      
+      <div class="form-grupo">
+        <label>Matrícula: *</label>
+        <input type="text" id="matriculaAlumno" required placeholder="Ej: 2024001">
+      </div>
+      
+      <div class="form-grupo">
+        <label>Email: *</label>
+        <input type="email" id="emailAlumno" required placeholder="alumno@escuela.com">
+      </div>
+      
+      ${!esEdicion ? `
+        <div class="form-grupo">
+          <label>Contraseña Temporal: *</label>
+          <input type="text" id="passwordAlumno" required placeholder="Mínimo 6 caracteres" value="Alumno123!">
+          <small style="color: #666;">El alumno podrá cambiarla después</small>
+        </div>
+      ` : ''}
+      
+      <div class="form-grupo">
+        <label>
+          <input type="checkbox" id="activoAlumno" checked>
+          Alumno activo
+        </label>
+      </div>
+      
+      <div class="form-botones">
+        <button type="submit" class="btn-guardar">💾 Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+      </div>
+    </form>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'block';
+  
+  if (esEdicion) {
+    cargarDatosAlumno(alumnoId);
+  }
+}
+
+async function cargarDatosAlumno(alumnoId) {
+  try {
+    const doc = await db.collection('usuarios').doc(alumnoId).get();
+    if (doc.exists) {
+      const alumno = doc.data();
+      document.getElementById('nombreAlumno').value = alumno.nombre;
+      document.getElementById('matriculaAlumno').value = alumno.matricula || '';
+      document.getElementById('emailAlumno').value = alumno.email;
+      document.getElementById('activoAlumno').checked = alumno.activo;
+    }
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+async function guardarAlumno(event, alumnoId) {
+  event.preventDefault();
+  
+  const nombre = document.getElementById('nombreAlumno').value.trim();
+  const matricula = document.getElementById('matriculaAlumno').value.trim();
+  const email = document.getElementById('emailAlumno').value.trim();
+  const activo = document.getElementById('activoAlumno').checked;
+  
+  const userData = {
+    nombre: nombre,
+    matricula: matricula,
+    email: email,
+    rol: 'alumno',
+    activo: activo
+  };
+  
+  try {
+    if (alumnoId) {
+      // Editar
+      await db.collection('usuarios').doc(alumnoId).update(userData);
+      alert('✅ Alumno actualizado');
+    } else {
+      // Crear nuevo
+      const password = document.getElementById('passwordAlumno').value;
+      
+      if (password.length < 6) {
+        alert('La contraseña debe tener al menos 6 caracteres');
+        return;
+      }
+      
+      // Guardar usuario admin actual
+      const adminUser = auth.currentUser;
+      
+      // Crear en Authentication
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const newUid = userCredential.user.uid;
+      
+      // Guardar en Firestore
+      userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('usuarios').doc(newUid).set(userData);
+      
+      // Cerrar sesión del nuevo usuario y restaurar admin
+      await auth.signOut();
+      const adminPass = prompt('Por seguridad, ingresa tu contraseña de coordinador:');
+      await auth.signInWithEmailAndPassword(adminUser.email, adminPass);
+      
+      alert(`✅ Alumno creado!\n\nEmail: ${email}\nPassword: ${password}\nMatrícula: ${matricula}`);
+    }
+    
+    cerrarModal();
+    cargarAlumnos();
+  } catch (error) {
+    console.error('Error:', error);
+    
+    let mensaje = 'Error al guardar alumno';
+    if (error.code === 'auth/email-already-in-use') {
+      mensaje = 'Este email ya está registrado';
+    } else if (error.code === 'auth/invalid-email') {
+      mensaje = 'Email inválido';
+    } else if (error.code === 'auth/weak-password') {
+      mensaje = 'La contraseña debe tener al menos 6 caracteres';
+    }
+    
+    alert('❌ ' + mensaje);
+  }
+}
+
+function editarAlumno(alumnoId) {
+  mostrarFormAlumno(alumnoId);
+}
+
+// Función auxiliar para activar/desactivar usuarios
+async function toggleActivoUsuario(userId, tipo, nuevoEstado) {
+  try {
+    await db.collection('usuarios').doc(userId).update({
+      activo: nuevoEstado
+    });
+    
+    alert(nuevoEstado ? `${tipo} activado` : `${tipo} desactivado`);
+    
+    if (tipo === 'profesor') {
+      cargarProfesores();
+    } else if (tipo === 'alumno') {
+      cargarAlumnos();
+    }
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al actualizar estado');
   }
 }
 
