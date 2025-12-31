@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="botones.css">
+  <link rel="stylesheet" href="Personas.css">
+  <title>Gestión de Usuarios</title>
+  <style>
+    .header {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header h1 {
+      color: white;
+      margin: 0;
+    }
+
+    .btn-volver {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+      padding: 10px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .btn-volver:hover {
+      background: white;
+      color: #667eea;
+    }
+
+    .filtros {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .filtro-btn {
+      padding: 10px 20px;
+      border: 2px solid #667eea;
+      background: white;
+      color: #667eea;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      transition: all 0.3s;
+    }
+
+    .filtro-btn.active {
+      background: #667eea;
+      color: white;
+    }
+
+    .filtro-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .lista-usuarios {
+      display: grid;
+      gap: 15px;
+    }
+
+    .usuario-card {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: all 0.3s;
+    }
+
+    .usuario-card:hover {
+      transform: translateX(5px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    }
+
+    .usuario-info h3 {
+      margin: 0 0 5px 0;
+      color: #333;
+    }
+
+    .usuario-info p {
+      margin: 3px 0;
+      color: #666;
+      font-size: 0.9rem;
+    }
+
+    .rol-badge {
+      display: inline-block;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .rol-admin {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    .rol-coordinador {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+
+    .rol-profesor {
+      background: #e3f2fd;
+      color: #1565c0;
+    }
+
+    .rol-alumno {
+      background: #fff3e0;
+      color: #ef6c00;
+    }
+
+    .usuario-acciones {
+      display: flex;
+      gap: 8px;
+    }
+
+    .sin-usuarios {
+      text-align: center;
+      padding: 60px 20px;
+      color: #999;
+    }
+
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+    }
+
+    @media (max-width: 768px) {
+      .form-row {
+        grid-template-columns: 1fr;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <h1>👥 Gestión de Usuarios</h1>
+      <p style="margin: 5px 0;">Administración del Sistema</p>
+    </div>
+    <button onclick="window.location.href='dashboard-admin.html'" class="btn-volver">
+      ← Volver al Dashboard
+    </button>
+  </div>
+
+  <!-- Botones de acción -->
+  <div class="botones-accion">
+    <button onclick="mostrarFormUsuario('admin')" class="botAzu">➕ Nuevo Admin</button>
+    <button onclick="mostrarFormUsuario('coordinador')" class="botAzu">➕ Nuevo Coordinador</button>
+    <button onclick="mostrarFormUsuario('profesor')" class="botAzu">➕ Nuevo Profesor</button>
+    <button onclick="mostrarFormUsuario('alumno')" class="botAzu">➕ Nuevo Alumno</button>
+  </div>
+
+  <!-- Filtros por rol -->
+  <div class="filtros">
+    <button class="filtro-btn active" onclick="filtrarPorRol('todos')">Todos</button>
+    <button class="filtro-btn" onclick="filtrarPorRol('admin')">Admins</button>
+    <button class="filtro-btn" onclick="filtrarPorRol('coordinador')">Coordinadores</button>
+    <button class="filtro-btn" onclick="filtrarPorRol('profesor')">Profesores</button>
+    <button class="filtro-btn" onclick="filtrarPorRol('alumno')">Alumnos</button>
+  </div>
+
+  <!-- Lista de usuarios -->
+  <div id="listaUsuarios" class="lista-usuarios">
+    <p style="text-align: center; color: #999;">Cargando usuarios...</p>
+  </div>
+
+  <!-- Modal para formulario -->
+  <div id="modalFormulario" class="modal">
+    <div class="modal-contenido" style="max-width: 600px;">
+      <span class="cerrar" onclick="cerrarModal()">&times;</span>
+      <h2 id="tituloModal">Crear Usuario</h2>
+      <form id="formUsuario" onsubmit="guardarUsuario(event)">
+        <input type="hidden" id="usuarioId">
+        <input type="hidden" id="rolUsuario">
+
+        <div class="form-grupo">
+          <label for="nombre">Nombre Completo: *</label>
+          <input type="text" id="nombre" required placeholder="Nombre completo">
+        </div>
+
+        <div class="form-row">
+          <div class="form-grupo">
+            <label for="email">Email: *</label>
+            <input type="email" id="email" required placeholder="usuario@escuela.com">
+          </div>
+
+          <div class="form-grupo">
+            <label for="password">Contraseña Temporal: *</label>
+            <input type="text" id="password" required placeholder="Mínimo 6 caracteres">
+            <small style="color: #666;">El usuario podrá cambiarla después</small>
+          </div>
+        </div>
+
+        <!-- Campo específico para Coordinador -->
+        <div id="campoCarrera" class="form-grupo" style="display: none;">
+          <label for="carreraId">Carrera Asignada: *</label>
+          <select id="carreraId">
+            <option value="">Seleccionar carrera...</option>
+          </select>
+        </div>
+
+        <!-- Campo específico para Alumno -->
+        <div id="campoMatricula" class="form-grupo" style="display: none;">
+          <label for="matricula">Matrícula: *</label>
+          <input type="text" id="matricula" placeholder="Ej: 2024001">
+        </div>
+
+        <div class="form-grupo">
+          <label>
+            <input type="checkbox" id="activo" checked>
+            Usuario activo
+          </label>
+        </div>
+
+        <div class="form-botones">
+          <button type="submit" class="btn-guardar">💾 Crear Usuario</button>
+          <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase.js"></script>
+  <script src="gestionUsuarios.js"></script>
+</body>
+</html>
