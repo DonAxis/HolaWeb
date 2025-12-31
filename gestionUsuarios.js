@@ -214,7 +214,7 @@ async function guardarUsuario(event) {
   const activo = document.getElementById('activo').checked;
   
   // Validar contraseña
-  if (password.length < 6) {
+  if (!usuarioId && password.length < 6) {
     alert('La contraseña debe tener al menos 6 caracteres');
     return;
   }
@@ -249,27 +249,71 @@ async function guardarUsuario(event) {
   }
   
   try {
-    // IMPORTANTE: Crear usuario en Firebase Auth
-    console.log('📝 Creando usuario en Authentication...');
-    
-    // Nota: Para crear usuarios desde el admin, normalmente usarías Firebase Admin SDK
-    // Como estamos en el cliente, vamos a crear solo en Firestore
-    // El usuario deberá ser creado manualmente en Authentication o usar Admin SDK
-    
-    // Por ahora, solo guardamos en Firestore
-    // En producción, necesitarías un Cloud Function para crear el usuario en Auth
-    
-    const newUserId = db.collection('usuarios').doc().id;
-    await db.collection('usuarios').doc(newUserId).set(userData);
-    
-    alert(`✅ Usuario creado en Firestore con ID: ${newUserId}\n\n⚠️ IMPORTANTE:\nDebes crear este usuario manualmente en Authentication con:\nEmail: ${email}\nPassword: ${password}\nUID: ${newUserId}`);
+    if (usuarioId) {
+      // EDITAR USUARIO EXISTENTE
+      console.log('📝 Actualizando usuario...');
+      
+      // Actualizar solo en Firestore
+      const updateData = { ...userData };
+      delete updateData.fechaCreacion; // No actualizar fecha de creación
+      
+      await db.collection('usuarios').doc(usuarioId).update(updateData);
+      
+      // TODO: Si se cambió el password, actualizar en Authentication
+      // Esto requeriría Cloud Functions o Admin SDK
+      
+      alert('✅ Usuario actualizado en Firestore\n\n⚠️ Si cambiaste el password, debes actualizarlo manualmente en Authentication');
+      
+    } else {
+      // CREAR NUEVO USUARIO
+      console.log('📝 Creando usuario en Authentication...');
+      
+      // Guardar el usuario actual admin
+      const adminUser = auth.currentUser;
+      
+      // 1. Crear en Authentication
+      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+      const newUid = userCredential.user.uid;
+      
+      console.log('✅ Usuario creado en Auth. UID:', newUid);
+      
+      // 2. Guardar en Firestore
+      await db.collection('usuarios').doc(newUid).set(userData);
+      console.log('✅ Usuario guardado en Firestore');
+      
+      // 3. Cerrar sesión del usuario recién creado y restaurar admin
+      await auth.signOut();
+      await auth.signInWithEmailAndPassword(adminUser.email, prompt('Por seguridad, ingresa tu contraseña de admin para continuar:'));
+      
+      alert(`✅ Usuario creado exitosamente!\n\nEmail: ${email}\nPassword: ${password}\nUID: ${newUid}\n\nEl usuario ya puede hacer login.`);
+    }
     
     cerrarModal();
     await cargarUsuarios();
     
   } catch (error) {
     console.error('❌ Error:', error);
-    alert('Error al crear usuario: ' + error.message);
+    
+    let mensaje = 'Error al guardar usuario';
+    
+    switch(error.code) {
+      case 'auth/email-already-in-use':
+        mensaje = 'Este email ya está registrado en Authentication';
+        break;
+      case 'auth/invalid-email':
+        mensaje = 'Email inválido';
+        break;
+      case 'auth/weak-password':
+        mensaje = 'La contraseña debe tener al menos 6 caracteres';
+        break;
+      case 'auth/operation-not-allowed':
+        mensaje = 'La creación de usuarios no está habilitada';
+        break;
+      default:
+        mensaje = error.message;
+    }
+    
+    alert('❌ ' + mensaje);
   }
 }
 
