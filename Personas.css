@@ -1,3 +1,6 @@
+/* Personas.css */
+/* Estilos principales para el sistema de gestión de alumnos */
+
 * {
   margin: 0;
   padding: 0;
@@ -16,6 +19,8 @@ h1 {
   text-align: center;
   margin-bottom: 25px;
   color: #0d47a1;
+  font-size: 2.5rem;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 h2, h3 {
@@ -28,6 +33,7 @@ h2, h3 {
   justify-content: center;
   gap: 15px;
   margin-bottom: 30px;
+  flex-wrap: wrap;
 }
 
 #contenido {
@@ -43,8 +49,66 @@ h2, h3 {
   text-align: center;
   font-size: 1rem;
   color: #555;
+  overflow-x: auto;
 }
 
+/* Estilos de tabla mejorados */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+  background: white;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+thead {
+  background: linear-gradient(135deg, #1e88e5, #1565c0);
+  color: white;
+}
+
+th {
+  padding: 15px;
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.5px;
+}
+
+td {
+  padding: 12px;
+  text-align: center;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+tbody tr {
+  transition: background-color 0.2s ease;
+}
+
+tbody tr:hover {
+  background-color: #f5f5f5;
+}
+
+tbody tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+/* Enlaces en la tabla */
+table a {
+  color: #1e88e5;
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+table a:hover {
+  color: #0d47a1;
+  text-decoration: underline;
+}
+
+/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -52,18 +116,21 @@ h2, h3 {
   inset: 0;
   background-color: rgba(0, 0, 0, 0.5);
   animation: fadeIn 0.3s ease-in-out;
+  overflow-y: auto;
 }
 
 .modal-contenido {
   background: #ffffff;
   width: 90%;
-  max-width: 500px;
-  margin: 70px auto;
+  max-width: 800px;
+  max-height: 90vh;
+  margin: 30px auto;
   padding: 25px;
   border-radius: 15px;
   box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
   animation: slideDown 0.3s ease;
   position: relative;
+  overflow-y: auto;
 }
 
 .cerrar {
@@ -74,12 +141,16 @@ h2, h3 {
   color: #999;
   cursor: pointer;
   transition: color 0.2s;
+  line-height: 1;
 }
 
 .cerrar:hover {
   color: #e53935;
+  transform: rotate(90deg);
+  transition: all 0.3s ease;
 }
 
+/* Formulario */
 form {
   display: flex;
   flex-direction: column;
@@ -95,13 +166,15 @@ form {
   font-weight: 600;
   margin-bottom: 5px;
   color: #444;
+  font-size: 0.95rem;
 }
 
 .form-grupo input {
-  padding: 10px;
+  padding: 10px 12px;
   border-radius: 8px;
   border: 1px solid #ccc;
   transition: border 0.2s, box-shadow 0.2s;
+  font-size: 1rem;
 }
 
 .form-grupo input:focus {
@@ -110,12 +183,19 @@ form {
   box-shadow: 0 0 0 3px rgba(30, 136, 229, 0.2);
 }
 
+.form-grupo input::placeholder {
+  color: #999;
+  font-style: italic;
+}
+
 .form-botones {
   display: flex;
   justify-content: space-between;
+  gap: 10px;
   margin-top: 15px;
 }
 
+/* Animaciones */
 @keyframes fadeIn {
   from {
     opacity: 0;
@@ -136,13 +216,84 @@ form {
   }
 }
 
-@media (max-width: 600px) {
+/* Responsive */
+@media (max-width: 768px) {
+  body {
+    padding: 15px;
+  }
+
+  h1 {
+    font-size: 1.8rem;
+  }
+
+  #contenido {
+    padding: 15px;
+  }
+
   .modal-contenido {
     margin: 40px auto;
+    padding: 20px;
   }
 
   .form-botones {
     flex-direction: column;
     gap: 10px;
+  }
+
+  table {
+    font-size: 0.85rem;
+  }
+
+  th, td {
+    padding: 8px;
+  }
+}
+
+@media (max-width: 480px) {
+  .botones-accion {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .botones-accion button {
+    width: 100%;
+  }
+}
+
+/* Mensajes de estado */
+.mensaje-exito {
+  background: linear-gradient(135deg, #66bb6a, #43a047);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+.mensaje-error {
+  background: linear-gradient(135deg, #ef5350, #e53935);
+  color: white;
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+  animation: slideDown 0.3s ease;
+}
+
+/* Loading spinner */
+.loading {
+  display: inline-block;
+  width: 20px;
+  height: 20px;
+  border: 3px solid rgba(30, 136, 229, 0.3);
+  border-radius: 50%;
+  border-top-color: #1e88e5;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
   }
 }
