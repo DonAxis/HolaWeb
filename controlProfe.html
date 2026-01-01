@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="botones.css">
+  <link rel="stylesheet" href="Personas.css">
+  <title>Panel de Profesor</title>
+  <style>
+    .header-profesor {
+      background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .header-profesor h1 {
+      color: white;
+      margin: 0;
+    }
+
+    .user-info {
+      text-align: right;
+    }
+
+    .btn-config {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-left: 10px;
+      transition: all 0.3s;
+    }
+
+    .btn-config:hover {
+      background: white;
+      color: #1976d2;
+    }
+
+    .menu-profesor {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+    }
+
+    .card-profesor {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .card-profesor:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-profesor h3 {
+      color: #1976d2;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-profesor">
+    <div>
+      <h1>👨‍🏫 Panel de Profesor</h1>
+      <p id="profesorInfo">Cargando...</p>
+    </div>
+    <div class="user-info">
+      <p><strong id="userName">Cargando...</strong></p>
+      <p id="userEmail"></p>
+      <button onclick="mostrarConfiguracion()" class="btn-config">⚙️ Configuración</button>
+      <button onclick="cerrarSesion()" class="btn-config">🚪 Cerrar Sesión</button>
+    </div>
+  </div>
+
+  <div class="menu-profesor">
+    <div class="card-profesor" onclick="alert('Próximamente: Mis Materias')">
+      <h3>📚 Mis Materias</h3>
+      <p>Ver materias asignadas</p>
+    </div>
+
+    <div class="card-profesor" onclick="alert('Próximamente: Registrar Calificaciones')">
+      <h3>📝 Calificaciones</h3>
+      <p>Registrar calificaciones</p>
+    </div>
+
+    <div class="card-profesor" onclick="alert('Próximamente: Asistencia')">
+      <h3>✅ Asistencia</h3>
+      <p>Registrar asistencia</p>
+    </div>
+
+    <div class="card-profesor" onclick="alert('Próximamente: Mis Grupos')">
+      <h3>👥 Mis Grupos</h3>
+      <p>Ver mis grupos</p>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIGURACIÓN -->
+  <div id="modalConfig" class="modal">
+    <div class="modal-contenido">
+      <span class="cerrar" onclick="cerrarModalConfig()">&times;</span>
+      <h2>⚙️ Configuración</h2>
+      
+      <div style="margin: 20px 0;">
+        <h3 style="color: #1976d2;">Cambiar Contraseña</h3>
+        <form onsubmit="cambiarPassword(event)">
+          <div class="form-grupo">
+            <label>Contraseña Actual:</label>
+            <input type="password" id="passwordActual" required minlength="6">
+          </div>
+          
+          <div class="form-grupo">
+            <label>Nueva Contraseña:</label>
+            <input type="password" id="passwordNueva" required minlength="6">
+          </div>
+          
+          <div class="form-grupo">
+            <label>Confirmar Nueva Contraseña:</label>
+            <input type="password" id="passwordConfirmar" required minlength="6">
+          </div>
+          
+          <div class="form-botones">
+            <button type="submit" class="btn-guardar">💾 Cambiar Contraseña</button>
+            <button type="button" onclick="cerrarModalConfig()" class="btn-cancelar">❌ Cancelar</button>
+          </div>
+        </form>
+      </div>
+
+      <div style="margin-top: 30px; padding-top: 20px; border-top: 2px solid #eee;">
+        <h3 style="color: #1976d2;">Información de la Cuenta</h3>
+        <p><strong>Nombre:</strong> <span id="configNombre"></span></p>
+        <p><strong>Email:</strong> <span id="configEmail"></span></p>
+        <p><strong>Rol:</strong> Profesor</p>
+        <p><strong>Carreras:</strong> <span id="configCarreras"></span></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase.js"></script>
+  <script>
+    const auth = firebase.auth();
+    let usuarioActual = null;
+
+    // Protección y autenticación
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        console.log('❌ No hay sesión activa');
+        alert('Debes iniciar sesión');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const userDoc = await db.collection('usuarios').doc(user.uid).get();
+        
+        if (!userDoc.exists) {
+          console.log('❌ Usuario no encontrado en Firestore');
+          await auth.signOut();
+          window.location.href = 'login.html';
+          return;
+        }
+
+        usuarioActual = userDoc.data();
+        usuarioActual.uid = user.uid;
+
+        // Verificar que sea profesor
+        if (usuarioActual.rol !== 'profesor') {
+          console.log('❌ No tienes permisos de profesor');
+          alert('No tienes permisos para acceder a este panel');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        console.log('✅ Profesor autorizado:', usuarioActual.nombre);
+        
+        // Mostrar info del usuario
+        document.getElementById('userName').textContent = usuarioActual.nombre;
+        document.getElementById('userEmail').textContent = user.email;
+        
+        // Cargar carreras
+        await cargarInfoCarreras();
+        
+      } catch (error) {
+        console.error('❌ Error:', error);
+        alert('Error al verificar permisos');
+        window.location.href = 'login.html';
+      }
+    });
+
+    async function cargarInfoCarreras() {
+      if (!usuarioActual.carreras || usuarioActual.carreras.length === 0) {
+        document.getElementById('profesorInfo').textContent = 'Sin carreras asignadas';
+        return;
+      }
+
+      try {
+        const nombresCarreras = [];
+        for (const carreraId of usuarioActual.carreras) {
+          const doc = await db.collection('carreras').doc(carreraId).get();
+          if (doc.exists) {
+            nombresCarreras.push(doc.data().nombre);
+          }
+        }
+        
+        document.getElementById('profesorInfo').textContent = 
+          'Carreras: ' + nombresCarreras.join(', ');
+      } catch (error) {
+        console.error('Error al cargar carreras:', error);
+      }
+    }
+
+    function mostrarConfiguracion() {
+      document.getElementById('configNombre').textContent = usuarioActual.nombre;
+      document.getElementById('configEmail').textContent = usuarioActual.email;
+      
+      // Mostrar carreras
+      db.collection('carreras').get().then(snapshot => {
+        const carrerasMap = {};
+        snapshot.forEach(doc => {
+          carrerasMap[doc.id] = doc.data().nombre;
+        });
+        
+        const nombresCarreras = usuarioActual.carreras
+          .map(id => carrerasMap[id] || id)
+          .join(', ');
+        
+        document.getElementById('configCarreras').textContent = nombresCarreras || 'Sin carreras';
+      });
+      
+      document.getElementById('modalConfig').style.display = 'block';
+    }
+
+    function cerrarModalConfig() {
+      document.getElementById('modalConfig').style.display = 'none';
+      document.getElementById('passwordActual').value = '';
+      document.getElementById('passwordNueva').value = '';
+      document.getElementById('passwordConfirmar').value = '';
+    }
+
+    async function cambiarPassword(event) {
+      event.preventDefault();
+      
+      const passwordActual = document.getElementById('passwordActual').value;
+      const passwordNueva = document.getElementById('passwordNueva').value;
+      const passwordConfirmar = document.getElementById('passwordConfirmar').value;
+      
+      // Validar que las contraseñas coincidan
+      if (passwordNueva !== passwordConfirmar) {
+        alert('❌ Las contraseñas nuevas no coinciden');
+        return;
+      }
+      
+      // Validar longitud
+      if (passwordNueva.length < 6) {
+        alert('❌ La contraseña debe tener al menos 6 caracteres');
+        return;
+      }
+      
+      try {
+        const user = firebase.auth().currentUser;
+        const credential = firebase.auth.EmailAuthProvider.credential(
+          user.email,
+          passwordActual
+        );
+        
+        // Re-autenticar con contraseña actual
+        await user.reauthenticateWithCredential(credential);
+        
+        // Cambiar contraseña
+        await user.updatePassword(passwordNueva);
+        
+        alert('✅ Contraseña cambiada exitosamente');
+        cerrarModalConfig();
+        
+      } catch (error) {
+        console.error('Error al cambiar contraseña:', error);
+        
+        if (error.code === 'auth/wrong-password') {
+          alert('❌ La contraseña actual es incorrecta');
+        } else if (error.code === 'auth/weak-password') {
+          alert('❌ La contraseña es muy débil');
+        } else {
+          alert('❌ Error al cambiar contraseña: ' + error.message);
+        }
+      }
+    }
+
+    async function cerrarSesion() {
+      if (confirm('¿Cerrar sesión?')) {
+        try {
+          await auth.signOut();
+          sessionStorage.clear();
+          window.location.href = 'login.html';
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error al cerrar sesión');
+        }
+      }
+    }
+
+    // Cerrar modal al hacer clic fuera
+    window.onclick = function(event) {
+      const modal = document.getElementById('modalConfig');
+      if (event.target === modal) {
+        cerrarModalConfig();
+      }
+    }
+  </script>
+</body>
+</html>
