@@ -5,6 +5,7 @@
 
 // ===== CARGA MASIVA CSV =====
 
+
 function mostrarCargadorCSV() {
   document.getElementById('tituloModal').textContent = '📁 Cargar Profesores desde CSV';
   
@@ -377,18 +378,19 @@ function mostrarCargadorCSVAlumnos() {
         <h4 style="margin: 0 0 10px 0; color: #1976d2;">📋 Formato del CSV:</h4>
         <p style="margin: 5px 0; font-size: 0.9rem;"><strong>Con encabezado:</strong></p>
         <code style="display: block; background: white; padding: 10px; border-radius: 4px; font-size: 0.85rem;">
-nombre,email,matricula,password,carrera<br>
-Juan Pérez,juan@alumno.com,2024001,Pass123,Matemáticas
+nombre,email,matricula,password,carrera,grupo<br>
+Juan Pérez,juan@alumno.com,2024001,Pass123,Matemáticas,3101TT
         </code>
         
         <p style="margin: 15px 0 5px 0; font-size: 0.9rem;"><strong>Separado por TAB:</strong></p>
         <code style="display: block; background: white; padding: 10px; border-radius: 4px; font-size: 0.85rem;">
-Juan Pérez[TAB]juan@alumno.com[TAB]2024001[TAB]Pass123[TAB]Matemáticas
+Juan Pérez[TAB]juan@alumno.com[TAB]2024001[TAB]Pass123[TAB]Matemáticas[TAB]3101TT
         </code>
         
         <p style="margin: 15px 0 5px 0; color: #666; font-size: 0.85rem;">
           • La <strong>matrícula</strong> debe ser única<br>
           • El campo <strong>carrera</strong> debe coincidir con una carrera existente<br>
+          • El campo <strong>grupo</strong> debe existir en el sistema<br>
           • Los alumnos se crearán solo en Firestore (NO en Authentication)
         </p>
       </div>
@@ -454,14 +456,15 @@ async function leerArchivoCSVAlumnos(event) {
       
       const campos = linea.split(separador).map(c => c.trim());
       
-      if (campos.length >= 3) {
+      if (campos.length >= 4) {
         datos.push({
           linea: index + 1,
           nombre: campos[0] || '',
           email: campos[1] || '',
           matricula: campos[2] || '',
           password: campos[3] || '',
-          carreraNombre: campos[4] || ''
+          carreraNombre: campos[4] || '',
+          grupoNombre: campos[5] || ''
         });
       }
     });
@@ -480,6 +483,7 @@ async function mostrarPreviewCSVAlumnos(datos) {
   }
   
   const carrerasMap = await obtenerMapaCarrerasInverso();
+  const gruposMap = await obtenerMapaGruposInverso();
   
   let validos = 0;
   let errores = 0;
@@ -489,7 +493,7 @@ async function mostrarPreviewCSVAlumnos(datos) {
   html += '<th style="padding: 8px; border: 1px solid #ddd;">Nombre</th>';
   html += '<th style="padding: 8px; border: 1px solid #ddd;">Email</th>';
   html += '<th style="padding: 8px; border: 1px solid #ddd;">Matrícula</th>';
-  html += '<th style="padding: 8px; border: 1px solid #ddd;">Carrera</th>';
+  html += '<th style="padding: 8px; border: 1px solid #ddd;">Grupo</th>';
   html += '</tr>';
   
   datos.forEach(dato => {
@@ -530,8 +534,19 @@ async function mostrarPreviewCSVAlumnos(datos) {
       esValido = false;
     }
     
+    if (!dato.grupoNombre) {
+      estado = '❌';
+      errorMsg += 'Grupo requerido. ';
+      esValido = false;
+    } else if (!gruposMap[dato.grupoNombre.toLowerCase()]) {
+      estado = '❌';
+      errorMsg += `Grupo "${dato.grupoNombre}" no existe. `;
+      esValido = false;
+    }
+    
     dato.valido = esValido;
     dato.carreraId = carrerasMap[dato.carreraNombre.toLowerCase()] || usuarioActual.carreraId;
+    dato.grupoId = gruposMap[dato.grupoNombre.toLowerCase()] || null;
     
     if (esValido) validos++;
     else errores++;
@@ -543,7 +558,7 @@ async function mostrarPreviewCSVAlumnos(datos) {
     html += `<td style="padding: 8px; border: 1px solid #ddd;">${dato.nombre}</td>`;
     html += `<td style="padding: 8px; border: 1px solid #ddd;">${dato.email}</td>`;
     html += `<td style="padding: 8px; border: 1px solid #ddd;">${dato.matricula}</td>`;
-    html += `<td style="padding: 8px; border: 1px solid #ddd;">${dato.carreraNombre || 'Tu carrera'}${errorMsg ? '<br><small style="color: red;">' + errorMsg + '</small>' : ''}</td>`;
+    html += `<td style="padding: 8px; border: 1px solid #ddd;">${dato.grupoNombre || 'N/A'}${errorMsg ? '<br><small style="color: red;">' + errorMsg + '</small>' : ''}</td>`;
     html += '</tr>';
   });
   
@@ -578,8 +593,23 @@ async function mostrarPreviewCSVAlumnos(datos) {
   }
 }
 
+async function obtenerMapaGruposInverso() {
+  try {
+    const snapshot = await db.collection('grupos').get();
+    const mapa = {};
+    snapshot.forEach(doc => {
+      const nombre = doc.data().nombre.toLowerCase().trim();
+      mapa[nombre] = doc.id;
+    });
+    return mapa;
+  } catch (error) {
+    console.error('Error:', error);
+    return {};
+  }
+}
+
 async function procesarCSVAlumnos() {
-  if (!confirm(`¿Cargar los alumnos válidos?\n\nSe crearán en Firestore.\nLos alumnos deberán registrarse después con su email y contraseña.`)) {
+  if (!confirm(`¿Cargar los alumnos válidos?\n\n✅ NO cerrará tu sesión\n📋 Se descargará CSV con credenciales`)) {
     return;
   }
   
@@ -592,37 +622,49 @@ async function procesarCSVAlumnos() {
   let exitosos = 0;
   let fallidos = 0;
   const erroresDetallados = [];
+  const credencialesCreadas = [];
   
   for (const dato of datosValidos) {
     try {
+      btnProcesar.textContent = `⏳ Procesando ${exitosos + fallidos + 1}/${datosValidos.length}...`;
+      
       // Verificar si el email ya existe
       const existe = await buscarAlumnoPorEmail(dato.email);
       
       if (existe) {
-        const carrerasActuales = existe.carreras || [];
-        if (!carrerasActuales.includes(dato.carreraId)) {
-          await db.collection('usuarios').doc(existe.id).update({
-            carreras: [...carrerasActuales, dato.carreraId],
-            fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          exitosos++;
-        } else {
-          exitosos++;
-        }
+        exitosos++;
+        credencialesCreadas.push({
+          nombre: dato.nombre,
+          email: dato.email,
+          matricula: dato.matricula,
+          password: dato.password,
+          grupo: dato.grupoNombre,
+          estado: 'Ya existía'
+        });
       } else {
-        // Crear nuevo
+        // Crear nuevo alumno
         await db.collection('usuarios').add({
           nombre: dato.nombre,
           email: dato.email,
           matricula: dato.matricula,
           passwordTemporal: dato.password,
           rol: 'alumno',
-          carreras: [dato.carreraId],
+          carreraId: dato.carreraId,
+          grupoId: dato.grupoId,
           activo: true,
           estado: 'pendiente_registro',
           fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
         });
+        
         exitosos++;
+        credencialesCreadas.push({
+          nombre: dato.nombre,
+          email: dato.email,
+          matricula: dato.matricula,
+          password: dato.password,
+          grupo: dato.grupoNombre,
+          estado: 'Creado - Pendiente registro'
+        });
       }
       
     } catch (error) {
@@ -632,15 +674,32 @@ async function procesarCSVAlumnos() {
     }
   }
   
-  let mensaje = `✅ Carga completada:\n\n`;
-  mensaje += `• ${exitosos} alumnos cargados\n`;
+  // Generar CSV
+  let csvCredenciales = 'Nombre,Email,Matricula,Password,Grupo,Estado\n';
+  credencialesCreadas.forEach(c => {
+    csvCredenciales += `"${c.nombre}","${c.email}","${c.matricula}","${c.password}","${c.grupo}","${c.estado}"\n`;
+  });
+  
+  const blob = new Blob([csvCredenciales], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'credenciales-alumnos-' + new Date().toISOString().split('T')[0] + '.csv';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
+  let mensaje = `✅ Proceso completado:\n\n`;
+  mensaje += `• ${exitosos} alumnos procesados\n`;
   if (fallidos > 0) {
-    mensaje += `• ${fallidos} fallidos\n\n`;
-    mensaje += `Errores:\n${erroresDetallados.join('\n')}`;
+    mensaje += `• ${fallidos} con errores\n`;
+    mensaje += `Errores: ${erroresDetallados.join(', ')}\n\n`;
   }
-  mensaje += `\n\n⚠️ Los alumnos deben registrarse con:\n`;
-  mensaje += `- Su email\n`;
-  mensaje += `- La contraseña del CSV`;
+  
+  mensaje += `\n📥 CSV descargado con credenciales\n\n`;
+  mensaje += `📧 Envía a los alumnos el link:\n`;
+  mensaje += `${window.location.origin}/registro-alumno.html\n\n`;
+  mensaje += `Con sus credenciales del CSV`;
   
   alert(mensaje);
   
