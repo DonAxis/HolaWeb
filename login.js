@@ -115,7 +115,7 @@ function redirigirSegunRol(rol) {
       window.location.href = 'controlAdmin.html';
       break;
     case 'coordinador':
-      window.location.href = 'controlCoordinador.html';
+      window.location.href = 'controlCoordinador.html'; 
       break;
     case 'profesor':
       window.location.href = 'controlProfe.html';

@@ -9,7 +9,7 @@ let carreraActual = null;
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     console.log('❌ No hay sesión activa');
-    alert('Debes iniciar sesión');
+   // alert('Debes iniciar sesión');
     window.location.href = 'login.html';
     return;
   }
