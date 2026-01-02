@@ -112,16 +112,16 @@ function redirigirSegunRol(rol) {
   
   switch (rol) {
     case 'admin':
-      window.location.href = 'controlAdmin.html';
+      window.location.href = 'dashboard-admin.html';
       break;
     case 'coordinador':
-      window.location.href = 'controlCoordinador.html';
+      window.location.href = 'ControlCoordinador.html';
       break;
     case 'profesor':
-      window.location.href = 'controlProfe.html';
+      window.location.href = 'ControlProfe.html';
       break;
     case 'alumno':
-      window.location.href = 'controlAlumno.html';
+      window.location.href = 'ControlAlumno.html';
       break;
     default:
       mostrarMensaje('Rol no reconocido. Contacta al administrador', 'error');

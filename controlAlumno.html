@@ -186,7 +186,6 @@
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        alert('Debes iniciar sesión');
         window.location.href = 'login.html';
         return;
       }
