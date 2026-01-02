@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="botones.css">
+  <link rel="stylesheet" href="Personas.css">
+  <title>Panel de Alumno</title>
+  <style>
+    .header-alumno {
+      background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+      color: white;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 30px;
+    }
+
+    .header-alumno h1 {
+      color: white;
+      margin: 0 0 10px 0;
+    }
+
+    .info-alumno {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 15px;
+      margin-top: 15px;
+    }
+
+    .info-item {
+      background: rgba(255, 255, 255, 0.2);
+      padding: 10px 15px;
+      border-radius: 8px;
+    }
+
+    .info-item strong {
+      display: block;
+      font-size: 0.85rem;
+      margin-bottom: 3px;
+    }
+
+    .btn-logout {
+      background: rgba(255, 255, 255, 0.2);
+      color: white;
+      border: 2px solid white;
+      padding: 8px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      margin-top: 10px;
+      transition: all 0.3s;
+    }
+
+    .btn-logout:hover {
+      background: white;
+      color: #4caf50;
+    }
+
+    .menu-alumno {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+      gap: 20px;
+      margin-bottom: 30px;
+    }
+
+    .card-alumno {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+
+    .card-alumno:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+    }
+
+    .card-alumno h3 {
+      color: #4caf50;
+      margin-bottom: 10px;
+    }
+
+    .calificaciones-container {
+      background: white;
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    }
+
+    .materia-card {
+      background: #f8f9fa;
+      padding: 20px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+      border-left: 4px solid #4caf50;
+    }
+
+    .materia-card h4 {
+      color: #333;
+      margin: 0 0 15px 0;
+    }
+
+    .calificacion-item {
+      display: flex;
+      justify-content: space-between;
+      padding: 10px;
+      background: white;
+      border-radius: 6px;
+      margin-bottom: 8px;
+    }
+
+    .calificacion-valor {
+      font-weight: bold;
+      color: #4caf50;
+      font-size: 1.2rem;
+    }
+
+    .sin-datos {
+      text-align: center;
+      padding: 40px;
+      color: #999;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header-alumno">
+    <h1>👨‍🎓 Panel de Alumno</h1>
+    <div class="info-alumno">
+      <div class="info-item">
+        <strong>Nombre:</strong>
+        <span id="nombreAlumno">Cargando...</span>
+      </div>
+      <div class="info-item">
+        <strong>Matrícula:</strong>
+        <span id="matriculaAlumno">Cargando...</span>
+      </div>
+      <div class="info-item">
+        <strong>Grupo:</strong>
+        <span id="grupoAlumno">Cargando...</span>
+      </div>
+      <div class="info-item">
+        <strong>Carrera:</strong>
+        <span id="carreraAlumno">Cargando...</span>
+      </div>
+    </div>
+    <button onclick="cerrarSesion()" class="btn-logout">🚪 Cerrar Sesión</button>
+  </div>
+
+  <div class="menu-alumno">
+    <div class="card-alumno" onclick="mostrarCalificaciones()">
+      <h3>📊 Mis Calificaciones</h3>
+      <p>Ver todas mis calificaciones</p>
+    </div>
+
+    <div class="card-alumno" onclick="mostrarMaterias()">
+      <h3>📚 Mis Materias</h3>
+      <p>Materias inscritas</p>
+    </div>
+
+    <div class="card-alumno" onclick="mostrarHorario()">
+      <h3>🕐 Horario</h3>
+      <p>Próximamente</p>
+    </div>
+  </div>
+
+  <div id="contenidoCalificaciones" style="display: none;">
+    <div class="calificaciones-container">
+      <h2 style="color: #4caf50; margin-bottom: 20px;">📊 Mis Calificaciones</h2>
+      <div id="listaCalificaciones"></div>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  
+  <script src="firebase.js"></script>
+  <script>
+    const auth = firebase.auth();
+    let usuarioActual = null;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        alert('Debes iniciar sesión');
+        window.location.href = 'login.html';
+        return;
+      }
+
+      try {
+        const userDoc = await db.collection('usuarios').doc(user.uid).get();
+        
+        if (!userDoc.exists) {
+          await auth.signOut();
+          window.location.href = 'login.html';
+          return;
+        }
+
+        usuarioActual = userDoc.data();
+        usuarioActual.uid = user.uid;
+
+        if (usuarioActual.rol !== 'alumno') {
+          alert('No tienes permisos para acceder');
+          window.location.href = 'login.html';
+          return;
+        }
+
+        console.log('✅ Alumno autorizado:', usuarioActual.nombre);
+        
+        // Mostrar info
+        document.getElementById('nombreAlumno').textContent = usuarioActual.nombre;
+        document.getElementById('matriculaAlumno').textContent = usuarioActual.matricula || 'N/A';
+        
+        // Cargar grupo y carrera
+        await cargarInfoAlumno();
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al verificar permisos');
+        window.location.href = 'login.html';
+      }
+    });
+
+    async function cargarInfoAlumno() {
+      try {
+        // Cargar grupo
+        if (usuarioActual.grupoId) {
+          const grupoDoc = await db.collection('grupos').doc(usuarioActual.grupoId).get();
+          if (grupoDoc.exists) {
+            document.getElementById('grupoAlumno').textContent = grupoDoc.data().nombre;
+          }
+        } else {
+          document.getElementById('grupoAlumno').textContent = 'Sin grupo';
+        }
+
+        // Cargar carrera
+        if (usuarioActual.carreraId) {
+          const carreraDoc = await db.collection('carreras').doc(usuarioActual.carreraId).get();
+          if (carreraDoc.exists) {
+            document.getElementById('carreraAlumno').textContent = carreraDoc.data().nombre;
+          }
+        } else {
+          document.getElementById('carreraAlumno').textContent = 'Sin carrera';
+        }
+      } catch (error) {
+        console.error('Error:', error);
+      }
+    }
+
+    async function mostrarCalificaciones() {
+      document.getElementById('contenidoCalificaciones').style.display = 'block';
+      
+      try {
+        // Buscar calificaciones del alumno
+        const snapshot = await db.collection('calificaciones')
+          .where('alumnoId', '==', usuarioActual.uid)
+          .get();
+
+        const container = document.getElementById('listaCalificaciones');
+
+        if (snapshot.empty) {
+          container.innerHTML = '<div class="sin-datos">Aún no tienes calificaciones registradas</div>';
+          return;
+        }
+
+        // Agrupar por materia
+        const porMateria = {};
+        
+        for (const doc of snapshot.docs) {
+          const cal = doc.data();
+          
+          if (!porMateria[cal.materiaId]) {
+            // Obtener nombre de la materia
+            const materiaDoc = await db.collection('materias').doc(cal.materiaId).get();
+            const materiaNombre = materiaDoc.exists ? materiaDoc.data().nombre : 'Materia Desconocida';
+            
+            porMateria[cal.materiaId] = {
+              nombre: materiaNombre,
+              calificaciones: []
+            };
+          }
+          
+          porMateria[cal.materiaId].calificaciones.push(cal);
+        }
+
+        // Mostrar calificaciones agrupadas
+        let html = '';
+        for (const materiaId in porMateria) {
+          const materia = porMateria[materiaId];
+          
+          html += `
+            <div class="materia-card">
+              <h4>${materia.nombre}</h4>
+          `;
+          
+          materia.calificaciones.forEach(cal => {
+            const fecha = cal.fecha ? cal.fecha.toDate().toLocaleDateString() : 'Sin fecha';
+            html += `
+              <div class="calificacion-item">
+                <div>
+                  <strong>${cal.concepto || 'Evaluación'}</strong>
+                  <br><small>${fecha}</small>
+                </div>
+                <div class="calificacion-valor">${cal.calificacion}</div>
+              </div>
+            `;
+          });
+          
+          html += '</div>';
+        }
+
+        container.innerHTML = html;
+
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar calificaciones');
+      }
+    }
+
+    function mostrarMaterias() {
+      alert('Próximamente: Ver materias inscritas');
+    }
+
+    function mostrarHorario() {
+      alert('Próximamente: Ver horario de clases');
+    }
+
+    async function cerrarSesion() {
+      if (confirm('¿Cerrar sesión?')) {
+        try {
+          await auth.signOut();
+          sessionStorage.clear();
+          window.location.href = 'login.html';
+        } catch (error) {
+          console.error('Error:', error);
+          alert('Error al cerrar sesión');
+        }
+      }
+    }
+  </script>
+</body>
+</html>
