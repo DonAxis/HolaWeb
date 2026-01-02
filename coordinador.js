@@ -30,7 +30,7 @@ auth.onAuthStateChanged(async (user) => {
     // Verificar rol (coordinador o admin)
     if (usuarioActual.rol !== 'coordinador' && usuarioActual.rol !== 'admin') {
       console.log('❌ No tienes permisos de coordinador');
-      alert('No tienes permisos para acceder');
+     // alert('No tienes permisos para acceder');
       window.location.href = 'login.html';
       return;
     }
