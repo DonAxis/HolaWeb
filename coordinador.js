@@ -1,7 +1,5 @@
 // coordinador.js
 // Panel de Coordinador - Gestión Completa
-// coordinador.js
-// Panel de Coordinador - Gestión Completa
 
 const auth = firebase.auth();
 let usuarioActual = null;
@@ -11,7 +9,7 @@ let carreraActual = null;
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     console.log('❌ No hay sesión activa');
-   // alert('Debes iniciar sesión');
+    alert('Debes iniciar sesión');
     window.location.href = 'login.html';
     return;
   }
@@ -32,7 +30,7 @@ auth.onAuthStateChanged(async (user) => {
     // Verificar rol (coordinador o admin)
     if (usuarioActual.rol !== 'coordinador' && usuarioActual.rol !== 'admin') {
       console.log('❌ No tienes permisos de coordinador');
-     // alert('No tienes permisos para acceder');
+      alert('No tienes permisos para acceder');
       window.location.href = 'login.html';
       return;
     }
@@ -613,8 +611,8 @@ async function mostrarFormAsignarProfesor() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoAsignar" required placeholder="Ej: 2026-1" value="2026-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
+        <input type="text" id="periodoAsignar" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
       </div>
       
       <div class="form-botones">
@@ -839,8 +837,8 @@ async function mostrarFormInscribirAlumno() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoInscribir" required placeholder="Ej: 2026-1" value="2026-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
+        <input type="text" id="periodoInscribir" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
       </div>
       
       <div class="form-botones">
@@ -1073,7 +1071,7 @@ async function guardarProfesor(event, profesorId) {
       
       // Usuario creado - redirigir a login
       await auth.signOut();
-      alert(`✅ Profesor creado!\n\nEmail: ${email}\nPassword: ${password}\n\nVuelve a iniciar sesión.`);
+      alert(`✅ Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVuelve a iniciar sesión.`);
       window.location.href = 'login.html';
       return;
     }
@@ -1248,7 +1246,7 @@ async function guardarAlumno(event, alumnoId) {
       
       // Usuario creado - redirigir a login
       await auth.signOut();
-      alert(`✅ Alumno creado!\n\nEmail: ${email}\nPassword: ${password}\nMatrícula: ${matricula}\n\nVuelve a iniciar sesión.`);
+      alert(`✅ Registro exitoso!\n\nAlumno: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\nPassword: ${password}\n\nVuelve a iniciar sesión.`);
       window.location.href = 'login.html';
       return;
     }
@@ -1365,5 +1363,3 @@ window.onclick = function(event) {
 }
 
 console.log('📱 Panel de Coordinador cargado');
-// ===== CARGA MASIVA CSV PARA ALUMNOS =====
-/// migro: esta en archivo cargaCSV.js
