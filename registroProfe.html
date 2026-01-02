@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro de Profesor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      padding: 40px;
+      border-radius: 20px;
+      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+      max-width: 450px;
+      width: 100%;
+    }
+
+    h1 {
+      color: #667eea;
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #666;
+      margin-bottom: 30px;
+      font-size: 0.95rem;
+    }
+
+    .form-grupo {
+      margin-bottom: 25px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+
+    input {
+      width: 100%;
+      padding: 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 1rem;
+      transition: all 0.3s;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    .btn-registrar {
+      width: 100%;
+      padding: 15px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 1.1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+      margin-top: 10px;
+    }
+
+    .btn-registrar:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    .btn-registrar:disabled {
+      background: #ccc;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .mensaje {
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      display: none;
+      animation: slideIn 0.3s;
+    }
+
+    .mensaje.success {
+      background: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+
+    .mensaje.error {
+      background: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
+    .mensaje.info {
+      background: #d1ecf1;
+      color: #0c5460;
+      border: 1px solid #bee5eb;
+    }
+
+    @keyframes slideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    .info-box {
+      background: #f8f9fa;
+      padding: 15px;
+      border-radius: 10px;
+      margin-bottom: 25px;
+      border-left: 4px solid #667eea;
+    }
+
+    .info-box p {
+      margin: 5px 0;
+      color: #555;
+      font-size: 0.9rem;
+    }
+
+    .link-login {
+      text-align: center;
+      margin-top: 20px;
+      color: #666;
+    }
+
+    .link-login a {
+      color: #667eea;
+      text-decoration: none;
+      font-weight: 600;
+    }
+
+    .link-login a:hover {
+      text-decoration: underline;
+    }
+
+    .toggle-password {
+      position: absolute;
+      right: 15px;
+      top: 50%;
+      transform: translateY(-50%);
+      cursor: pointer;
+      color: #999;
+      user-select: none;
+    }
+
+    .input-wrapper {
+      position: relative;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>👨‍🏫 Registro de Profesor</h1>
+    <p class="subtitle">Completa tu registro para acceder al sistema</p>
+
+    <div id="mensaje" class="mensaje"></div>
+
+    <div class="info-box">
+      <p><strong>📧 Usa las credenciales</strong> que te proporcionó el coordinador</p>
+      <p>Tu email y contraseña temporal del CSV</p>
+    </div>
+
+    <form id="formRegistro">
+      <div class="form-grupo">
+        <label for="email">Email Institucional:</label>
+        <input type="email" id="email" required placeholder="tu-email@escuela.com" autocomplete="username">
+      </div>
+
+      <div class="form-grupo">
+        <label for="password">Contraseña Temporal:</label>
+        <div class="input-wrapper">
+          <input type="password" id="password" required placeholder="Contraseña del CSV" autocomplete="current-password">
+          <span class="toggle-password" onclick="togglePassword()">👁️</span>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-registrar" id="btnRegistrar">
+        🚀 Completar Registro
+      </button>
+    </form>
+
+    <div class="link-login">
+      ¿Ya estás registrado? <a href="login.html">Iniciar Sesión</a>
+    </div>
+  </div>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+  <script src="firebase.js"></script>
+
+  <script>
+    const auth = firebase.auth();
+    const form = document.getElementById('formRegistro');
+    const btnRegistrar = document.getElementById('btnRegistrar');
+    const mensajeDiv = document.getElementById('mensaje');
+
+    function mostrarMensaje(texto, tipo) {
+      mensajeDiv.textContent = texto;
+      mensajeDiv.className = `mensaje ${tipo}`;
+      mensajeDiv.style.display = 'block';
+      
+      if (tipo === 'success') {
+        setTimeout(() => {
+          mensajeDiv.style.display = 'none';
+        }, 5000);
+      }
+    }
+
+    function togglePassword() {
+      const input = document.getElementById('password');
+      const toggle = document.querySelector('.toggle-password');
+      
+      if (input.type === 'password') {
+        input.type = 'text';
+        toggle.textContent = '🙈';
+      } else {
+        input.type = 'password';
+        toggle.textContent = '👁️';
+      }
+    }
+
+    form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      
+      btnRegistrar.disabled = true;
+      btnRegistrar.textContent = '⏳ Verificando...';
+      
+      try {
+        // 1. Verificar si el usuario existe en Firestore
+        const usuariosRef = db.collection('usuarios');
+        const querySnapshot = await usuariosRef
+          .where('email', '==', email)
+          .where('rol', '==', 'profesor')
+          .limit(1)
+          .get();
+        
+        if (querySnapshot.empty) {
+          mostrarMensaje('❌ Este email no está registrado en el sistema. Contacta al coordinador.', 'error');
+          btnRegistrar.disabled = false;
+          btnRegistrar.textContent = '🚀 Completar Registro';
+          return;
+        }
+        
+        const profesorDoc = querySnapshot.docs[0];
+        const profesorData = profesorDoc.data();
+        
+        // 2. Verificar si la contraseña temporal coincide
+        if (profesorData.passwordTemporal !== password) {
+          mostrarMensaje('❌ La contraseña temporal no coincide. Verifica el CSV.', 'error');
+          btnRegistrar.disabled = false;
+          btnRegistrar.textContent = '🚀 Completar Registro';
+          return;
+        }
+        
+        // 3. Verificar si ya está registrado en Authentication
+        if (profesorData.estado !== 'pendiente_registro') {
+          mostrarMensaje('ℹ️ Ya estás registrado. Ve a iniciar sesión.', 'info');
+          setTimeout(() => {
+            window.location.href = 'login.html';
+          }, 2000);
+          return;
+        }
+        
+        btnRegistrar.textContent = '⏳ Creando cuenta...';
+        
+        // 4. Crear usuario en Firebase Authentication
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const uid = userCredential.user.uid;
+        
+        // 5. Actualizar documento en Firestore
+        // Primero eliminar el documento temporal
+        await profesorDoc.ref.delete();
+        
+        // Crear nuevo documento con el UID de Authentication
+        await db.collection('usuarios').doc(uid).set({
+          nombre: profesorData.nombre,
+          email: profesorData.email,
+          rol: 'profesor',
+          carreras: profesorData.carreras,
+          activo: true,
+          estado: 'activo',
+          fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        mostrarMensaje('✅ ¡Registro completado! Redirigiendo...', 'success');
+        
+        // 6. Redirigir al panel del profesor
+        setTimeout(() => {
+          window.location.href = 'ControlProfe.html';
+        }, 2000);
+        
+      } catch (error) {
+        console.error('Error en registro:', error);
+        
+        let mensajeError = 'Error al completar el registro';
+        
+        if (error.code === 'auth/email-already-in-use') {
+          mensajeError = '❌ Este email ya está registrado en Authentication. Intenta iniciar sesión.';
+        } else if (error.code === 'auth/weak-password') {
+          mensajeError = '❌ La contraseña es muy débil (mínimo 6 caracteres)';
+        } else if (error.code === 'auth/invalid-email') {
+          mensajeError = '❌ Email inválido';
+        }
+        
+        mostrarMensaje(mensajeError, 'error');
+        btnRegistrar.disabled = false;
+        btnRegistrar.textContent = '🚀 Completar Registro';
+      }
+    });
+  </script>
+</body>
+</html>

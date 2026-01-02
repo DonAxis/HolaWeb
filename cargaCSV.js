@@ -1,6 +1,8 @@
 // SISTEMA DE CARGA MASIVA CSV PARA PROFESORES
 
 //////migro de coordinador.js
+
+
 // ===== CARGA MASIVA CSV =====
 
 function mostrarCargadorCSV() {
@@ -231,7 +233,7 @@ async function obtenerMapaCarrerasInverso() {
 }
 
 async function procesarCSV() {
-  if (!confirm(`¿Cargar los profesores válidos?\n\nSe crearán en Firebase Authentication.\nEste proceso puede tardar unos segundos.`)) {
+  if (!confirm(`¿Cargar los profesores válidos?\n\n✅ NO cerrará tu sesión\n📋 Se descargará CSV con credenciales`)) {
     return;
   }
   
@@ -240,9 +242,6 @@ async function procesarCSV() {
   btnProcesar.textContent = '⏳ Procesando...';
   
   const datosValidos = datosCSVParsed.filter(d => d.valido);
-  
-  // Guardar credenciales del coordinador actual
-  const coordinadorEmail = firebase.auth().currentUser.email;
   
   let exitosos = 0;
   let fallidos = 0;
@@ -253,11 +252,11 @@ async function procesarCSV() {
     try {
       btnProcesar.textContent = `⏳ Procesando ${exitosos + fallidos + 1}/${datosValidos.length}...`;
       
-      // Verificar si el email ya existe
+      // Verificar si el email ya existe en Firestore
       const existe = await buscarProfesorPorEmail(dato.email);
       
       if (existe) {
-        // Ya existe - solo agregar carrera
+        // Ya existe - solo agregar carrera si no la tiene
         const carrerasActuales = existe.carreras || [];
         if (!carrerasActuales.includes(dato.carreraId)) {
           await db.collection('usuarios').doc(existe.id).update({
@@ -268,56 +267,38 @@ async function procesarCSV() {
           credencialesCreadas.push({
             nombre: dato.nombre,
             email: dato.email,
-            accion: 'Carrera agregada (ya existía)'
+            password: dato.password,
+            estado: 'Carrera agregada'
           });
         } else {
           exitosos++;
           credencialesCreadas.push({
             nombre: dato.nombre,
             email: dato.email,
-            accion: 'Ya registrado'
+            password: dato.password,
+            estado: 'Ya existía'
           });
         }
       } else {
-        // NO EXISTE - Crear en Authentication Y Firestore
-        try {
-          // 1. Crear en Firebase Authentication
-          const userCredential = await firebase.auth().createUserWithEmailAndPassword(
-            dato.email, 
-            dato.password
-          );
-          const uid = userCredential.user.uid;
-          
-          // 2. Crear documento en Firestore
-          await db.collection('usuarios').doc(uid).set({
-            nombre: dato.nombre,
-            email: dato.email,
-            rol: 'profesor',
-            carreras: [dato.carreraId],
-            activo: true,
-            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          
-          // 3. Cerrar sesión del profesor recién creado
-          await firebase.auth().signOut();
-          
-          exitosos++;
-          credencialesCreadas.push({
-            nombre: dato.nombre,
-            email: dato.email,
-            password: dato.password,
-            accion: 'Creado exitosamente'
-          });
-          
-        } catch (authError) {
-          if (authError.code === 'auth/email-already-in-use') {
-            // Email existe en Auth pero no en nuestra base
-            fallidos++;
-            erroresDetallados.push(`${dato.nombre}: Email ya existe en Authentication`);
-          } else {
-            throw authError;
-          }
-        }
+        // NO EXISTE - Crear solo en Firestore
+        await db.collection('usuarios').add({
+          nombre: dato.nombre,
+          email: dato.email,
+          passwordTemporal: dato.password,
+          rol: 'profesor',
+          carreras: [dato.carreraId],
+          activo: true,
+          estado: 'pendiente_registro',
+          fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        exitosos++;
+        credencialesCreadas.push({
+          nombre: dato.nombre,
+          email: dato.email,
+          password: dato.password,
+          estado: 'Creado - Pendiente registro'
+        });
       }
       
     } catch (error) {
@@ -327,36 +308,39 @@ async function procesarCSV() {
     }
   }
   
+  // Generar CSV para descargar
+  let csvCredenciales = 'Nombre,Email,Password,Estado\n';
+  credencialesCreadas.forEach(c => {
+    csvCredenciales += `"${c.nombre}","${c.email}","${c.password}","${c.estado}"\n`;
+  });
+  
+  // Crear archivo descargable
+  const blob = new Blob([csvCredenciales], { type: 'text/csv;charset=utf-8;' });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'credenciales-profesores-' + new Date().toISOString().split('T')[0] + '.csv';
+  link.style.display = 'none';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  
   // Mostrar resumen
   let mensaje = `✅ Proceso completado:\n\n`;
-  mensaje += `• ${exitosos} profesores procesados correctamente\n`;
+  mensaje += `• ${exitosos} profesores procesados\n`;
   if (fallidos > 0) {
-    mensaje += `• ${fallidos} con errores\n\n`;
-    mensaje += `Errores:\n${erroresDetallados.join('\n')}\n\n`;
+    mensaje += `• ${fallidos} con errores\n`;
+    mensaje += `Errores: ${erroresDetallados.join(', ')}\n\n`;
   }
   
-  // Generar reporte de credenciales
-  if (credencialesCreadas.length > 0) {
-    mensaje += `\n📋 CREDENCIALES CREADAS:\n\n`;
-    credencialesCreadas.forEach(c => {
-      if (c.password) {
-        mensaje += `${c.nombre}\n`;
-        mensaje += `  Email: ${c.email}\n`;
-        mensaje += `  Password: ${c.password}\n\n`;
-      }
-    });
-  }
-  
-  mensaje += `\n⚠️ IMPORTANTE:\n`;
-  mensaje += `Serás redirigido al login.\n`;
-  mensaje += `Vuelve a iniciar sesión con tus credenciales de coordinador.`;
+  mensaje += `\n📥 CSV descargado con credenciales\n\n`;
+  mensaje += `📧 Envía a los profesores el link:\n`;
+  mensaje += `${window.location.origin}/registro-profesor.html\n\n`;
+  mensaje += `Con sus credenciales del CSV`;
   
   alert(mensaje);
   
-  // Redirigir a login (la sesión ya se cerró al crear el último profesor)
-  setTimeout(() => {
-    window.location.href = 'login.html';
-  }, 2000);
+  cerrarModal();
+  cargarProfesores();
 }
 
 // Función auxiliar (ya debe existir)
