@@ -56,7 +56,7 @@ function mostrarInfoUsuario() {
   const h1 = document.querySelector('h1');
   if (h1 && usuarioActual) {
     h1.innerHTML = `
-      Agregar Usuario 
+      Registro Alumno
       <span style="float: right; font-size: 0.6em; color: #666;">
         👤 ${usuarioActual.nombre} (${usuarioActual.rol})
         <button onclick="cerrarSesion()" class="botAzu" style="margin-left: 10px;">🚪 Salir</button>
