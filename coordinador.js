@@ -935,7 +935,11 @@ async function darDeBajaAlumno(inscripcionId) {
 // ===== GESTIÓN DE PROFESORES (CREAR/EDITAR) =====
 async function cargarProfesores() {
   try {
-    const snapshot = await db.collection('usuarios').where('rol', '==', 'profesor').get();
+    // Filtrar profesores por carrera del coordinador
+    const snapshot = await db.collection('usuarios')
+      .where('rol', '==', 'profesor')
+      .where('carreras', 'array-contains', usuarioActual.carreraId)
+      .get();
     const container = document.getElementById('listaProfesores');
     
     if (snapshot.empty) {
@@ -1101,7 +1105,11 @@ function editarProfesor(profesorId) {
 // ===== GESTIÓN DE ALUMNOS (CREAR/EDITAR) =====
 async function cargarAlumnos() {
   try {
-    const snapshot = await db.collection('usuarios').where('rol', '==', 'alumno').get();
+    // Filtrar alumnos por carrera del coordinador
+    const snapshot = await db.collection('usuarios')
+      .where('rol', '==', 'alumno')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .get();
     const container = document.getElementById('listaAlumnos');
     
     if (snapshot.empty) {
