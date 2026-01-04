@@ -320,8 +320,41 @@
       }
     }
 
-    function mostrarMaterias() {
-      alert('Próximamente: Ver materias inscritas');
+    async function mostrarMaterias() {
+      document.getElementById('contenidoCalificaciones').style.display = 'none';
+      
+      try {
+        if (!usuarioActual.grupoId) {
+          alert('No estás asignado a ningún grupo. Contacta al coordinador.');
+          return;
+        }
+        
+        // Buscar asignaciones del grupo
+        const snapshot = await db.collection('profesorMaterias')
+          .where('grupoId', '==', usuarioActual.grupoId)
+          .where('activa', '==', true)
+          .get();
+        
+        if (snapshot.empty) {
+          alert('Tu grupo aún no tiene materias asignadas.');
+          return;
+        }
+        
+        let mensaje = '📚 Mis Materias:\n\n';
+        
+        for (const doc of snapshot.docs) {
+          const asignacion = doc.data();
+          mensaje += `📖 ${asignacion.materiaNombre} (${asignacion.materiaCodigo})\n`;
+          mensaje += `   👨‍🏫 Profesor: ${asignacion.profesorNombre}\n`;
+          mensaje += `   📅 Periodo: ${asignacion.periodo}\n\n`;
+        }
+        
+        alert(mensaje);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar materias');
+      }
     }
 
     function mostrarHorario() {

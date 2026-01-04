@@ -554,8 +554,12 @@ async function cargarAsignaciones() {
 async function mostrarFormAsignarProfesor() {
   document.getElementById('tituloModal').textContent = 'Asignar Profesor a Materia';
   
-  // Cargar profesores
-  const profesoresSnap = await db.collection('usuarios').where('rol', '==', 'profesor').get();
+  // Cargar profesores de la carrera
+  let profesoresQuery = db.collection('usuarios').where('rol', '==', 'profesor');
+  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+    profesoresQuery = profesoresQuery.where('carreras', 'array-contains', usuarioActual.carreraId);
+  }
+  const profesoresSnap = await profesoresQuery.get();
   let profesoresHtml = '<option value="">Seleccionar profesor...</option>';
   profesoresSnap.forEach(doc => {
     const prof = doc.data();
