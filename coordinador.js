@@ -1221,15 +1221,40 @@ async function guardarAlumno(event, alumnoId) {
   const nombre = document.getElementById('nombreAlumno').value.trim();
   const matricula = document.getElementById('matriculaAlumno').value.trim();
   const email = document.getElementById('emailAlumno').value.trim();
+  const grupoId = document.getElementById('grupoAlumno').value;
   const activo = document.getElementById('activoAlumno').checked;
   
   const userData = {
     nombre: nombre,
     matricula: matricula,
-    email: email,
+    email: email.toLowerCase(),
     rol: 'alumno',
+    grupoId: grupoId || null,
+    carreraId: usuarioActual.carreraId,
     activo: activo
   };
+  
+  try {
+    if (alumnoId) {
+      // Editar
+      await db.collection('usuarios').doc(alumnoId).update(userData);
+      alert('✅ Alumno actualizado');
+    } else {
+      // Crear nuevo - SOLO en Firestore (sin Authentication)
+      userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
+      await db.collection('usuarios').add(userData);
+      
+      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\n/consulta-alumno.html`);
+    }
+    
+    cerrarModal();
+    cargarAlumnos();
+  } catch (error) {
+    console.error('Error:', error);
+    alert('❌ Error al guardar alumno');
+  }
+}
+
   
   try {
     if (alumnoId) {
