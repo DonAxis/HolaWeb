@@ -1121,14 +1121,24 @@ async function cargarAlumnos() {
       return;
     }
     
+    // Cargar todos los grupos para mapear nombres
+    const gruposSnap = await db.collection('grupos').get();
+    const gruposMap = {};
+    gruposSnap.forEach(doc => {
+      gruposMap[doc.id] = doc.data().nombre;
+    });
+    
     let html = '';
     snapshot.forEach(doc => {
       const alumno = doc.data();
+      const grupoNombre = alumno.grupoId ? (gruposMap[alumno.grupoId] || 'Grupo no encontrado') : 'Sin grupo';
+      
       html += `
         <div class="item">
           <div class="item-info">
             <h4>${alumno.nombre}</h4>
             <p>🎓 Matrícula: ${alumno.matricula || 'N/A'}</p>
+            <p>👥 Grupo: ${grupoNombre}</p>
             <p>📧 ${alumno.email}</p>
             <p>${alumno.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
@@ -1149,9 +1159,24 @@ async function cargarAlumnos() {
   }
 }
 
-function mostrarFormAlumno(alumnoId = null) {
+async function mostrarFormAlumno(alumnoId = null) {
   const esEdicion = alumnoId !== null;
   document.getElementById('tituloModal').textContent = esEdicion ? 'Editar Alumno' : 'Nuevo Alumno';
+  
+  // Cargar grupos de la carrera del coordinador
+  let gruposHtml = '<option value="">Sin grupo asignado</option>';
+  try {
+    const gruposSnap = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .get();
+    
+    gruposSnap.forEach(doc => {
+      const grupo = doc.data();
+      gruposHtml += `<option value="${doc.id}">${grupo.nombre} (Semestre ${grupo.semestre})</option>`;
+    });
+  } catch (error) {
+    console.error('Error al cargar grupos:', error);
+  }
   
   const html = `
     <form onsubmit="guardarAlumno(event, '${alumnoId || ''}')">
@@ -1170,13 +1195,13 @@ function mostrarFormAlumno(alumnoId = null) {
         <input type="email" id="emailAlumno" required placeholder="alumno@escuela.com">
       </div>
       
-      ${!esEdicion ? `
-        <div class="form-grupo">
-          <label>Contraseña Temporal: *</label>
-          <input type="text" id="passwordAlumno" required placeholder="Mínimo 6 caracteres" value="Alumno123!">
-          <small style="color: #666;">El alumno podrá cambiarla después</small>
-        </div>
-      ` : ''}
+      <div class="form-grupo">
+        <label>Grupo: *</label>
+        <select id="grupoAlumno" required>
+          ${gruposHtml}
+        </select>
+        <small style="color: #666;">El grupo determina las materias del alumno</small>
+      </div>
       
       <div class="form-grupo">
         <label>
@@ -1208,6 +1233,7 @@ async function cargarDatosAlumno(alumnoId) {
       document.getElementById('nombreAlumno').value = alumno.nombre;
       document.getElementById('matriculaAlumno').value = alumno.matricula || '';
       document.getElementById('emailAlumno').value = alumno.email;
+      document.getElementById('grupoAlumno').value = alumno.grupoId || '';
       document.getElementById('activoAlumno').checked = alumno.activo;
     }
   } catch (error) {
@@ -1244,7 +1270,7 @@ async function guardarAlumno(event, alumnoId) {
       userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('usuarios').add(userData);
       
-      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\n/consulta-alumno.html`);
+      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
     }
     
     cerrarModal();
