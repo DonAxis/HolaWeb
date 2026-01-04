@@ -240,7 +240,7 @@
   <div class="container">
     <!-- FORMULARIO DE CONSULTA -->
     <div id="loginCard" class="login-card">
-      <h1>👨‍🎓 Consulta de Calificaciones</h1>
+      <h1> Consulta de Calificaciones</h1>
       <p class="subtitle">Ingresa tu matrícula y correo para consultar tus calificaciones</p>
 
       <form id="formConsulta" onsubmit="consultarAlumno(event)">
@@ -255,7 +255,7 @@
         </div>
 
         <button type="submit" class="btn-consultar" id="btnConsultar">
-          🔍 Consultar
+           Consultar
         </button>
       </form>
     </div>
@@ -287,7 +287,7 @@
 
       <!-- MATERIAS Y CALIFICACIONES -->
       <div class="seccion">
-        <h3>📚 Mis Materias</h3>
+        <h3> Mis Materias</h3>
         <div id="listaMaterias"></div>
       </div>
     </div>
@@ -309,7 +309,7 @@
       const btnConsultar = document.getElementById('btnConsultar');
       
       btnConsultar.disabled = true;
-      btnConsultar.textContent = '⏳ Consultando...';
+      btnConsultar.textContent = ' Consultando...';
       
       try {
         // Buscar alumno por matrícula y email
@@ -321,9 +321,9 @@
           .get();
         
         if (snapshot.empty) {
-          alert('❌ No se encontró ningún alumno con esa matrícula y correo.\n\nVerifica tus datos.');
+          alert(' No se encontró ningún alumno con esa matrícula y correo.\n\nVerifica tus datos.');
           btnConsultar.disabled = false;
-          btnConsultar.textContent = '🔍 Consultar';
+          btnConsultar.textContent = ' Consultar';
           return;
         }
         
@@ -340,7 +340,7 @@
         console.error('Error:', error);
         alert('Error al consultar. Intenta de nuevo.');
         btnConsultar.disabled = false;
-        btnConsultar.textContent = '🔍 Consultar';
+        btnConsultar.textContent = ' Consultar';
       }
     }
 
@@ -416,10 +416,10 @@
           
           html += `
             <div class="materia-card">
-              <h4>📖 ${materia.materiaNombre} (${materia.materiaCodigo})</h4>
+              <h4> ${materia.materiaNombre} (${materia.materiaCodigo})</h4>
               <div class="materia-info">
-                <span>👨‍🏫 Profesor: ${materia.profesorNombre}</span> | 
-                <span>📅 Periodo: ${materia.periodo}</span>
+                <span>Profesor: ${materia.profesorNombre}</span> | 
+                <span> Periodo: ${materia.periodo}</span>
               </div>
           `;
           
@@ -427,7 +427,7 @@
             html += '<div class="sin-datos">Aún no hay calificaciones registradas</div>';
           } else {
             html += '<div class="calificaciones-list">';
-            html += '<strong>📊 Calificaciones:</strong>';
+            html += '<strong> Calificaciones:</strong>';
             
             calificacionesSnap.forEach(calDoc => {
               const cal = calDoc.data();

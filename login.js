@@ -19,14 +19,14 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
   
   try {
     // 1. Autenticar con Firebase Auth
-    console.log('🔐 Intentando login...');
+    console.log(' Intentando login...');
     const userCredential = await auth.signInWithEmailAndPassword(email, password);
     const user = userCredential.user;
     
-    console.log('✅ Usuario autenticado:', user.uid);
+    console.log(' Usuario autenticado:', user.uid);
     
     // 2. Obtener datos del usuario desde Firestore
-    console.log('📥 Obteniendo datos del usuario...');
+    console.log(' Obteniendo datos del usuario...');
     const userDoc = await db.collection('usuarios').doc(user.uid).get();
     
     if (!userDoc.exists) {
@@ -34,7 +34,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }
     
     const userData = userDoc.data();
-    console.log('✅ Datos obtenidos:', userData);
+    console.log(' Datos obtenidos:', userData);
     
     // 3. Verificar que el usuario está activo
     if (!userData.activo) {
@@ -56,7 +56,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
       sessionStorage.setItem('userMatricula', userData.matricula);
     }
     
-    console.log('💾 Datos guardados en sessionStorage');
+    console.log(' Datos guardados en sessionStorage');
     
     // 5. Mostrar mensaje de éxito
     mostrarMensaje(`¡Bienvenido, ${userData.nombre}!`, 'exito');
@@ -67,7 +67,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
     }, 1000);
     
   } catch (error) {
-    console.error('❌ Error en login:', error);
+    console.error(' Error en login:', error);
     
     // Mensajes de error amigables
     let mensajeError = 'Error al iniciar sesión';
@@ -108,7 +108,7 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 
 // Función para redirigir según el rol
 function redirigirSegunRol(rol) {
-  console.log('🚀 Redirigiendo a:', rol);
+  console.log(' Redirigiendo a:', rol);
   
   switch (rol) {
     case 'admin':
@@ -145,7 +145,7 @@ function limpiarMensaje() {
 // Verificar si ya hay una sesión activa
 auth.onAuthStateChanged(async (user) => {
   if (user) {
-    console.log('👤 Usuario ya autenticado:', user.uid);
+    console.log(' Usuario ya autenticado:', user.uid);
     
     try {
       // Obtener rol del usuario
@@ -160,13 +160,13 @@ auth.onAuthStateChanged(async (user) => {
         sessionStorage.setItem('userName', userData.nombre);
         sessionStorage.setItem('userRol', userData.rol);
         
-        console.log('🔄 Redirigiendo usuario ya autenticado...');
+        console.log(' Redirigiendo usuario ya autenticado...');
         redirigirSegunRol(userData.rol);
       }
     } catch (error) {
-      console.error('❌ Error al verificar sesión:', error);
+      console.error(' Error al verificar sesión:', error);
     }
   }
 });
 
-console.log('🔐 Sistema de login cargado');
+console.log(' Sistema de login cargado');
