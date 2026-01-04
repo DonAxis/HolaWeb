@@ -762,12 +762,12 @@ async function cargarInscripciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4>👨‍🎓 ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
-            <p>📚 Materia: ${inscripcion.materiaNombre}</p>
-            <p>👥 Grupo: ${inscripcion.grupoNombre} | 📅 Periodo: ${inscripcion.periodo}</p>
+            <h4>${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
+            <p> Materia: ${inscripcion.materiaNombre}</p>
+            <p> Grupo: ${inscripcion.grupoNombre} |  Periodo: ${inscripcion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar">❌ Dar de Baja</button>
+            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar"> Dar de Baja</button>
           </div>
         </div>
       `;
