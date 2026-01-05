@@ -531,7 +531,7 @@ async function cargarAsignaciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4>📚 ${asignacion.materiaNombre} (${asignacion.materiaId})</h4>
+            <h4>📚 ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
             <p>👨‍🏫 Profesor: ${asignacion.profesorNombre}</p>
             <p>👥 Grupo: ${asignacion.grupoNombre} | 📅 Periodo: ${asignacion.periodo}</p>
           </div>
