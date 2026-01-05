@@ -250,24 +250,29 @@
     });
 
     async function cargarInfoCarreras() {
-      if (!usuarioActual.carreras || usuarioActual.carreras.length === 0) {
-        document.getElementById('profesorInfo').textContent = 'Sin carreras asignadas';
-        return;
-      }
-
       try {
+        if (!usuarioActual.carreras || usuarioActual.carreras.length === 0) {
+          document.getElementById('profesorInfo').textContent = 'Sin carreras asignadas';
+          return;
+        }
+
         const nombresCarreras = [];
         for (const carreraId of usuarioActual.carreras) {
-          const doc = await db.collection('carreras').doc(carreraId).get();
-          if (doc.exists) {
-            nombresCarreras.push(doc.data().nombre);
+          try {
+            const doc = await db.collection('carreras').doc(carreraId).get();
+            if (doc.exists) {
+              nombresCarreras.push(doc.data().nombre);
+            }
+          } catch (err) {
+            console.error('Error con carrera:', carreraId, err);
           }
         }
         
         document.getElementById('profesorInfo').textContent = 
-          'Carreras: ' + nombresCarreras.join(', ');
+          nombresCarreras.length > 0 ? 'Carreras: ' + nombresCarreras.join(', ') : 'Sin carreras válidas';
       } catch (error) {
         console.error('Error al cargar carreras:', error);
+        document.getElementById('profesorInfo').textContent = 'Error al cargar carreras';
       }
     }
 

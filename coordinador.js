@@ -762,12 +762,12 @@ async function cargarInscripciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4>${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
-            <p> Materia: ${inscripcion.materiaNombre}</p>
-            <p> Grupo: ${inscripcion.grupoNombre} |  Periodo: ${inscripcion.periodo}</p>
+            <h4>👨‍🎓 ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
+            <p>📚 Materia: ${inscripcion.materiaNombre}</p>
+            <p>👥 Grupo: ${inscripcion.grupoNombre} | 📅 Periodo: ${inscripcion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar"> Dar de Baja</button>
+            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar">❌ Dar de Baja</button>
           </div>
         </div>
       `;
@@ -1278,57 +1278,6 @@ async function guardarAlumno(event, alumnoId) {
   } catch (error) {
     console.error('Error:', error);
     alert('❌ Error al guardar alumno');
-  }
-}
-
-  
-  try {
-    if (alumnoId) {
-      // Editar
-      await db.collection('usuarios').doc(alumnoId).update(userData);
-      alert('✅ Alumno actualizado');
-    } else {
-      // Crear nuevo
-      const password = document.getElementById('passwordAlumno').value;
-      
-      if (password.length < 6) {
-        alert('La contraseña debe tener al menos 6 caracteres');
-        return;
-      }
-      
-      // Guardar usuario admin actual
-      const adminUser = auth.currentUser;
-      
-      // Crear en Authentication
-      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-      const newUid = userCredential.user.uid;
-      
-      // Guardar en Firestore
-      userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('usuarios').doc(newUid).set(userData);
-      
-      // Usuario creado - redirigir a login
-      await auth.signOut();
-      alert(`✅ Registro exitoso!\n\nAlumno: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\nPassword: ${password}\n\nVuelve a iniciar sesión.`);
-      window.location.href = 'login.html';
-      return;
-    }
-    
-    cerrarModal();
-    cargarAlumnos();
-  } catch (error) {
-    console.error('Error:', error);
-    
-    let mensaje = 'Error al guardar alumno';
-    if (error.code === 'auth/email-already-in-use') {
-      mensaje = 'Este email ya está registrado';
-    } else if (error.code === 'auth/invalid-email') {
-      mensaje = 'Email inválido';
-    } else if (error.code === 'auth/weak-password') {
-      mensaje = 'La contraseña debe tener al menos 6 caracteres';
-    }
-    
-    alert('❌ ' + mensaje);
   }
 }
 
