@@ -9,7 +9,7 @@ let carreraActual = null;
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     console.log('❌ No hay sesión activa');
-    //alert('Debes iniciar sesión');
+    alert('Debes iniciar sesión');
     window.location.href = 'login.html';
     return;
   }
@@ -615,8 +615,8 @@ async function mostrarFormAsignarProfesor() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoAsignar" required placeholder="Ej: 2026-1" value="2026-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
+        <input type="text" id="periodoAsignar" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
       </div>
       
       <div class="form-botones">
@@ -841,8 +841,8 @@ async function mostrarFormInscribirAlumno() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoInscribir" required placeholder="Ej: 2026-1" value="2026-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
+        <input type="text" id="periodoInscribir" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
       </div>
       
       <div class="form-botones">
@@ -1069,19 +1069,52 @@ async function guardarProfesor(event, profesorId) {
       // Guardar usuario admin actual
       const adminUser = auth.currentUser;
       
-      // Crear en Authentication
-      const userCredential = await auth.createUserWithEmailAndPassword(email, password);
-      const newUid = userCredential.user.uid;
-      
-      // Guardar en Firestore
-      userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
-      await db.collection('usuarios').doc(newUid).set(userData);
-      
-      // Usuario creado - redirigir a login
-      await auth.signOut();
-      alert(`✅ Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVuelve a iniciar sesión.`);
-      window.location.href = 'login.html';
-      return;
+      try {
+        // Crear en Authentication
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const newUid = userCredential.user.uid;
+        
+        // Guardar en Firestore CON carreras
+        userData.carreras = [usuarioActual.carreraId];
+        userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
+        await db.collection('usuarios').doc(newUid).set(userData);
+        
+        // Usuario creado - redirigir a login
+        await auth.signOut();
+        alert(`✅ Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVuelve a iniciar sesión.`);
+        window.location.href = 'login.html';
+        return;
+        
+      } catch (authError) {
+        if (authError.code === 'auth/email-already-in-use') {
+          // Email ya existe - buscar profesor y agregar carrera
+          const existeSnap = await db.collection('usuarios')
+            .where('email', '==', email)
+            .where('rol', '==', 'profesor')
+            .limit(1)
+            .get();
+          
+          if (!existeSnap.empty) {
+            const profesorDoc = existeSnap.docs[0];
+            const profesorData = profesorDoc.data();
+            const carrerasActuales = profesorData.carreras || [];
+            
+            if (!carrerasActuales.includes(usuarioActual.carreraId)) {
+              await db.collection('usuarios').doc(profesorDoc.id).update({
+                carreras: [...carrerasActuales, usuarioActual.carreraId]
+              });
+              alert(`✅ Profesor ya existía.\n\nSe agregó a tu carrera.\n\nNombre: ${profesorData.nombre}\nEmail: ${email}`);
+            } else {
+              alert(`ℹ️ Este profesor ya está en tu carrera.\n\nNombre: ${profesorData.nombre}`);
+            }
+            
+            cerrarModal();
+            cargarProfesores();
+            return;
+          }
+        }
+        throw authError;
+      }
     }
     
     cerrarModal();
@@ -1091,7 +1124,7 @@ async function guardarProfesor(event, profesorId) {
     
     let mensaje = 'Error al guardar profesor';
     if (error.code === 'auth/email-already-in-use') {
-      mensaje = 'Este email ya está registrado';
+      mensaje = 'Este email ya está registrado (pero no como profesor)';
     } else if (error.code === 'auth/invalid-email') {
       mensaje = 'Email inválido';
     } else if (error.code === 'auth/weak-password') {
