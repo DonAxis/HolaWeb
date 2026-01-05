@@ -75,7 +75,7 @@
 
   <div class="header-profesor">
     <div>
-      <h1>Panel de Profesor</h1>
+      <h1>👨‍🏫 Panel de Profesor</h1>
       <p id="profesorInfo">Cargando...</p>
     </div>
     <div class="user-info">
@@ -87,32 +87,77 @@
   </div>
 
   <div class="menu-profesor">
-    <div class="card-profesor" onclick="alert('Próximamente: Mis Materias')">
-      <h3> Mis Materias</h3>
+    <div class="card-profesor" onclick="mostrarMisMaterias()">
+      <h3>📚 Mis Materias</h3>
       <p>Ver materias asignadas</p>
     </div>
 
-    <div class="card-profesor" onclick="alert('Próximamente: Registrar Calificaciones')">
-      <h3> Calificaciones</h3>
+    <div class="card-profesor" onclick="mostrarMisMaterias()">
+      <h3>📝 Calificaciones</h3>
       <p>Registrar calificaciones</p>
     </div>
 
     <div class="card-profesor" onclick="alert('Próximamente: Asistencia')">
-      <h3> Asistencia</h3>
-      <p>Registrar asistencia</p>
+      <h3>✅ Asistencia</h3>
+      <p>Registrar asistencia (próximamente)</p>
     </div>
 
-    <div class="card-profesor" onclick="alert('Próximamente: Mis Grupos')">
-      <h3> Mis Grupos</h3>
+    <div class="card-profesor" onclick="mostrarMisMaterias()">
+      <h3>👥 Mis Grupos</h3>
       <p>Ver mis grupos</p>
     </div>
   </div>
+
+<!-- Agregar DESPUÉS de las cards y ANTES del modal en ControlProfe.html -->
+
+  <!-- SECCIÓN: MIS MATERIAS -->
+  <div id="seccionMaterias" style="display: none;">
+    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="color: #667eea; margin: 0;">📚 Mis Materias</h2>
+        <button onclick="volverMenu()" style="background: #f5f5f5; border: 2px solid #667eea; color: #667eea; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          ← Volver al Menú
+        </button>
+      </div>
+      <div id="listaMaterias"></div>
+    </div>
+  </div>
+
+  <!-- SECCIÓN: CALIFICACIONES DE UNA MATERIA -->
+  <div id="seccionCalificaciones" style="display: none;">
+    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <div>
+          <h2 style="color: #667eea; margin: 0;" id="tituloMateria">Materia</h2>
+          <p style="color: #666; margin: 5px 0 0 0;" id="infoMateria">Grupo | Periodo</p>
+        </div>
+        <button onclick="volverMaterias()" style="background: #f5f5f5; border: 2px solid #667eea; color: #667eea; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+          ← Volver a Materias
+        </button>
+      </div>
+
+      <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        <p style="margin: 0; color: #666; font-size: 0.9rem;">
+          📝 Registra las calificaciones de <strong>Parcial 1</strong>, <strong>Parcial 2</strong> y <strong>Parcial 3</strong> para cada alumno.
+        </p>
+      </div>
+
+      <div id="tablaCalificaciones"></div>
+
+      <div style="margin-top: 20px; text-align: center;">
+        <button onclick="guardarTodasCalificaciones()" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
+          💾 Guardar Calificaciones
+        </button>
+      </div>
+    </div>
+  </div>
+
 
   <!-- MODAL CONFIGURACIÓN -->
   <div id="modalConfig" class="modal">
     <div class="modal-contenido">
       <span class="cerrar" onclick="cerrarModalConfig()">&times;</span>
-      <h2> Configuración</h2>
+      <h2>⚙️ Configuración</h2>
       
       <div style="margin: 20px 0;">
         <h3 style="color: #1976d2;">Cambiar Contraseña</h3>
@@ -133,7 +178,7 @@
           </div>
           
           <div class="form-botones">
-            <button type="submit" class="btn-guardar"> Cambiar Contraseña</button>
+            <button type="submit" class="btn-guardar">💾 Cambiar Contraseña</button>
             <button type="button" onclick="cerrarModalConfig()" class="btn-cancelar">❌ Cancelar</button>
           </div>
         </form>
@@ -162,7 +207,7 @@
     // Protección y autenticación
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        console.log(' No hay sesión activa');
+        console.log('❌ No hay sesión activa');
         window.location.href = 'login.html';
         return;
       }
@@ -171,7 +216,7 @@
         const userDoc = await db.collection('usuarios').doc(user.uid).get();
         
         if (!userDoc.exists) {
-          console.log(' Usuario no encontrado en Firestore');
+          console.log('❌ Usuario no encontrado en Firestore');
           await auth.signOut();
           window.location.href = 'login.html';
           return;
@@ -182,13 +227,13 @@
 
         // Verificar que sea profesor
         if (usuarioActual.rol !== 'profesor') {
-          console.log(' No tienes permisos de profesor');
+          console.log('❌ No tienes permisos de profesor');
           alert('No tienes permisos para acceder a este panel');
           window.location.href = 'login.html';
           return;
         }
 
-        console.log(' Profesor autorizado:', usuarioActual.nombre);
+        console.log('✅ Profesor autorizado:', usuarioActual.nombre);
         
         // Mostrar info del usuario
         document.getElementById('userName').textContent = usuarioActual.nombre;
@@ -198,7 +243,7 @@
         await cargarInfoCarreras();
         
       } catch (error) {
-        console.error(' Error:', error);
+        console.error('❌ Error:', error);
         alert('Error al verificar permisos');
         window.location.href = 'login.html';
       }
@@ -263,13 +308,13 @@
       
       // Validar que las contraseñas coincidan
       if (passwordNueva !== passwordConfirmar) {
-        alert(' Las contraseñas nuevas no coinciden');
+        alert('❌ Las contraseñas nuevas no coinciden');
         return;
       }
       
       // Validar longitud
       if (passwordNueva.length < 6) {
-        alert(' La contraseña debe tener al menos 6 caracteres');
+        alert('❌ La contraseña debe tener al menos 6 caracteres');
         return;
       }
       
@@ -286,18 +331,18 @@
         // Cambiar contraseña
         await user.updatePassword(passwordNueva);
         
-        alert(' Contraseña cambiada exitosamente');
+        alert('✅ Contraseña cambiada exitosamente');
         cerrarModalConfig();
         
       } catch (error) {
         console.error('Error al cambiar contraseña:', error);
         
         if (error.code === 'auth/wrong-password') {
-          alert(' La contraseña actual es incorrecta');
+          alert('❌ La contraseña actual es incorrecta');
         } else if (error.code === 'auth/weak-password') {
-          alert(' La contraseña es muy débil');
+          alert('❌ La contraseña es muy débil');
         } else {
-          alert(' Error al cambiar contraseña: ' + error.message);
+          alert('❌ Error al cambiar contraseña: ' + error.message);
         }
       }
     }
@@ -322,6 +367,299 @@
         cerrarModalConfig();
       }
     }
+
+// Agregar al final del <script> en ControlProfe.html
+
+let asignacionActual = null;
+let alumnosMateria = [];
+
+// Mostrar materias asignadas al profesor
+async function mostrarMisMaterias() {
+  try {
+    // Ocultar menú, mostrar materias
+    document.querySelector('.menu-profesor').style.display = 'none';
+    document.getElementById('seccionMaterias').style.display = 'block';
+    
+    const container = document.getElementById('listaMaterias');
+    container.innerHTML = '<p style="text-align: center; color: #999;">⏳ Cargando materias...</p>';
+    
+    // Buscar asignaciones del profesor
+    const snapshot = await db.collection('profesorMaterias')
+      .where('profesorId', '==', usuarioActual.uid)
+      .where('activa', '==', true)
+      .get();
+    
+    if (snapshot.empty) {
+      container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;"><p>No tienes materias asignadas.</p><p style="font-size: 0.9rem;">Contacta al coordinador.</p></div>';
+      return;
+    }
+    
+    let html = '<div style="display: grid; gap: 15px;">';
+    
+    snapshot.forEach(doc => {
+      const asignacion = doc.data();
+      html += `
+        <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea; cursor: pointer; transition: all 0.3s;" onclick="verCalificacionesMateria('${doc.id}')">
+          <h3 style="margin: 0 0 10px 0; color: #333;">${asignacion.materiaNombre}</h3>
+          <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">
+            📋 Código: ${asignacion.materiaCodigo} | 
+            👥 Grupo: ${asignacion.grupoNombre} | 
+            📅 Periodo: ${asignacion.periodo}
+          </p>
+          <button style="background: #667eea; color: white; border: none; padding: 8px 20px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-weight: 600;">
+            📝 Ver Calificaciones →
+          </button>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar materias');
+  }
+}
+
+// Ver calificaciones de una materia específica
+async function verCalificacionesMateria(asignacionId) {
+  try {
+    // Cargar datos de la asignación
+    const asignacionDoc = await db.collection('profesorMaterias').doc(asignacionId).get();
+    if (!asignacionDoc.exists) {
+      alert('Asignación no encontrada');
+      return;
+    }
+    
+    asignacionActual = {
+      id: asignacionId,
+      ...asignacionDoc.data()
+    };
+    
+    // Actualizar título
+    document.getElementById('tituloMateria').textContent = asignacionActual.materiaNombre;
+    document.getElementById('infoMateria').textContent = `${asignacionActual.grupoNombre} | ${asignacionActual.periodo}`;
+    
+    // Cambiar vista
+    document.getElementById('seccionMaterias').style.display = 'none';
+    document.getElementById('seccionCalificaciones').style.display = 'block';
+    
+    // Cargar alumnos del grupo
+    await cargarAlumnosYCalificaciones();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar calificaciones');
+  }
+}
+
+// Cargar alumnos y sus calificaciones
+async function cargarAlumnosYCalificaciones() {
+  try {
+    const container = document.getElementById('tablaCalificaciones');
+    container.innerHTML = '<p style="text-align: center; color: #999;">⏳ Cargando alumnos...</p>';
+    
+    // Buscar alumnos del grupo
+    const alumnosSnap = await db.collection('usuarios')
+      .where('rol', '==', 'alumno')
+      .where('grupoId', '==', asignacionActual.grupoId)
+      .where('activo', '==', true)
+      .get();
+    
+    if (alumnosSnap.empty) {
+      container.innerHTML = '<div style="text-align: center; padding: 40px; color: #999;">No hay alumnos en este grupo.</div>';
+      return;
+    }
+    
+    alumnosMateria = [];
+    
+    // Cargar calificaciones existentes
+    for (const doc of alumnosSnap.docs) {
+      const alumno = {
+        id: doc.id,
+        ...doc.data(),
+        calificaciones: {
+          'Parcial 1': '',
+          'Parcial 2': '',
+          'Parcial 3': ''
+        }
+      };
+      
+      // Buscar calificaciones existentes
+      const calificacionesSnap = await db.collection('calificaciones')
+        .where('alumnoId', '==', doc.id)
+        .where('materiaId', '==', asignacionActual.materiaId)
+        .where('periodo', '==', asignacionActual.periodo)
+        .get();
+      
+      calificacionesSnap.forEach(calDoc => {
+        const cal = calDoc.data();
+        if (alumno.calificaciones.hasOwnProperty(cal.concepto)) {
+          alumno.calificaciones[cal.concepto] = cal.calificacion;
+        }
+      });
+      
+      alumnosMateria.push(alumno);
+    }
+    
+    // Ordenar alfabéticamente
+    alumnosMateria.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    
+    // Generar tabla
+    let html = `
+      <table style="width: 100%; border-collapse: collapse; background: white;">
+        <thead>
+          <tr style="background: #667eea; color: white;">
+            <th style="padding: 15px; text-align: left; border: 1px solid #ddd;">Alumno</th>
+            <th style="padding: 15px; text-align: center; border: 1px solid #ddd; width: 120px;">Matrícula</th>
+            <th style="padding: 15px; text-align: center; border: 1px solid #ddd; width: 120px;">Parcial 1</th>
+            <th style="padding: 15px; text-align: center; border: 1px solid #ddd; width: 120px;">Parcial 2</th>
+            <th style="padding: 15px; text-align: center; border: 1px solid #ddd; width: 120px;">Parcial 3</th>
+          </tr>
+        </thead>
+        <tbody>
+    `;
+    
+    alumnosMateria.forEach((alumno, index) => {
+      html += `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 12px; border: 1px solid #ddd;">
+            <strong>${alumno.nombre}</strong>
+          </td>
+          <td style="padding: 12px; text-align: center; border: 1px solid #ddd; color: #666;">
+            ${alumno.matricula}
+          </td>
+          <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+            <input type="number" id="cal_${index}_p1" 
+                   min="0" max="10" step="0.1" 
+                   value="${alumno.calificaciones['Parcial 1']}"
+                   style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1rem;"
+                   placeholder="0.0">
+          </td>
+          <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+            <input type="number" id="cal_${index}_p2" 
+                   min="0" max="10" step="0.1" 
+                   value="${alumno.calificaciones['Parcial 2']}"
+                   style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1rem;"
+                   placeholder="0.0">
+          </td>
+          <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+            <input type="number" id="cal_${index}_p3" 
+                   min="0" max="10" step="0.1" 
+                   value="${alumno.calificaciones['Parcial 3']}"
+                   style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1rem;"
+                   placeholder="0.0">
+          </td>
+        </tr>
+      `;
+    });
+    
+    html += `
+        </tbody>
+      </table>
+    `;
+    
+    container.innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar alumnos y calificaciones');
+  }
+}
+
+// Guardar todas las calificaciones
+async function guardarTodasCalificaciones() {
+  if (!confirm('¿Guardar las calificaciones?\n\nSe actualizarán todas las calificaciones de Parcial 1, 2 y 3.')) {
+    return;
+  }
+  
+  try {
+    let guardadas = 0;
+    let errores = 0;
+    
+    for (let i = 0; i < alumnosMateria.length; i++) {
+      const alumno = alumnosMateria[i];
+      
+      // Leer valores de los inputs
+      const p1 = parseFloat(document.getElementById(`cal_${i}_p1`).value) || null;
+      const p2 = parseFloat(document.getElementById(`cal_${i}_p2`).value) || null;
+      const p3 = parseFloat(document.getElementById(`cal_${i}_p3`).value) || null;
+      
+      const parciales = [
+        { concepto: 'Parcial 1', valor: p1 },
+        { concepto: 'Parcial 2', valor: p2 },
+        { concepto: 'Parcial 3', valor: p3 }
+      ];
+      
+      for (const parcial of parciales) {
+        if (parcial.valor !== null) {
+          try {
+            // Buscar si ya existe
+            const existeSnap = await db.collection('calificaciones')
+              .where('alumnoId', '==', alumno.id)
+              .where('materiaId', '==', asignacionActual.materiaId)
+              .where('concepto', '==', parcial.concepto)
+              .where('periodo', '==', asignacionActual.periodo)
+              .limit(1)
+              .get();
+            
+            const calificacionData = {
+              alumnoId: alumno.id,
+              materiaId: asignacionActual.materiaId,
+              grupoId: asignacionActual.grupoId,
+              profesorId: usuarioActual.uid,
+              concepto: parcial.concepto,
+              calificacion: parcial.valor,
+              periodo: asignacionActual.periodo,
+              fecha: firebase.firestore.FieldValue.serverTimestamp()
+            };
+            
+            if (existeSnap.empty) {
+              // Crear nueva
+              await db.collection('calificaciones').add(calificacionData);
+            } else {
+              // Actualizar existente
+              await db.collection('calificaciones').doc(existeSnap.docs[0].id).update({
+                calificacion: parcial.valor,
+                fecha: firebase.firestore.FieldValue.serverTimestamp()
+              });
+            }
+            
+            guardadas++;
+          } catch (error) {
+            console.error('Error con', alumno.nombre, parcial.concepto, error);
+            errores++;
+          }
+        }
+      }
+    }
+    
+    alert(`✅ Calificaciones guardadas!\n\n${guardadas} calificaciones actualizadas${errores > 0 ? `\n${errores} errores` : ''}`);
+    
+    // Recargar
+    await cargarAlumnosYCalificaciones();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al guardar calificaciones');
+  }
+}
+
+// Navegación
+function volverMenu() {
+  document.getElementById('seccionMaterias').style.display = 'none';
+  document.getElementById('seccionCalificaciones').style.display = 'none';
+  document.querySelector('.menu-profesor').style.display = 'grid';
+}
+
+function volverMaterias() {
+  document.getElementById('seccionCalificaciones').style.display = 'none';
+  document.getElementById('seccionMaterias').style.display = 'block';
+  asignacionActual = null;
+  alumnosMateria = [];
+}
+
   </script>
 </body>
 </html>
