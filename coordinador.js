@@ -615,8 +615,8 @@ async function mostrarFormAsignarProfesor() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoAsignar" required placeholder="Ej: 2025-1" value="2025-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
+        <input type="text" id="periodoAsignar" required placeholder="Ej: 2026-1" value="2026-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
       </div>
       
       <div class="form-botones">
@@ -841,8 +841,8 @@ async function mostrarFormInscribirAlumno() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoInscribir" required placeholder="Ej: 2025-1" value="2025-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
+        <input type="text" id="periodoInscribir" required placeholder="Ej: 2026-1" value="2026-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
       </div>
       
       <div class="form-botones">
