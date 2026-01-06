@@ -237,6 +237,92 @@
         }
       }
     }
+
+    // ===== CREAR COORDINADOR =====
+    async function mostrarModalCoordinador() {
+      document.getElementById('modalCoordinador').style.display = 'flex';
+      
+      // Cargar carreras
+      try {
+        const carrerasSnap = await db.collection('carreras').get();
+        const select = document.getElementById('carreraCoord');
+        select.innerHTML = '<option value="">Seleccionar carrera...</option>';
+        
+        carrerasSnap.forEach(doc => {
+          const carrera = doc.data();
+          select.innerHTML += `<option value="${doc.id}">${carrera.nombre} (${carrera.codigo})</option>`;
+        });
+      } catch (error) {
+        console.error('Error al cargar carreras:', error);
+        alert('Error al cargar carreras');
+      }
+    }
+
+    function cerrarModalCoordinador() {
+      document.getElementById('modalCoordinador').style.display = 'none';
+      document.getElementById('formCoordinador').reset();
+      const mensaje = document.getElementById('mensajeCoord');
+      if (mensaje) mensaje.style.display = 'none';
+    }
+
+    async function crearCoordinador(event) {
+      event.preventDefault();
+      
+      const nombre = document.getElementById('nombreCoord').value.trim();
+      const email = document.getElementById('emailCoord').value.trim().toLowerCase();
+      const password = document.getElementById('passCoord').value;
+      const carreraId = document.getElementById('carreraCoord').value;
+      
+      if (password.length < 6) {
+        mostrarMensaje('❌ La contraseña debe tener al menos 6 caracteres', 'error');
+        return;
+      }
+      
+      try {
+        mostrarMensaje('⏳ Creando coordinador...', 'info');
+        
+        // Crear en Authentication
+        const userCredential = await auth.createUserWithEmailAndPassword(email, password);
+        const newUid = userCredential.user.uid;
+        
+        // Crear en Firestore
+        await db.collection('usuarios').doc(newUid).set({
+          nombre: nombre,
+          email: email,
+          rol: 'coordinador',
+          carreraId: carreraId,
+          carreras: [carreraId],
+          esProfesor: true,
+          activo: true,
+          fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        // Cerrar sesión del coordinador
+        await auth.signOut();
+        
+        alert(`✅ Coordinador creado!\n\nNombre: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nDebes volver a hacer login como admin.`);
+        window.location.href = 'login.html';
+        
+      } catch (error) {
+        console.error('Error:', error);
+        let mensaje = '❌ Error al crear coordinador';
+        if (error.code === 'auth/email-already-in-use') {
+          mensaje = '❌ Este email ya está registrado';
+        } else if (error.code === 'auth/invalid-email') {
+          mensaje = '❌ Email inválido';
+        }
+        mostrarMensaje(mensaje, 'error');
+      }
+    }
+
+    function mostrarMensaje(texto, tipo) {
+      const div = document.getElementById('mensajeCoord');
+      if (!div) return;
+      div.textContent = texto;
+      div.style.display = 'block';
+      div.style.background = tipo === 'error' ? '#ffebee' : tipo === 'success' ? '#e8f5e9' : '#e3f2fd';
+      div.style.color = tipo === 'error' ? '#c62828' : tipo === 'success' ? '#2e7d32' : '#1565c0';
+    }
   </script>
 </body>
 </html>
