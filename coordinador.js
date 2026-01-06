@@ -1450,10 +1450,10 @@ function cambiarModo(modo) {
     modoCoord.style.display = 'none';
     modoProf.style.display = 'block';
     
-    // Cargar iframe si aún no está cargado
+    // Cargar iframe
     const iframe = document.getElementById('iframeProfesor');
-    if (!iframe.src || iframe.src === 'about:blank') {
-      iframe.src = 'ControlProfe.html';
+    if (!iframe.src || iframe.src === '' || iframe.src.includes('about:blank')) {
+      iframe.src = './controlProfe.html';
     }
   }
 }
