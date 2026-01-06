@@ -233,6 +233,64 @@
       margin-top: 20px;
       display: inline-block;
     }
+
+    /* Estilos para móvil */
+    @media (max-width: 768px) {
+      body {
+        padding: 10px;
+      }
+
+      .container {
+        padding: 0;
+      }
+
+      .login-card, .info-alumno, .seccion {
+        padding: 20px 15px;
+        margin-bottom: 15px;
+      }
+
+      h1 {
+        font-size: 1.5rem;
+      }
+
+      .info-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+      }
+
+      /* Tabla responsive */
+      .resultado table {
+        font-size: 0.85rem;
+      }
+
+      .resultado th,
+      .resultado td {
+        padding: 8px !important;
+        white-space: nowrap;
+      }
+
+      .btn-nuevo,
+      .btn-horario {
+        display: block;
+        width: 100%;
+        margin-top: 10px;
+      }
+    }
+
+    @media (max-width: 480px) {
+      h1 {
+        font-size: 1.3rem;
+      }
+
+      .resultado table {
+        font-size: 0.75rem;
+      }
+
+      .resultado th,
+      .resultado td {
+        padding: 6px !important;
+      }
+    }
   </style>
 </head>
 <body>
@@ -472,24 +530,26 @@
         let html = `
           <div style="background: white; padding: 20px; border-radius: 10px;">
             <h3 style="color: #667eea; margin: 0 0 20px 0; text-align: center;">📋 Boleta de Calificaciones</h3>
-            <table style="width: 100%; border-collapse: collapse;">
+            <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
+              <table style="width: 100%; min-width: 600px; border-collapse: collapse;">
               <thead>
                 <tr style="background: #667eea; color: white;">
                   <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Materia</th>
-                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 100px;">Parcial 1</th>
-                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 100px;">Parcial 2</th>
-                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 100px;">Parcial 3</th>
-                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 100px;">Promedio</th>
+                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 90px; min-width: 90px;">Parcial 1</th>
+                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 90px; min-width: 90px;">Parcial 2</th>
+                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 90px; min-width: 90px;">Parcial 3</th>
+                  <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 90px; min-width: 90px;">Promedio</th>
                 </tr>
               </thead>
               <tbody>
         `;
         
         materias.forEach(materia => {
-          // Calcular promedio
+          // Calcular promedio (NP = 0, ignorar solo -)
           const cals = [materia.parcial1, materia.parcial2, materia.parcial3]
-            .filter(c => c !== '-')
-            .map(c => parseFloat(c));
+            .filter(c => c !== '-')  // Solo ignorar si no hay calificación
+            .map(c => c === 'NP' ? 0 : parseFloat(c))  // NP = 0
+            .filter(c => !isNaN(c));
           
           const promedio = cals.length > 0 
             ? (cals.reduce((a, b) => a + b, 0) / cals.length).toFixed(1)
@@ -501,13 +561,13 @@
                 <strong>${materia.nombre}</strong>
                 <br><small style="color: #666;">👨‍🏫 ${materia.profesor}</small>
               </td>
-              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial1 !== '-' ? '#4caf50' : '#999'};">
+              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial1 === 'NP' ? '#ff9800' : (materia.parcial1 !== '-' ? '#4caf50' : '#999')};">
                 ${materia.parcial1}
               </td>
-              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial2 !== '-' ? '#4caf50' : '#999'};">
+              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial2 === 'NP' ? '#ff9800' : (materia.parcial2 !== '-' ? '#4caf50' : '#999')};">
                 ${materia.parcial2}
               </td>
-              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial3 !== '-' ? '#4caf50' : '#999'};">
+              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial3 === 'NP' ? '#ff9800' : (materia.parcial3 !== '-' ? '#4caf50' : '#999')};">
                 ${materia.parcial3}
               </td>
               <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.3rem; font-weight: bold; background: #f0f7ff; color: #667eea;">
@@ -519,7 +579,11 @@
         
         html += `
               </tbody>
-            </table>
+              </table>
+            </div>
+            <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
+              💡 Desliza horizontalmente para ver todas las columnas
+            </p>
           </div>
         `;
         
