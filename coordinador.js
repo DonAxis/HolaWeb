@@ -9,7 +9,7 @@ let carreraActual = null;
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
     console.log('❌ No hay sesión activa');
-    alert('Debes iniciar sesión');
+    //alert('Debes iniciar sesión');
     window.location.href = 'login.html';
     return;
   }
@@ -288,7 +288,7 @@ async function cargarMaterias() {
         <div class="item">
           <div class="item-info">
             <h4>${materia.nombre}</h4>
-            <p>Código: ${materia.codigo} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
+            <p>Grupo: ${materia.codigo} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
           </div>
           <div class="item-acciones">
             <button onclick="editarMateria('${doc.id}')" class="btn-editar">✏️ Editar</button>
@@ -316,8 +316,8 @@ function mostrarFormMateria(materiaId = null) {
         <input type="text" id="nombreMateria" required placeholder="Ej: Programación Web">
       </div>
       <div class="form-grupo">
-        <label>Código:</label>
-        <input type="text" id="codigoMateria" required placeholder="Ej: WEB101">
+        <label>Grupo:</label>
+        <input type="text" id="codigoMateria" required placeholder="Ej: 3101LA">
       </div>
       <div class="form-grupo">
         <label>Créditos:</label>
