@@ -555,11 +555,19 @@ async function mostrarFormAsignarProfesor() {
   document.getElementById('tituloModal').textContent = 'Asignar Profesor a Materia';
   
   // Cargar profesores de la carrera
-  let profesoresQuery = db.collection('usuarios').where('rol', '==', 'profesor');
-  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
-    profesoresQuery = profesoresQuery.where('carreras', 'array-contains', usuarioActual.carreraId);
-  }
-  const profesoresSnap = await profesoresQuery.get();
+  // Buscar profesores Y coordinadores que también sean profesores
+  const profesoresSnap = await db.collection('usuarios')
+    .where('carreras', 'array-contains', usuarioActual.carreraId)
+    .get();
+  
+  // Filtrar solo profesores y coordinadores con esProfesor: true
+  const profesoresValidos = [];
+  profesoresSnap.forEach(doc => {
+    const data = doc.data();
+    if (data.rol === 'profesor' || (data.rol === 'coordinador' && data.esProfesor === true)) {
+      profesoresValidos.push({ id: doc.id, ...data });
+    }
+  });
   let profesoresHtml = '<option value="">Seleccionar profesor...</option>';
   profesoresSnap.forEach(doc => {
     const prof = doc.data();
@@ -1408,3 +1416,44 @@ window.onclick = function(event) {
 }
 
 console.log('📱 Panel de Coordinador cargado');
+
+// ===== SISTEMA DE MODOS (COORDINADOR / PROFESOR) =====
+function cambiarModo(modo) {
+  const tabCoord = document.getElementById('tabCoordinador');
+  const tabProf = document.getElementById('tabProfesor');
+  const modoCoord = document.getElementById('modoCoordinador');
+  const modoProf = document.getElementById('modoProfesor');
+  
+  if (modo === 'coordinador') {
+    // Activar modo coordinador
+    tabCoord.style.background = 'white';
+    tabCoord.style.color = '#667eea';
+    tabCoord.style.borderBottom = '3px solid #667eea';
+    
+    tabProf.style.background = 'rgba(255,255,255,0.2)';
+    tabProf.style.color = 'white';
+    tabProf.style.borderBottom = '3px solid transparent';
+    
+    modoCoord.style.display = 'block';
+    modoProf.style.display = 'none';
+    
+  } else if (modo === 'profesor') {
+    // Activar modo profesor
+    tabProf.style.background = 'white';
+    tabProf.style.color = '#667eea';
+    tabProf.style.borderBottom = '3px solid #667eea';
+    
+    tabCoord.style.background = 'rgba(255,255,255,0.2)';
+    tabCoord.style.color = 'white';
+    tabCoord.style.borderBottom = '3px solid transparent';
+    
+    modoCoord.style.display = 'none';
+    modoProf.style.display = 'block';
+    
+    // Cargar iframe si aún no está cargado
+    const iframe = document.getElementById('iframeProfesor');
+    if (!iframe.src || iframe.src === 'about:blank') {
+      iframe.src = 'ControlProfe.html';
+    }
+  }
+}
