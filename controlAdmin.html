@@ -99,9 +99,14 @@
   </div>
 
   <div class="menu-opciones">
+    <div class="opcion" onclick="mostrarModalCoordinador()">
+      <h3>➕ Crear Coordinador</h3>
+      <p>Registrar nuevo coordinador de carrera</p>
+    </div>
+
     <div class="opcion" onclick="window.location.href='gestionUsuarios.html'">
       <h3>👥 Gestionar Usuarios</h3>
-      <p>Crear coordinadores, profesores y alumnos</p>
+      <p>Crear profesores y alumnos</p>
     </div>
 
     <div class="opcion" onclick="window.location.href='MenuPersonas.html'">
@@ -122,6 +127,56 @@
     <div class="opcion" onclick="alert('Próximamente')">
       <h3>⚙️ Configuración</h3>
       <p>Configuración del sistema</p>
+    </div>
+  </div>
+
+  <!-- MODAL CREAR COORDINADOR -->
+  <div id="modalCoordinador" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 40px; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #667eea;">➕ Nuevo Coordinador</h2>
+        <button onclick="cerrarModalCoordinador()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+      </div>
+
+      <form id="formCoordinador" onsubmit="crearCoordinador(event)">
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Nombre Completo: *</label>
+          <input type="text" id="nombreCoord" required placeholder="Ej: Luis Coordinador" 
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Email: *</label>
+          <input type="email" id="emailCoord" required placeholder="coordinador@escuela.com"
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Contraseña: *</label>
+          <input type="password" id="passCoord" required placeholder="Mínimo 6 caracteres" value="Coord123!"
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+          <small style="color: #666;">El coordinador podrá cambiarla después</small>
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Carrera: *</label>
+          <select id="carreraCoord" required
+                  style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            <option value="">Seleccionar carrera...</option>
+          </select>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+            ✅ Crear Coordinador
+          </button>
+          <button type="button" onclick="cerrarModalCoordinador()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+            ❌ Cancelar
+          </button>
+        </div>
+      </form>
+
+      <div id="mensajeCoord" style="margin-top: 15px; padding: 15px; border-radius: 8px; display: none;"></div>
     </div>
   </div>
 
