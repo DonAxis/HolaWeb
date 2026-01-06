@@ -1103,7 +1103,7 @@ async function guardarProfesor(event, profesorId) {
               await db.collection('usuarios').doc(profesorDoc.id).update({
                 carreras: [...carrerasActuales, usuarioActual.carreraId]
               });
-              alert(`✅ Profesor ya existía.\n\nSe agregó a tu carrera.\n\nNombre: ${profesorData.nombre}\nEmail: ${email}`);
+              alert(`✅ Profesor ya existía en otra carrera.\n\nSe agregó a tu carrera exitosamente.\n\n⚠️ IMPORTANTE:\nEl profesor mantiene su contraseña original.\nLa contraseña que ingresaste NO se aplicó.\n\nNombre: ${profesorData.nombre}\nEmail: ${email}`);
             } else {
               alert(`ℹ️ Este profesor ya está en tu carrera.\n\nNombre: ${profesorData.nombre}`);
             }

@@ -536,25 +536,25 @@ async function cargarAlumnosYCalificaciones() {
             ${alumno.matricula}
           </td>
           <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
-            <input type="number" id="cal_${index}_p1" 
-                   min="0" max="10" step="0.1" 
+            <input type="text" id="cal_${index}_p1" 
                    value="${alumno.calificaciones['Parcial 1']}"
-                   style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1rem;"
-                   placeholder="0.0">
+                   maxlength="2"
+                   style="width: 70px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold;"
+                   placeholder="0-10 o NP">
           </td>
           <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
-            <input type="number" id="cal_${index}_p2" 
-                   min="0" max="10" step="0.1" 
+            <input type="text" id="cal_${index}_p2" 
                    value="${alumno.calificaciones['Parcial 2']}"
-                   style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1rem;"
-                   placeholder="0.0">
+                   maxlength="2"
+                   style="width: 70px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold;"
+                   placeholder="0-10 o NP">
           </td>
           <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
-            <input type="number" id="cal_${index}_p3" 
-                   min="0" max="10" step="0.1" 
+            <input type="text" id="cal_${index}_p3" 
                    value="${alumno.calificaciones['Parcial 3']}"
-                   style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1rem;"
-                   placeholder="0.0">
+                   maxlength="2"
+                   style="width: 70px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold;"
+                   placeholder="0-10 o NP">
           </td>
         </tr>
       `;
@@ -586,29 +586,42 @@ async function guardarTodasCalificaciones() {
     for (let i = 0; i < alumnosMateria.length; i++) {
       const alumno = alumnosMateria[i];
       
-      // Leer valores de los inputs con validación
-      let p1 = parseFloat(document.getElementById(`cal_${i}_p1`).value);
-      let p2 = parseFloat(document.getElementById(`cal_${i}_p2`).value);
-      let p3 = parseFloat(document.getElementById(`cal_${i}_p3`).value);
+      // Leer y validar valores de los inputs
+      const validarCalificacion = (valor, parcial) => {
+        const texto = valor.trim().toUpperCase();
+        
+        // Campo vacío
+        if (texto === '') return null;
+        
+        // NP (No Presentó)
+        if (texto === 'NP') return 'NP';
+        
+        // Intentar convertir a número
+        const numero = parseInt(texto);
+        
+        // Validar que sea número entero
+        if (isNaN(numero) || texto !== numero.toString()) {
+          alert(`❌ Calificación inválida para ${alumno.nombre}\n${parcial}: "${valor}"\n\nSolo se permite:\n• Números enteros del 0 al 10\n• "NP" para No Presentó`);
+          throw new Error('Validación fallida');
+        }
+        
+        // Validar rango 0-10
+        if (numero < 0 || numero > 10) {
+          alert(`❌ Calificación fuera de rango para ${alumno.nombre}\n${parcial}: ${numero}\n\nDebe estar entre 0 y 10`);
+          throw new Error('Validación fallida');
+        }
+        
+        return numero;
+      };
       
-      // Validar rango 0-10
-      if (!isNaN(p1) && (p1 < 0 || p1 > 10)) {
-        alert(`❌ Calificación inválida para ${alumno.nombre}\nParcial 1: ${p1}\n\nDebe estar entre 0 y 10`);
-        return;
+      let p1, p2, p3;
+      try {
+        p1 = validarCalificacion(document.getElementById(`cal_${i}_p1`).value, 'Parcial 1');
+        p2 = validarCalificacion(document.getElementById(`cal_${i}_p2`).value, 'Parcial 2');
+        p3 = validarCalificacion(document.getElementById(`cal_${i}_p3`).value, 'Parcial 3');
+      } catch (error) {
+        return; // Detener guardado si hay error
       }
-      if (!isNaN(p2) && (p2 < 0 || p2 > 10)) {
-        alert(`❌ Calificación inválida para ${alumno.nombre}\nParcial 2: ${p2}\n\nDebe estar entre 0 y 10`);
-        return;
-      }
-      if (!isNaN(p3) && (p3 < 0 || p3 > 10)) {
-        alert(`❌ Calificación inválida para ${alumno.nombre}\nParcial 3: ${p3}\n\nDebe estar entre 0 y 10`);
-        return;
-      }
-      
-      // Convertir NaN a null
-      p1 = isNaN(p1) ? null : p1;
-      p2 = isNaN(p2) ? null : p2;
-      p3 = isNaN(p3) ? null : p3;
       
       const parciales = [
         { concepto: 'Parcial 1', valor: p1 },
