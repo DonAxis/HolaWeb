@@ -586,10 +586,29 @@ async function guardarTodasCalificaciones() {
     for (let i = 0; i < alumnosMateria.length; i++) {
       const alumno = alumnosMateria[i];
       
-      // Leer valores de los inputs
-      const p1 = parseFloat(document.getElementById(`cal_${i}_p1`).value) || null;
-      const p2 = parseFloat(document.getElementById(`cal_${i}_p2`).value) || null;
-      const p3 = parseFloat(document.getElementById(`cal_${i}_p3`).value) || null;
+      // Leer valores de los inputs con validación
+      let p1 = parseFloat(document.getElementById(`cal_${i}_p1`).value);
+      let p2 = parseFloat(document.getElementById(`cal_${i}_p2`).value);
+      let p3 = parseFloat(document.getElementById(`cal_${i}_p3`).value);
+      
+      // Validar rango 0-10
+      if (!isNaN(p1) && (p1 < 0 || p1 > 10)) {
+        alert(`❌ Calificación inválida para ${alumno.nombre}\nParcial 1: ${p1}\n\nDebe estar entre 0 y 10`);
+        return;
+      }
+      if (!isNaN(p2) && (p2 < 0 || p2 > 10)) {
+        alert(`❌ Calificación inválida para ${alumno.nombre}\nParcial 2: ${p2}\n\nDebe estar entre 0 y 10`);
+        return;
+      }
+      if (!isNaN(p3) && (p3 < 0 || p3 > 10)) {
+        alert(`❌ Calificación inválida para ${alumno.nombre}\nParcial 3: ${p3}\n\nDebe estar entre 0 y 10`);
+        return;
+      }
+      
+      // Convertir NaN a null
+      p1 = isNaN(p1) ? null : p1;
+      p2 = isNaN(p2) ? null : p2;
+      p3 = isNaN(p3) ? null : p3;
       
       const parciales = [
         { concepto: 'Parcial 1', valor: p1 },
