@@ -8,8 +8,8 @@ let carreraActual = null;
 // ===== PROTECCIÓN Y AUTENTICACIÓN =====
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
-    console.log('❌ No hay sesión activa');
-    //alert('Debes iniciar sesión');
+    console.log(' No hay sesión activa');
+    alert('Debes iniciar sesión');
     window.location.href = 'login.html';
     return;
   }
@@ -18,7 +18,7 @@ auth.onAuthStateChanged(async (user) => {
     const userDoc = await db.collection('usuarios').doc(user.uid).get();
     
     if (!userDoc.exists) {
-      console.log('❌ Usuario no encontrado');
+      console.log(' Usuario no encontrado');
       await auth.signOut();
       window.location.href = 'login.html';
       return;
@@ -29,13 +29,13 @@ auth.onAuthStateChanged(async (user) => {
 
     // Verificar rol (coordinador o admin)
     if (usuarioActual.rol !== 'coordinador' && usuarioActual.rol !== 'admin') {
-      console.log('❌ No tienes permisos de coordinador');
+      console.log(' No tienes permisos de coordinador');
       alert('No tienes permisos para acceder');
       window.location.href = 'login.html';
       return;
     }
 
-    console.log('✅ Coordinador autorizado:', usuarioActual.nombre);
+    console.log(' Coordinador autorizado:', usuarioActual.nombre);
     
     // Mostrar info del usuario
     document.getElementById('userName').textContent = usuarioActual.nombre;
@@ -50,7 +50,7 @@ auth.onAuthStateChanged(async (user) => {
     await cargarCarrera();
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error(' Error:', error);
     alert('Error al verificar permisos');
     window.location.href = 'login.html';
   }
@@ -64,7 +64,7 @@ async function cargarCarrera() {
   }
 
   if (!usuarioActual.carreraId) {
-    document.getElementById('carreraInfo').textContent = '⚠️ Sin carrera asignada - Contacta al administrador';
+    document.getElementById('carreraInfo').textContent = ' Sin carrera asignada - Contacta al administrador';
     document.getElementById('carreraInfo').style.color = '#ff5252';
     
     // Deshabilitar acceso si no tiene carrera
@@ -77,9 +77,9 @@ async function cargarCarrera() {
     if (carreraDoc.exists) {
       carreraActual = carreraDoc.data();
       carreraActual.id = carreraDoc.id;
-      document.getElementById('carreraInfo').textContent = `📚 Carrera: ${carreraActual.nombre}`;
+      document.getElementById('carreraInfo').textContent = ` Carrera: ${carreraActual.nombre}`;
     } else {
-      document.getElementById('carreraInfo').textContent = '⚠️ Carrera no encontrada';
+      document.getElementById('carreraInfo').textContent = ' Carrera no encontrada';
       document.getElementById('carreraInfo').style.color = '#ff5252';
     }
   } catch (error) {
@@ -173,7 +173,7 @@ async function cargarCarreras() {
             <p>Código: ${carrera.codigo || 'N/A'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarCarrera('${doc.id}')" class="btn-editar">✏️ Editar</button>
+            <button onclick="editarCarrera('${doc.id}')" class="btn-editar"> Editar</button>
             ${usuarioActual.rol === 'admin' ? `<button onclick="eliminarCarrera('${doc.id}')" class="btn-eliminar">🗑️</button>` : ''}
           </div>
         </div>
@@ -208,8 +208,8 @@ function mostrarFormCarrera(carreraId = null) {
         <input type="text" id="codigoCarrera" required placeholder="Ej: ING" maxlength="10">
       </div>
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -328,8 +328,8 @@ function mostrarFormMateria(materiaId = null) {
         <input type="number" id="semestre" min="1" max="12" value="1">
       </div>
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -413,8 +413,8 @@ async function cargarGrupos() {
             <p>Semestre: ${grupo.semestre} | Turno: ${grupo.turno || 'N/A'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarGrupo('${doc.id}')" class="btn-editar">✏️ Editar</button>
-            <button onclick="eliminarGrupo('${doc.id}')" class="btn-eliminar">🗑️</button>
+            <button onclick="editarGrupo('${doc.id}')" class="btn-editar"> Editar</button>
+            <button onclick="eliminarGrupo('${doc.id}')" class="btn-eliminar"></button>
           </div>
         </div>
       `;
@@ -450,8 +450,8 @@ function mostrarFormGrupo(grupoId = null) {
         </select>
       </div>
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -531,13 +531,13 @@ async function cargarAsignaciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4>📚 ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
-            <p>👨‍🏫 Profesor: ${asignacion.profesorNombre}</p>
-            <p>👥 Grupo: ${asignacion.grupoNombre} | 📅 Periodo: ${asignacion.periodo}</p>
+            <h4> ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
+            <p> Profesor: ${asignacion.profesorNombre}</p>
+            <p> Grupo: ${asignacion.grupoNombre} |  Periodo: ${asignacion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar">🔄 Reasignar</button>
-            <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar">❌ Desactivar</button>
+            <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar"> Reasignar</button>
+            <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar"> Desactivar</button>
           </div>
         </div>
       `;
@@ -623,13 +623,13 @@ async function mostrarFormAsignarProfesor() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoAsignar" required placeholder="Ej: 2026-1" value="2026-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
+        <input type="text" id="periodoAsignar" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Asignar Profesor</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Asignar Profesor</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -698,7 +698,7 @@ async function guardarAsignacionProfesor(event) {
   
   try {
     await db.collection('profesorMaterias').add(asignacion);
-    alert('✅ Profesor asignado correctamente');
+    alert(' Profesor asignado correctamente');
     cerrarModal();
     cargarAsignaciones();
   } catch (error) {
@@ -718,7 +718,7 @@ async function desactivarAsignacion(asignacionId) {
       fechaFin: firebase.firestore.FieldValue.serverTimestamp()
     });
     
-    alert('✅ Asignación desactivada');
+    alert(' Asignación desactivada');
     cargarAsignaciones();
   } catch (error) {
     console.error('Error:', error);
@@ -770,12 +770,12 @@ async function cargarInscripciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4>👨‍🎓 ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
-            <p>📚 Materia: ${inscripcion.materiaNombre}</p>
-            <p>👥 Grupo: ${inscripcion.grupoNombre} | 📅 Periodo: ${inscripcion.periodo}</p>
+            <h4> ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
+            <p> Materia: ${inscripcion.materiaNombre}</p>
+            <p> Grupo: ${inscripcion.grupoNombre} |  Periodo: ${inscripcion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar">❌ Dar de Baja</button>
+            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar"> Dar de Baja</button>
           </div>
         </div>
       `;
@@ -849,13 +849,13 @@ async function mostrarFormInscribirAlumno() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoInscribir" required placeholder="Ej: 2026-1" value="2026-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
+        <input type="text" id="periodoInscribir" required placeholder="Ej: 2025-1" value="2025-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Inscribir Alumno</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Inscribir Alumno</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -894,7 +894,7 @@ async function guardarInscripcionAlumno(event) {
     .get();
   
   if (!existe.empty) {
-    alert('❌ Este alumno ya está inscrito en esta materia y grupo');
+    alert(' Este alumno ya está inscrito en esta materia y grupo');
     return;
   }
   
@@ -916,7 +916,7 @@ async function guardarInscripcionAlumno(event) {
   
   try {
     await db.collection('alumnoMaterias').add(inscripcion);
-    alert('✅ Alumno inscrito correctamente');
+    alert(' Alumno inscrito correctamente');
     cerrarModal();
     cargarInscripciones();
   } catch (error) {
@@ -936,7 +936,7 @@ async function darDeBajaAlumno(inscripcionId) {
       fechaBaja: firebase.firestore.FieldValue.serverTimestamp()
     });
     
-    alert('✅ Alumno dado de baja');
+    alert(' Alumno dado de baja');
     cargarInscripciones();
   } catch (error) {
     console.error('Error:', error);
@@ -966,13 +966,13 @@ async function cargarProfesores() {
         <div class="item">
           <div class="item-info">
             <h4>${profesor.nombre}</h4>
-            <p>📧 ${profesor.email}</p>
+            <p> ${profesor.email}</p>
             <p>${profesor.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarProfesor('${doc.id}')" class="btn-editar">✏️ Editar</button>
+            <button onclick="editarProfesor('${doc.id}')" class="btn-editar"> Editar</button>
             <button onclick="toggleActivoUsuario('${doc.id}', 'profesor', ${!profesor.activo})" class="botAzu">
-              ${profesor.activo ? '🔒 Desactivar' : '🔓 Activar'}
+              ${profesor.activo ? ' Desactivar' : ' Activar'}
             </button>
           </div>
         </div>
@@ -1018,8 +1018,8 @@ function mostrarFormProfesor(profesorId = null) {
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -1064,7 +1064,7 @@ async function guardarProfesor(event, profesorId) {
     if (profesorId) {
       // Editar
       await db.collection('usuarios').doc(profesorId).update(userData);
-      alert('✅ Profesor actualizado');
+      alert(' Profesor actualizado');
     } else {
       // Crear nuevo
       const password = document.getElementById('passwordProfesor').value;
@@ -1086,13 +1086,13 @@ async function guardarProfesor(event, profesorId) {
         userData.carreras = [usuarioActual.carreraId];
         userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
         
-        console.log('💾 Guardando profesor en Firestore...', newUid);
+        console.log(' Guardando profesor en Firestore...', newUid);
         await db.collection('usuarios').doc(newUid).set(userData);
-        console.log('✅ Profesor guardado en Firestore');
+        console.log(' Profesor guardado en Firestore');
         
         // Usuario creado - redirigir a login
         await auth.signOut();
-        alert(`✅ Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVerifica en Firebase que el documento se creó correctamente.\n\nVuelve a iniciar sesión.`);
+        alert(` Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVerifica en Firebase que el documento se creó correctamente.\n\nVuelve a iniciar sesión.`);
         window.location.href = 'login.html';
         return;
         
@@ -1114,9 +1114,9 @@ async function guardarProfesor(event, profesorId) {
               await db.collection('usuarios').doc(profesorDoc.id).update({
                 carreras: [...carrerasActuales, usuarioActual.carreraId]
               });
-              alert(`✅ Profesor ya existía en otra carrera.\n\nSe agregó a tu carrera exitosamente.\n\n⚠️ IMPORTANTE:\nEl profesor mantiene su contraseña original.\nLa contraseña que ingresaste NO se aplicó.\n\nNombre: ${profesorData.nombre}\nEmail: ${email}`);
+              alert(` Profesor ya existía en otra carrera.\n\nSe agregó a tu carrera exitosamente.\n\n IMPORTANTE:\nEl profesor mantiene su contraseña original.\nLa contraseña que ingresaste NO se aplicó.\n\nNombre: ${profesorData.nombre}\nEmail: ${email}`);
             } else {
-              alert(`ℹ️ Este profesor ya está en tu carrera.\n\nNombre: ${profesorData.nombre}`);
+              alert(` Este profesor ya está en tu carrera.\n\nNombre: ${profesorData.nombre}`);
             }
             
             cerrarModal();
@@ -1142,7 +1142,7 @@ async function guardarProfesor(event, profesorId) {
       mensaje = 'La contraseña debe tener al menos 6 caracteres';
     }
     
-    alert('❌ ' + mensaje);
+    alert(' ' + mensaje);
   }
 }
 
@@ -1181,15 +1181,15 @@ async function cargarAlumnos() {
         <div class="item">
           <div class="item-info">
             <h4>${alumno.nombre}</h4>
-            <p>🎓 Matrícula: ${alumno.matricula || 'N/A'}</p>
-            <p>👥 Grupo: ${grupoNombre}</p>
-            <p>📧 ${alumno.email}</p>
+            <p> Matrícula: ${alumno.matricula || 'N/A'}</p>
+            <p> Grupo: ${grupoNombre}</p>
+            <p> ${alumno.email}</p>
             <p>${alumno.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
           <div class="item-acciones">
             <button onclick="editarAlumno('${doc.id}')" class="btn-editar">✏️ Editar</button>
             <button onclick="toggleActivoUsuario('${doc.id}', 'alumno', ${!alumno.activo})" class="botAzu">
-              ${alumno.activo ? '🔒 Desactivar' : '🔓 Activar'}
+              ${alumno.activo ? ' Desactivar' : ' Activar'}
             </button>
           </div>
         </div>
@@ -1255,8 +1255,8 @@ async function mostrarFormAlumno(alumnoId = null) {
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -1308,20 +1308,20 @@ async function guardarAlumno(event, alumnoId) {
     if (alumnoId) {
       // Editar
       await db.collection('usuarios').doc(alumnoId).update(userData);
-      alert('✅ Alumno actualizado');
+      alert(' Alumno actualizado');
     } else {
       // Crear nuevo - SOLO en Firestore (sin Authentication)
       userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('usuarios').add(userData);
       
-      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
+      alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
     }
     
     cerrarModal();
     cargarAlumnos();
   } catch (error) {
     console.error('Error:', error);
-    alert('❌ Error al guardar alumno');
+    alert(' Error al guardar alumno');
   }
 }
 
@@ -1418,7 +1418,7 @@ window.onclick = function(event) {
   }
 }
 
-console.log('📱 Panel de Coordinador cargado');
+console.log(' Panel de Coordinador cargado');
 
 // ===== SISTEMA DE MODOS (COORDINADOR / PROFESOR) =====
 function cambiarModo(modo) {
@@ -1442,7 +1442,7 @@ function cambiarModo(modo) {
     
   } else if (modo === 'profesor') {
     // Redirigir a ControlProfe.html
-    window.location.href = 'controlProfe.html';
+    window.location.href = 'ControlProfe.html';
   }
 }
 
@@ -1602,7 +1602,7 @@ function generarTablaCalificaciones() {
       </table>
     </div>
     <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
-      💡 Desliza horizontalmente para ver todas las columnas en móvil
+       Desliza horizontalmente para ver todas las columnas en móvil
     </p>
   `;
   
@@ -1679,7 +1679,7 @@ async function guardarTodasCalificacionesCoord() {
       guardadas++;
     }
     
-    alert(`✅ Calificaciones guardadas exitosamente!\n\n${guardadas} alumnos actualizados.`);
+    alert(` Calificaciones guardadas exitosamente!\n\n${guardadas} alumnos actualizados.`);
     
     // Recargar
     cargarCalificacionesMateria();

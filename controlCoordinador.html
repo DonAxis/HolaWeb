@@ -185,18 +185,18 @@
     <div style="max-width: 1200px; margin: 0 auto; display: flex;">
       <button id="tabCoordinador" onclick="cambiarModo('coordinador')" 
               style="flex: 1; padding: 15px 30px; background: white; color: #667eea; border: none; border-bottom: 3px solid #667eea; cursor: pointer; font-size: 1.1rem; font-weight: 600; transition: all 0.3s;">
-        🎓 Modo Coordinador
+         Modo Coordinador
       </button>
       <button id="tabProfesor" onclick="cambiarModo('profesor')" 
               style="flex: 1; padding: 15px 30px; background: rgba(255,255,255,0.2); color: white; border: none; border-bottom: 3px solid transparent; cursor: pointer; font-size: 1.1rem; font-weight: 600; transition: all 0.3s;">
-        👨‍🏫 Modo Profesor
+         Modo Profesor
       </button>
     </div>
   </div>
 
   <div class="header">
     <div>
-      <h1>👨‍🏫 Panel de Coordinador</h1>
+      <h1> Panel de Coordinador</h1>
       <p id="carreraInfo">Cargando...</p>
     </div>
     <div class="user-info">
@@ -212,42 +212,42 @@
   <!-- MENÚ PRINCIPAL -->
   <div id="menuPrincipal" class="menu-principal">
     <div class="menu-card" id="menuCarreras" onclick="mostrarSeccion('carreras')" style="display: none;">
-      <h3>🎓 Carreras</h3>
+      <h3> Carreras</h3>
       <p>Gestionar carreras y programas</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('materias')">
-      <h3>📚 Materias</h3>
+      <h3> Materias</h3>
       <p>Crear y administrar materias</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('grupos')">
-      <h3>👥 Grupos</h3>
+      <h3> Grupos</h3>
       <p>Gestionar grupos académicos</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('profesores')">
-      <h3>Administrar Profesores</h3>
+      <h3> Gestionar Profesores</h3>
       <p>Crear y administrar profesores</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('alumnos')">
-      <h3>👨‍🎓 Gestionar Alumnos</h3>
+      <h3> Gestionar Alumnos</h3>
       <p>Crear y administrar alumnos</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('asignaciones')">
-      <h3>🔗 Armar Grupos</h3>
+      <h3> Armar Grupos</h3>
       <p>Asignar profesores a materias</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('inscripciones')">
-      <h3>📝 Inscripciones Especiales</h3>
+      <h3> Inscripciones Especiales</h3>
       <p>Inscripciones fuera del grupo regular</p>
     </div>
 
     <div class="menu-card" onclick="mostrarSeccion('calificaciones')">
-      <h3>📊 Calificaciones</h3>
+      <h3> Calificaciones</h3>
       <p>Ver y editar calificaciones</p>
     </div>
   </div>
@@ -255,7 +255,7 @@
   <!-- SECCIÓN: CARRERAS -->
   <div id="seccionCarreras" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>🎓 Gestión de Carreras</h2>
+      <h2> Gestión de Carreras</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div class="botones-accion">
@@ -267,7 +267,7 @@
   <!-- SECCIÓN: MATERIAS -->
   <div id="seccionMaterias" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>📚 Gestión de Materias</h2>
+      <h2> Gestión de Materias</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div class="botones-accion">
@@ -279,7 +279,7 @@
   <!-- SECCIÓN: GRUPOS -->
   <div id="seccionGrupos" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>👥 Gestión de Grupos</h2>
+      <h2> Gestión de Grupos</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div class="botones-accion">
@@ -291,7 +291,7 @@
   <!-- SECCIÓN: GESTIONAR PROFESORES -->
   <div id="seccionProfesores" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>👨‍🏫 Gestión de Profesores</h2>
+      <h2> Gestión de Profesores</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div class="botones-accion">
@@ -303,7 +303,7 @@
   <!-- SECCIÓN: GESTIONAR ALUMNOS -->
   <div id="seccionAlumnos" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>👨‍🎓 Registro de Alumnos</h2>
+      <h2> Registro de Alumnos</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div class="botones-accion">
@@ -315,7 +315,7 @@
   <!-- SECCIÓN: ASIGNAR PROFESORES -->
   <div id="seccionAsignaciones" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>👨‍🏫 Armar Grupos (Materia + Profesor + Grupo)</h2>
+      <h2> Armar Grupos (Materia + Profesor + Grupo)</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div class="botones-accion">
@@ -327,7 +327,7 @@
   <!-- SECCIÓN: INSCRIBIR ALUMNOS -->
   <div id="seccionInscripciones" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>👨‍🎓 Inscripciones Especiales</h2>
+      <h2> Inscripciones Especiales</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div class="botones-accion">
@@ -339,7 +339,7 @@
   <!-- SECCIÓN: CALIFICACIONES -->
   <div id="seccionCalificaciones" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>📊 Gestionar Calificaciones</h2>
+      <h2> Gestionar Calificaciones</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
 
@@ -365,7 +365,7 @@
           </div>
           <button onclick="guardarTodasCalificacionesCoord()" 
                   style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem;">
-            💾 Guardar Calificaciones
+             Guardar Calificaciones
           </button>
         </div>
         <div id="tablaCalificacionesCoord"></div>
