@@ -544,25 +544,58 @@ async function cargarAlumnosYCalificaciones() {
             ${alumno.matricula}
           </td>
           <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
-            <input type="text" id="cal_${index}_p1" 
-                   value="${alumno.calificaciones['Parcial 1']}"
-                   maxlength="2"
-                   style="width: 70px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold;"
-                   placeholder="0-10 o NP">
+            <select id="cal_${index}_p1" 
+                    style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
+              <option value="">-</option>
+              <option value="10" ${alumno.calificaciones['Parcial 1'] == '10' ? 'selected' : ''}>10</option>
+              <option value="9" ${alumno.calificaciones['Parcial 1'] == '9' ? 'selected' : ''}>9</option>
+              <option value="8" ${alumno.calificaciones['Parcial 1'] == '8' ? 'selected' : ''}>8</option>
+              <option value="7" ${alumno.calificaciones['Parcial 1'] == '7' ? 'selected' : ''}>7</option>
+              <option value="6" ${alumno.calificaciones['Parcial 1'] == '6' ? 'selected' : ''}>6</option>
+              <option value="5" ${alumno.calificaciones['Parcial 1'] == '5' ? 'selected' : ''}>5</option>
+              <option value="4" ${alumno.calificaciones['Parcial 1'] == '4' ? 'selected' : ''}>4</option>
+              <option value="3" ${alumno.calificaciones['Parcial 1'] == '3' ? 'selected' : ''}>3</option>
+              <option value="2" ${alumno.calificaciones['Parcial 1'] == '2' ? 'selected' : ''}>2</option>
+              <option value="1" ${alumno.calificaciones['Parcial 1'] == '1' ? 'selected' : ''}>1</option>
+              <option value="0" ${alumno.calificaciones['Parcial 1'] == '0' ? 'selected' : ''}>0</option>
+              <option value="NP" ${alumno.calificaciones['Parcial 1'] == 'NP' ? 'selected' : ''}>NP</option>
+            </select>
           </td>
           <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
-            <input type="text" id="cal_${index}_p2" 
-                   value="${alumno.calificaciones['Parcial 2']}"
-                   maxlength="2"
-                   style="width: 70px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold;"
-                   placeholder="0-10 o NP">
+            <select id="cal_${index}_p2" 
+                    style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
+              <option value="">-</option>
+              <option value="10" ${alumno.calificaciones['Parcial 2'] == '10' ? 'selected' : ''}>10</option>
+              <option value="9" ${alumno.calificaciones['Parcial 2'] == '9' ? 'selected' : ''}>9</option>
+              <option value="8" ${alumno.calificaciones['Parcial 2'] == '8' ? 'selected' : ''}>8</option>
+              <option value="7" ${alumno.calificaciones['Parcial 2'] == '7' ? 'selected' : ''}>7</option>
+              <option value="6" ${alumno.calificaciones['Parcial 2'] == '6' ? 'selected' : ''}>6</option>
+              <option value="5" ${alumno.calificaciones['Parcial 2'] == '5' ? 'selected' : ''}>5</option>
+              <option value="4" ${alumno.calificaciones['Parcial 2'] == '4' ? 'selected' : ''}>4</option>
+              <option value="3" ${alumno.calificaciones['Parcial 2'] == '3' ? 'selected' : ''}>3</option>
+              <option value="2" ${alumno.calificaciones['Parcial 2'] == '2' ? 'selected' : ''}>2</option>
+              <option value="1" ${alumno.calificaciones['Parcial 2'] == '1' ? 'selected' : ''}>1</option>
+              <option value="0" ${alumno.calificaciones['Parcial 2'] == '0' ? 'selected' : ''}>0</option>
+              <option value="NP" ${alumno.calificaciones['Parcial 2'] == 'NP' ? 'selected' : ''}>NP</option>
+            </select>
           </td>
           <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
-            <input type="text" id="cal_${index}_p3" 
-                   value="${alumno.calificaciones['Parcial 3']}"
-                   maxlength="2"
-                   style="width: 70px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold;"
-                   placeholder="0-10 o NP">
+            <select id="cal_${index}_p3" 
+                    style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold; cursor: pointer;">
+              <option value="">-</option>
+              <option value="10" ${alumno.calificaciones['Parcial 3'] == '10' ? 'selected' : ''}>10</option>
+              <option value="9" ${alumno.calificaciones['Parcial 3'] == '9' ? 'selected' : ''}>9</option>
+              <option value="8" ${alumno.calificaciones['Parcial 3'] == '8' ? 'selected' : ''}>8</option>
+              <option value="7" ${alumno.calificaciones['Parcial 3'] == '7' ? 'selected' : ''}>7</option>
+              <option value="6" ${alumno.calificaciones['Parcial 3'] == '6' ? 'selected' : ''}>6</option>
+              <option value="5" ${alumno.calificaciones['Parcial 3'] == '5' ? 'selected' : ''}>5</option>
+              <option value="4" ${alumno.calificaciones['Parcial 3'] == '4' ? 'selected' : ''}>4</option>
+              <option value="3" ${alumno.calificaciones['Parcial 3'] == '3' ? 'selected' : ''}>3</option>
+              <option value="2" ${alumno.calificaciones['Parcial 3'] == '2' ? 'selected' : ''}>2</option>
+              <option value="1" ${alumno.calificaciones['Parcial 3'] == '1' ? 'selected' : ''}>1</option>
+              <option value="0" ${alumno.calificaciones['Parcial 3'] == '0' ? 'selected' : ''}>0</option>
+              <option value="NP" ${alumno.calificaciones['Parcial 3'] == 'NP' ? 'selected' : ''}>NP</option>
+            </select>
           </td>
         </tr>
       `;
@@ -594,47 +627,20 @@ async function guardarTodasCalificaciones() {
     for (let i = 0; i < alumnosMateria.length; i++) {
       const alumno = alumnosMateria[i];
       
-      // Leer y validar valores de los inputs
-      const validarCalificacion = (valor, parcial) => {
-        const texto = valor.trim().toUpperCase();
-        
-        // Campo vacío
-        if (texto === '') return null;
-        
-        // NP (No Presentó)
-        if (texto === 'NP') return 'NP';
-        
-        // Intentar convertir a número
-        const numero = parseInt(texto);
-        
-        // Validar que sea número entero
-        if (isNaN(numero) || texto !== numero.toString()) {
-          alert(`❌ Calificación inválida para ${alumno.nombre}\n${parcial}: "${valor}"\n\nSolo se permite:\n• Números enteros del 0 al 10\n• "NP" para No Presentó`);
-          throw new Error('Validación fallida');
-        }
-        
-        // Validar rango 0-10
-        if (numero < 0 || numero > 10) {
-          alert(`❌ Calificación fuera de rango para ${alumno.nombre}\n${parcial}: ${numero}\n\nDebe estar entre 0 y 10`);
-          throw new Error('Validación fallida');
-        }
-        
-        return numero;
-      };
+      // Leer valores de los dropdowns (ya vienen validados)
+      const p1 = document.getElementById(`cal_${i}_p1`).value || null;
+      const p2 = document.getElementById(`cal_${i}_p2`).value || null;
+      const p3 = document.getElementById(`cal_${i}_p3`).value || null;
       
-      let p1, p2, p3;
-      try {
-        p1 = validarCalificacion(document.getElementById(`cal_${i}_p1`).value, 'Parcial 1');
-        p2 = validarCalificacion(document.getElementById(`cal_${i}_p2`).value, 'Parcial 2');
-        p3 = validarCalificacion(document.getElementById(`cal_${i}_p3`).value, 'Parcial 3');
-      } catch (error) {
-        return; // Detener guardado si hay error
-      }
+      // Convertir "" a null, dejar números y "NP" como están
+      const p1Final = p1 === "" ? null : (p1 === "NP" ? "NP" : parseInt(p1));
+      const p2Final = p2 === "" ? null : (p2 === "NP" ? "NP" : parseInt(p2));
+      const p3Final = p3 === "" ? null : (p3 === "NP" ? "NP" : parseInt(p3));
       
       const parciales = [
-        { concepto: 'Parcial 1', valor: p1 },
-        { concepto: 'Parcial 2', valor: p2 },
-        { concepto: 'Parcial 3', valor: p3 }
+        { concepto: 'Parcial 1', valor: p1Final },
+        { concepto: 'Parcial 2', valor: p2Final },
+        { concepto: 'Parcial 3', valor: p3Final }
       ];
       
       for (const parcial of parciales) {
