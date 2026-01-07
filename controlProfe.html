@@ -81,6 +81,7 @@
     <div class="user-info">
       <p><strong id="userName">Cargando...</strong></p>
       <p id="userEmail"></p>
+      <button id="btnVolverCoord" onclick="volverCoordinador()" class="btn-config" style="display: none;">🎓 Volver a Coordinador</button>
       <button onclick="mostrarConfiguracion()" class="btn-config">⚙️ Configuración</button>
       <button onclick="cerrarSesion()" class="btn-config">🚪 Cerrar Sesión</button>
     </div>
@@ -225,19 +226,26 @@
         usuarioActual = userDoc.data();
         usuarioActual.uid = user.uid;
 
-        // Verificar que sea profesor
-        if (usuarioActual.rol !== 'profesor') {
+        // Verificar que sea profesor o coordinador-profesor
+        if (usuarioActual.rol !== 'profesor' && 
+            !(usuarioActual.rol === 'coordinador' && usuarioActual.esProfesor === true)) {
           console.log('❌ No tienes permisos de profesor');
           alert('No tienes permisos para acceder a este panel');
           window.location.href = 'login.html';
           return;
         }
 
-        console.log('✅ Profesor autorizado:', usuarioActual.nombre);
+        const tipoUsuario = usuarioActual.rol === 'coordinador' ? 'Coordinador-Profesor' : 'Profesor';
+        console.log(`✅ ${tipoUsuario} autorizado:`, usuarioActual.nombre);
         
         // Mostrar info del usuario
         document.getElementById('userName').textContent = usuarioActual.nombre;
         document.getElementById('userEmail').textContent = user.email;
+        
+        // Mostrar botón "Volver" si es coordinador
+        if (usuarioActual.rol === 'coordinador') {
+          document.getElementById('btnVolverCoord').style.display = 'inline-block';
+        }
         
         // Cargar carreras
         await cargarInfoCarreras();

@@ -1085,11 +1085,14 @@ async function guardarProfesor(event, profesorId) {
         // Guardar en Firestore CON carreras
         userData.carreras = [usuarioActual.carreraId];
         userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
+        
+        console.log('💾 Guardando profesor en Firestore...', newUid);
         await db.collection('usuarios').doc(newUid).set(userData);
+        console.log('✅ Profesor guardado en Firestore');
         
         // Usuario creado - redirigir a login
         await auth.signOut();
-        alert(`✅ Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVuelve a iniciar sesión.`);
+        alert(`✅ Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVerifica en Firebase que el documento se creó correctamente.\n\nVuelve a iniciar sesión.`);
         window.location.href = 'login.html';
         return;
         
@@ -1311,7 +1314,7 @@ async function guardarAlumno(event, alumnoId) {
       userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('usuarios').add(userData);
       
-      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
+      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\ncontrolAlumno.html`);
     }
     
     cerrarModal();
@@ -1438,22 +1441,7 @@ function cambiarModo(modo) {
     modoProf.style.display = 'none';
     
   } else if (modo === 'profesor') {
-    // Activar modo profesor
-    tabProf.style.background = 'white';
-    tabProf.style.color = '#667eea';
-    tabProf.style.borderBottom = '3px solid #667eea';
-    
-    tabCoord.style.background = 'rgba(255,255,255,0.2)';
-    tabCoord.style.color = 'white';
-    tabCoord.style.borderBottom = '3px solid transparent';
-    
-    modoCoord.style.display = 'none';
-    modoProf.style.display = 'block';
-    
-    // Cargar iframe
-    const iframe = document.getElementById('iframeProfesor');
-    if (!iframe.src || iframe.src === '' || iframe.src.includes('about:blank')) {
-      iframe.src = './controlProfe.html';
-    }
+    // Redirigir a ControlProfe.html
+    window.location.href = 'controlProfe.html';
   }
 }
