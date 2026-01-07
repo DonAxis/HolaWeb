@@ -143,7 +143,7 @@
   </div>
 
   <!-- SECCIÓN: MIS MATERIAS -->
-  <div id="seccionMaterias" class="seccion-contenido">
+  <div id="seccionMaterias" class="seccion-contenido" style="display: none;">
     <div class="seccion-header">
       <h2 style="color: #667eea; margin: 0;">📚 Mis Materias</h2>
       <button onclick="volverMenuProfe()" class="btn-volver">← Volver al Menú</button>
@@ -152,7 +152,7 @@
   </div>
 
   <!-- SECCIÓN: CALIFICACIONES -->
-  <div id="seccionCalificaciones" class="seccion-contenido">
+  <div id="seccionCalificaciones" class="seccion-contenido" style="display: none;">
     <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
       <strong>ℹ️ Modo Consulta:</strong> Las calificaciones solo pueden ser modificadas por el coordinador.
     </div>
@@ -464,10 +464,19 @@ async function verCalificacionesMateria(asignacionId) {
     };
     
     // Actualizar título
-    document.getElementById('tituloMateria').textContent = asignacionActual.materiaNombre;
-    document.getElementById('infoMateria').textContent = `${asignacionActual.grupoNombre} | ${asignacionActual.periodo}`;
+    const infoDiv = document.getElementById('infoMateriaActual');
+    if (infoDiv) {
+      infoDiv.innerHTML = `
+        <h3 style="margin: 0 0 10px 0; color: #667eea;">${asignacionActual.materiaNombre}</h3>
+        <p style="margin: 0; color: #666;">
+          📋 Grupo: ${asignacionActual.grupoNombre} | 
+          📅 Periodo: ${asignacionActual.periodo}
+        </p>
+      `;
+    }
     
     // Cambiar vista
+    document.querySelector('.menu-profesor').style.display = 'none';
     document.getElementById('seccionMaterias').style.display = 'none';
     document.getElementById('seccionCalificaciones').style.display = 'block';
     
