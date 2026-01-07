@@ -75,14 +75,15 @@
 
   <div class="header-profesor">
     <div>
-      <h1>👨‍🏫 Panel de Profesor</h1>
+      <h1> Panel de Profesor</h1>
       <p id="profesorInfo">Cargando...</p>
     </div>
     <div class="user-info">
       <p><strong id="userName">Cargando...</strong></p>
       <p id="userEmail"></p>
-      
-      </div>
+      <button id="btnVolverCoord" onclick="volverCoordinador()" class="btn-config" style="display: none;">🎓 Volver a Coordinador</button>
+      <button onclick="mostrarConfiguracion()" class="btn-config">⚙️ Configuración</button>
+      <button onclick="cerrarSesion()" class="btn-config">🚪 Cerrar Sesión</button>
     </div>
   </div>
 
@@ -91,7 +92,7 @@
   <div id="modalConfig" class="modal">
     <div class="modal-contenido">
       <span class="cerrar" onclick="cerrarModalConfig()">&times;</span>
-      <h2>⚙️ Configuración</h2>
+      <h2> Configuración</h2>
       
       <div style="margin: 20px 0;">
         <h3 style="color: #1976d2;">Cambiar Contraseña</h3>
@@ -112,8 +113,8 @@
           </div>
           
           <div class="form-botones">
-            <button type="submit" class="btn-guardar">💾 Cambiar Contraseña</button>
-            <button type="button" onclick="cerrarModalConfig()" class="btn-cancelar">❌ Cancelar</button>
+            <button type="submit" class="btn-guardar"> Cambiar Contraseña</button>
+            <button type="button" onclick="cerrarModalConfig()" class="btn-cancelar"> Cancelar</button>
           </div>
         </form>
       </div>
@@ -141,7 +142,7 @@
     // Protección y autenticación
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        console.log('❌ No hay sesión activa');
+        console.log(' No hay sesión activa');
         window.location.href = 'login.html';
         return;
       }
@@ -150,7 +151,7 @@
         const userDoc = await db.collection('usuarios').doc(user.uid).get();
         
         if (!userDoc.exists) {
-          console.log('❌ Usuario no encontrado en Firestore');
+          console.log(' Usuario no encontrado en Firestore');
           await auth.signOut();
           window.location.href = 'login.html';
           return;
@@ -159,17 +160,41 @@
         usuarioActual = userDoc.data();
         usuarioActual.uid = user.uid;
 
+        console.log(' Usuario cargado:', {
+          nombre: usuarioActual.nombre,
+          rol: usuarioActual.rol,
+          esProfesor: usuarioActual.esProfesor,
+          carreras: usuarioActual.carreras
+        });
+
+        // Auto-configurar si es coordinador sin carreras
+        if (usuarioActual.rol === 'coordinador') {
+          if (!usuarioActual.carreras && usuarioActual.carreraId) {
+            usuarioActual.carreras = [usuarioActual.carreraId];
+            db.collection('usuarios').doc(user.uid).update({
+              carreras: [usuarioActual.carreraId]
+            }).catch(err => console.log('No se pudo actualizar carreras:', err));
+          }
+          if (usuarioActual.esProfesor === undefined) {
+            usuarioActual.esProfesor = true;
+            db.collection('usuarios').doc(user.uid).update({
+              esProfesor: true
+            }).catch(err => console.log('No se pudo actualizar esProfesor:', err));
+          }
+        }
+
         // Verificar que sea profesor o coordinador-profesor
         if (usuarioActual.rol !== 'profesor' && 
             !(usuarioActual.rol === 'coordinador' && usuarioActual.esProfesor === true)) {
-          console.log('❌ No tienes permisos de profesor');
+          console.log(' No tienes permisos de profesor');
+          console.log('Rol:', usuarioActual.rol, 'esProfesor:', usuarioActual.esProfesor);
           alert('No tienes permisos para acceder a este panel');
           window.location.href = 'login.html';
           return;
         }
 
         const tipoUsuario = usuarioActual.rol === 'coordinador' ? 'Coordinador-Profesor' : 'Profesor';
-        console.log(`✅ ${tipoUsuario} autorizado:`, usuarioActual.nombre);
+        console.log(` ${tipoUsuario} autorizado:`, usuarioActual.nombre);
         
         // Mostrar info del usuario
         document.getElementById('userName').textContent = usuarioActual.nombre;
@@ -184,7 +209,7 @@
         await cargarInfoCarreras();
         
       } catch (error) {
-        console.error('❌ Error:', error);
+        console.error(' Error:', error);
         alert('Error al verificar permisos');
         window.location.href = 'login.html';
       }
@@ -192,8 +217,14 @@
 
     async function cargarInfoCarreras() {
       try {
+        const infoElement = document.getElementById('profesorInfo');
+        if (!infoElement) {
+          console.log(' Elemento profesorInfo no encontrado');
+          return;
+        }
+        
         if (!usuarioActual.carreras || usuarioActual.carreras.length === 0) {
-          document.getElementById('profesorInfo').textContent = 'Sin carreras asignadas';
+          infoElement.textContent = 'Sin carreras asignadas';
           return;
         }
 
@@ -254,13 +285,13 @@
       
       // Validar que las contraseñas coincidan
       if (passwordNueva !== passwordConfirmar) {
-        alert('❌ Las contraseñas nuevas no coinciden');
+        alert(' Las contraseñas nuevas no coinciden');
         return;
       }
       
       // Validar longitud
       if (passwordNueva.length < 6) {
-        alert('❌ La contraseña debe tener al menos 6 caracteres');
+        alert(' La contraseña debe tener al menos 6 caracteres');
         return;
       }
       
@@ -277,18 +308,18 @@
         // Cambiar contraseña
         await user.updatePassword(passwordNueva);
         
-        alert('✅ Contraseña cambiada exitosamente');
+        alert(' Contraseña cambiada exitosamente');
         cerrarModalConfig();
         
       } catch (error) {
         console.error('Error al cambiar contraseña:', error);
         
         if (error.code === 'auth/wrong-password') {
-          alert('❌ La contraseña actual es incorrecta');
+          alert(' La contraseña actual es incorrecta');
         } else if (error.code === 'auth/weak-password') {
-          alert('❌ La contraseña es muy débil');
-        } else {
-          alert('❌ Error al cambiar contraseña: ' + error.message);
+          alert(' La contraseña es muy débil');
+        } else { 
+          alert(' Error al cambiar contraseña: ' + error.message);
         }
       }
     }
@@ -327,7 +358,7 @@ async function mostrarMisMaterias() {
     document.getElementById('seccionMaterias').style.display = 'block';
     
     const container = document.getElementById('listaMaterias');
-    container.innerHTML = '<p style="text-align: center; color: #999;">⏳ Cargando materias...</p>';
+    container.innerHTML = '<p style="text-align: center; color: #999;"> Cargando materias...</p>';
     
     // Buscar asignaciones del profesor
     const snapshot = await db.collection('profesorMaterias')
@@ -348,12 +379,12 @@ async function mostrarMisMaterias() {
         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea; cursor: pointer; transition: all 0.3s;" onclick="verCalificacionesMateria('${doc.id}')">
           <h3 style="margin: 0 0 10px 0; color: #333;">${asignacion.materiaNombre}</h3>
           <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">
-            📋 Código: ${asignacion.materiaCodigo} | 
-            👥 Grupo: ${asignacion.grupoNombre} | 
-            📅 Periodo: ${asignacion.periodo}
+             Código: ${asignacion.materiaCodigo} | 
+             Grupo: ${asignacion.grupoNombre} | 
+             Periodo: ${asignacion.periodo}
           </p>
           <button style="background: #667eea; color: white; border: none; padding: 8px 20px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-weight: 600;">
-            📝 Ver Calificaciones →
+             Ver Calificaciones →
           </button>
         </div>
       `;
