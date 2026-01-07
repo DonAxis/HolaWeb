@@ -1314,7 +1314,7 @@ async function guardarAlumno(event, alumnoId) {
       userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('usuarios').add(userData);
       
-      alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
+      alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\ncontrolAlumno.html`);
     }
     
     cerrarModal();
@@ -1442,7 +1442,7 @@ function cambiarModo(modo) {
     
   } else if (modo === 'profesor') {
     // Redirigir a ControlProfe.html
-    window.location.href = 'ControlProfe.html';
+    window.location.href = 'controlProfe.html';
   }
 }
 

@@ -327,7 +327,7 @@ async function mostrarMisMaterias() {
     document.getElementById('seccionMaterias').style.display = 'block';
     
     const container = document.getElementById('listaMaterias');
-    container.innerHTML = '<p style="text-align: center; color: #999;">⏳ Cargando materias...</p>';
+    container.innerHTML = '<p style="text-align: center; color: #999;"> Cargando materias...</p>';
     
     // Buscar asignaciones del profesor
     const snapshot = await db.collection('profesorMaterias')
@@ -404,7 +404,7 @@ async function verCalificacionesMateria(asignacionId) {
 async function cargarAlumnosYCalificaciones() {
   try {
     const container = document.getElementById('tablaCalificaciones');
-    container.innerHTML = '<p style="text-align: center; color: #999;">⏳ Cargando alumnos...</p>';
+    container.innerHTML = '<p style="text-align: center; color: #999;"> Cargando alumnos...</p>';
     
     // Buscar alumnos del grupo
     const alumnosSnap = await db.collection('usuarios')
