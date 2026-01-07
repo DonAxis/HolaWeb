@@ -497,32 +497,28 @@
         for (const doc of materiasSnap.docs) {
           const materia = doc.data();
           
-          // Buscar calificaciones de esta materia
-          const calificacionesSnap = await db.collection('calificaciones')
-            .where('alumnoId', '==', alumnoActual.id)
-            .where('materiaId', '==', materia.materiaId)
-            .get();
+          // Buscar calificaciones de esta materia (NUEVA ESTRUCTURA)
+          const docId = `${alumnoActual.id}_${materia.materiaId}`;
+          const calDoc = await db.collection('calificaciones').doc(docId).get();
           
-          const califs = {
-            'Parcial 1': '-',
-            'Parcial 2': '-',
-            'Parcial 3': '-'
-          };
+          let parcial1 = '-';
+          let parcial2 = '-';
+          let parcial3 = '-';
           
-          calificacionesSnap.forEach(calDoc => {
-            const cal = calDoc.data();
-            if (califs.hasOwnProperty(cal.concepto)) {
-              califs[cal.concepto] = cal.calificacion;
-            }
-          });
+          if (calDoc.exists) {
+            const data = calDoc.data();
+            parcial1 = data.parciales?.parcial1 ?? '-';
+            parcial2 = data.parciales?.parcial2 ?? '-';
+            parcial3 = data.parciales?.parcial3 ?? '-';
+          }
           
           materias.push({
             nombre: materia.materiaNombre,
             codigo: materia.materiaCodigo,
             profesor: materia.profesorNombre,
-            parcial1: califs['Parcial 1'],
-            parcial2: califs['Parcial 2'],
-            parcial3: califs['Parcial 3']
+            parcial1: parcial1,
+            parcial2: parcial2,
+            parcial3: parcial3
           });
         }
         
@@ -545,10 +541,10 @@
         `;
         
         materias.forEach(materia => {
-          // Calcular promedio (NP = 0, ignorar solo -)
+          // Calcular promedio (NP = 0, ignorar null/-)
           const cals = [materia.parcial1, materia.parcial2, materia.parcial3]
-            .filter(c => c !== '-')  // Solo ignorar si no hay calificación
-            .map(c => c === 'NP' ? 0 : parseFloat(c))  // NP = 0
+            .filter(c => c !== '-' && c !== null && c !== undefined)
+            .map(c => c === 'NP' ? 0 : parseFloat(c))
             .filter(c => !isNaN(c));
           
           const promedio = cals.length > 0 
@@ -582,7 +578,7 @@
               </table>
             </div>
             <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
-              Materias del actual semestre
+              💡 Desliza horizontalmente para ver todas las columnas
             </p>
           </div>
         `;

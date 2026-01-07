@@ -1314,7 +1314,7 @@ async function guardarAlumno(event, alumnoId) {
       userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('usuarios').add(userData);
       
-      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\ncontrolAlumno.html`);
+      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
     }
     
     cerrarModal();
@@ -1443,5 +1443,249 @@ function cambiarModo(modo) {
   } else if (modo === 'profesor') {
     // Redirigir a ControlProfe.html
     window.location.href = 'controlProfe.html';
+  }
+}
+
+
+// ===== GESTIÓN DE CALIFICACIONES (COORDINADOR) =====
+
+let asignacionCalifActual = null;
+let alumnosCalifMateria = [];
+
+// Cargar materias en el selector
+async function cargarMateriasCalificaciones() {
+  try {
+    const select = document.getElementById('selectMateriaCalif');
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Seleccionar materia...</option>';
+    
+    // Buscar asignaciones de la carrera
+    const snapshot = await db.collection('profesorMaterias')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('activa', '==', true)
+      .get();
+    
+    snapshot.forEach(doc => {
+      const asig = doc.data();
+      select.innerHTML += `<option value="${doc.id}">${asig.materiaNombre} - ${asig.grupoNombre} (${asig.profesorNombre})</option>`;
+    });
+    
+  } catch (error) {
+    console.error('Error al cargar materias:', error);
+  }
+}
+
+// Cargar calificaciones de una materia
+async function cargarCalificacionesMateria() {
+  try {
+    const selectMat = document.getElementById('selectMateriaCalif');
+    const asignacionId = selectMat.value;
+    
+    if (!asignacionId) {
+      document.getElementById('contenedorCalificaciones').style.display = 'none';
+      return;
+    }
+    
+    // Cargar asignación
+    const asigDoc = await db.collection('profesorMaterias').doc(asignacionId).get();
+    if (!asigDoc.exists) {
+      alert('Asignación no encontrada');
+      return;
+    }
+    
+    asignacionCalifActual = { id: asignacionId, ...asigDoc.data() };
+    
+    // Mostrar info
+    document.getElementById('tituloMateriaCalif').textContent = asignacionCalifActual.materiaNombre;
+    document.getElementById('infoMateriaCalif').textContent = 
+      `Grupo: ${asignacionCalifActual.grupoNombre} | Profesor: ${asignacionCalifActual.profesorNombre} | Periodo: ${asignacionCalifActual.periodo}`;
+    
+    // Cargar alumnos del grupo
+    const alumnosSnap = await db.collection('usuarios')
+      .where('rol', '==', 'alumno')
+      .where('grupoId', '==', asignacionCalifActual.grupoId)
+      .where('activo', '==', true)
+      .get();
+    
+    alumnosCalifMateria = [];
+    
+    for (const doc of alumnosSnap.docs) {
+      const alumno = {
+        id: doc.id,
+        nombre: doc.data().nombre,
+        matricula: doc.data().matricula,
+        calificaciones: {
+          parcial1: null,
+          parcial2: null,
+          parcial3: null
+        }
+      };
+      
+      // Cargar calificaciones (nueva estructura)
+      const docId = `${doc.id}_${asignacionCalifActual.materiaId}`;
+      const calDoc = await db.collection('calificaciones').doc(docId).get();
+      
+      if (calDoc.exists) {
+        const data = calDoc.data();
+        alumno.calificaciones.parcial1 = data.parciales?.parcial1 ?? null;
+        alumno.calificaciones.parcial2 = data.parciales?.parcial2 ?? null;
+        alumno.calificaciones.parcial3 = data.parciales?.parcial3 ?? null;
+      }
+      
+      alumnosCalifMateria.push(alumno);
+    }
+    
+    // Ordenar alfabéticamente
+    alumnosCalifMateria.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    
+    // Generar tabla
+    generarTablaCalificaciones();
+    
+    document.getElementById('contenedorCalificaciones').style.display = 'block';
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar calificaciones');
+  }
+}
+
+// Generar tabla HTML con dropdowns
+function generarTablaCalificaciones() {
+  const container = document.getElementById('tablaCalificacionesCoord');
+  
+  let html = `
+    <div style="overflow-x: auto;">
+      <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
+        <thead>
+          <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+            <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Alumno</th>
+            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Matrícula</th>
+            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Parcial 1</th>
+            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Parcial 2</th>
+            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Parcial 3</th>
+            <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Promedio</th>
+          </tr>
+        </thead>
+        <tbody>
+  `;
+  
+  alumnosCalifMateria.forEach((alumno, index) => {
+    const promedio = calcularPromedioAlumno(alumno);
+    
+    html += `
+      <tr style="border-bottom: 1px solid #eee;">
+        <td style="padding: 12px; border: 1px solid #ddd;">
+          <strong>${alumno.nombre}</strong>
+        </td>
+        <td style="padding: 12px; text-align: center; border: 1px solid #ddd; color: #666;">
+          ${alumno.matricula}
+        </td>
+        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+          ${generarDropdownCalif(index, 'parcial1', alumno.calificaciones.parcial1)}
+        </td>
+        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+          ${generarDropdownCalif(index, 'parcial2', alumno.calificaciones.parcial2)}
+        </td>
+        <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
+          ${generarDropdownCalif(index, 'parcial3', alumno.calificaciones.parcial3)}
+        </td>
+        <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 1.2rem; color: #667eea;">
+          ${promedio}
+        </td>
+      </tr>
+    `;
+  });
+  
+  html += `
+        </tbody>
+      </table>
+    </div>
+    <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
+      💡 Desliza horizontalmente para ver todas las columnas en móvil
+    </p>
+  `;
+  
+  container.innerHTML = html;
+}
+
+// Generar dropdown de calificación
+function generarDropdownCalif(index, parcial, valor) {
+  const opciones = ['', '10', '9', '8', '7', '6', '5', '4', '3', '2', '1', '0', 'NP'];
+  let html = `<select id="calif_${index}_${parcial}" style="width: 80px; padding: 8px; border: 2px solid #ddd; border-radius: 5px; text-align: center; font-size: 1.1rem; font-weight: bold;">`;
+  
+  opciones.forEach(opc => {
+    const selected = (valor === null && opc === '') || (valor == opc) ? 'selected' : '';
+    const texto = opc === '' ? '-' : opc;
+    html += `<option value="${opc}" ${selected}>${texto}</option>`;
+  });
+  
+  html += '</select>';
+  return html;
+}
+
+// Calcular promedio
+function calcularPromedioAlumno(alumno) {
+  const cals = [alumno.calificaciones.parcial1, alumno.calificaciones.parcial2, alumno.calificaciones.parcial3]
+    .filter(c => c !== null && c !== '' && c !== 'NP')
+    .map(c => parseFloat(c));
+  
+  if (cals.length === 0) return '-';
+  
+  const suma = cals.reduce((a, b) => a + b, 0);
+  return (suma / cals.length).toFixed(1);
+}
+
+// Guardar todas las calificaciones
+async function guardarTodasCalificacionesCoord() {
+  if (!confirm('¿Guardar las calificaciones de todos los alumnos?')) {
+    return;
+  }
+  
+  try {
+    let guardadas = 0;
+    
+    for (let i = 0; i < alumnosCalifMateria.length; i++) {
+      const alumno = alumnosCalifMateria[i];
+      
+      // Leer valores de dropdowns
+      const p1 = document.getElementById(`calif_${i}_parcial1`).value;
+      const p2 = document.getElementById(`calif_${i}_parcial2`).value;
+      const p3 = document.getElementById(`calif_${i}_parcial3`).value;
+      
+      // Convertir a número o null
+      const parcial1 = p1 === '' ? null : (p1 === 'NP' ? 'NP' : parseInt(p1));
+      const parcial2 = p2 === '' ? null : (p2 === 'NP' ? 'NP' : parseInt(p2));
+      const parcial3 = p3 === '' ? null : (p3 === 'NP' ? 'NP' : parseInt(p3));
+      
+      // Guardar en nueva estructura
+      const docId = `${alumno.id}_${asignacionCalifActual.materiaId}`;
+      
+      await db.collection('calificaciones').doc(docId).set({
+        alumnoId: alumno.id,
+        materiaId: asignacionCalifActual.materiaId,
+        grupoId: asignacionCalifActual.grupoId,
+        profesorId: asignacionCalifActual.profesorId,
+        periodo: asignacionCalifActual.periodo,
+        parciales: {
+          parcial1: parcial1,
+          parcial2: parcial2,
+          parcial3: parcial3
+        },
+        actualizadoPor: usuarioActual.uid,
+        fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      guardadas++;
+    }
+    
+    alert(`✅ Calificaciones guardadas exitosamente!\n\n${guardadas} alumnos actualizados.`);
+    
+    // Recargar
+    cargarCalificacionesMateria();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al guardar calificaciones');
   }
 }

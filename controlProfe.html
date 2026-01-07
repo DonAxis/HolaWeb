@@ -81,74 +81,7 @@
     <div class="user-info">
       <p><strong id="userName">Cargando...</strong></p>
       <p id="userEmail"></p>
-      <button id="btnVolverCoord" onclick="volverCoordinador()" class="btn-config" style="display: none;">🎓 Volver a Coordinador</button>
-      <button onclick="mostrarConfiguracion()" class="btn-config">⚙️ Configuración</button>
-      <button onclick="cerrarSesion()" class="btn-config">🚪 Cerrar Sesión</button>
-    </div>
-  </div>
-
-  <div class="menu-profesor">
-    <div class="card-profesor" onclick="mostrarMisMaterias()">
-      <h3>📚 Mis Materias</h3>
-      <p>Ver materias asignadas</p>
-    </div>
-
-    <div class="card-profesor" onclick="mostrarMisMaterias()">
-      <h3>📝 Calificaciones</h3>
-      <p>Registrar calificaciones</p>
-    </div>
-
-    <div class="card-profesor" onclick="alert('Próximamente: Asistencia')">
-      <h3>✅ Asistencia</h3>
-      <p>Registrar asistencia (próximamente)</p>
-    </div>
-
-    <div class="card-profesor" onclick="mostrarMisMaterias()">
-      <h3>👥 Mis Grupos</h3>
-      <p>Ver mis grupos</p>
-    </div>
-  </div>
-
-<!-- Agregar DESPUÉS de las cards y ANTES del modal en ControlProfe.html -->
-
-  <!-- SECCIÓN: MIS MATERIAS -->
-  <div id="seccionMaterias" style="display: none;">
-    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); margin-bottom: 20px;">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="color: #667eea; margin: 0;">📚 Mis Materias</h2>
-        <button onclick="volverMenu()" style="background: #f5f5f5; border: 2px solid #667eea; color: #667eea; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-          ← Volver al Menú
-        </button>
-      </div>
-      <div id="listaMaterias"></div>
-    </div>
-  </div>
-
-  <!-- SECCIÓN: CALIFICACIONES DE UNA MATERIA -->
-  <div id="seccionCalificaciones" style="display: none;">
-    <div style="background: white; padding: 30px; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.2);">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <div>
-          <h2 style="color: #667eea; margin: 0;" id="tituloMateria">Materia</h2>
-          <p style="color: #666; margin: 5px 0 0 0;" id="infoMateria">Grupo | Periodo</p>
-        </div>
-        <button onclick="volverMaterias()" style="background: #f5f5f5; border: 2px solid #667eea; color: #667eea; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
-          ← Volver a Materias
-        </button>
-      </div>
-
-      <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
-        <p style="margin: 0; color: #666; font-size: 0.9rem;">
-          📝 Registra las calificaciones de <strong>Parcial 1</strong>, <strong>Parcial 2</strong> y <strong>Parcial 3</strong> para cada alumno.
-        </p>
-      </div>
-
-      <div id="tablaCalificaciones"></div>
-
-      <div style="margin-top: 20px; text-align: center;">
-        <button onclick="guardarTodasCalificaciones()" style="background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%); color: white; border: none; padding: 15px 40px; border-radius: 10px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
-          💾 Guardar Calificaciones
-        </button>
+      
       </div>
     </div>
   </div>
@@ -506,12 +439,16 @@ async function cargarAlumnosYCalificaciones() {
         .where('periodo', '==', asignacionActual.periodo)
         .get();
       
-      calificacionesSnap.forEach(calDoc => {
-        const cal = calDoc.data();
-        if (alumno.calificaciones.hasOwnProperty(cal.concepto)) {
-          alumno.calificaciones[cal.concepto] = cal.calificacion;
-        }
-      });
+      // Cargar calificaciones de NUEVA ESTRUCTURA
+      const docId = `${doc.id}_${asignacionActual.materiaId}`;
+      const calDoc = await db.collection('calificaciones').doc(docId).get();
+      
+      if (calDoc.exists) {
+        const data = calDoc.data();
+        alumno.calificaciones['Parcial 1'] = data.parciales?.parcial1 ?? '-';
+        alumno.calificaciones['Parcial 2'] = data.parciales?.parcial2 ?? '-';
+        alumno.calificaciones['Parcial 3'] = data.parciales?.parcial3 ?? '-';
+      }
       
       alumnosMateria.push(alumno);
     }
@@ -615,89 +552,6 @@ async function cargarAlumnosYCalificaciones() {
 }
 
 // Guardar todas las calificaciones
-async function guardarTodasCalificaciones() {
-  if (!confirm('¿Guardar las calificaciones?\n\nSe actualizarán todas las calificaciones de Parcial 1, 2 y 3.')) {
-    return;
-  }
-  
-  try {
-    let guardadas = 0;
-    let errores = 0;
-    
-    for (let i = 0; i < alumnosMateria.length; i++) {
-      const alumno = alumnosMateria[i];
-      
-      // Leer valores de los dropdowns (ya vienen validados)
-      const p1 = document.getElementById(`cal_${i}_p1`).value || null;
-      const p2 = document.getElementById(`cal_${i}_p2`).value || null;
-      const p3 = document.getElementById(`cal_${i}_p3`).value || null;
-      
-      // Convertir "" a null, dejar números y "NP" como están
-      const p1Final = p1 === "" ? null : (p1 === "NP" ? "NP" : parseInt(p1));
-      const p2Final = p2 === "" ? null : (p2 === "NP" ? "NP" : parseInt(p2));
-      const p3Final = p3 === "" ? null : (p3 === "NP" ? "NP" : parseInt(p3));
-      
-      const parciales = [
-        { concepto: 'Parcial 1', valor: p1Final },
-        { concepto: 'Parcial 2', valor: p2Final },
-        { concepto: 'Parcial 3', valor: p3Final }
-      ];
-      
-      for (const parcial of parciales) {
-        if (parcial.valor !== null) {
-          try {
-            // Buscar si ya existe
-            const existeSnap = await db.collection('calificaciones')
-              .where('alumnoId', '==', alumno.id)
-              .where('materiaId', '==', asignacionActual.materiaId)
-              .where('concepto', '==', parcial.concepto)
-              .where('periodo', '==', asignacionActual.periodo)
-              .limit(1)
-              .get();
-            
-            const calificacionData = {
-              alumnoId: alumno.id,
-              materiaId: asignacionActual.materiaId,
-              grupoId: asignacionActual.grupoId,
-              profesorId: usuarioActual.uid,
-              concepto: parcial.concepto,
-              calificacion: parcial.valor,
-              periodo: asignacionActual.periodo,
-              fecha: firebase.firestore.FieldValue.serverTimestamp()
-            };
-            
-            if (existeSnap.empty) {
-              // Crear nueva
-              await db.collection('calificaciones').add(calificacionData);
-            } else {
-              // Actualizar existente
-              await db.collection('calificaciones').doc(existeSnap.docs[0].id).update({
-                calificacion: parcial.valor,
-                fecha: firebase.firestore.FieldValue.serverTimestamp()
-              });
-            }
-            
-            guardadas++;
-          } catch (error) {
-            console.error('Error con', alumno.nombre, parcial.concepto, error);
-            errores++;
-          }
-        }
-      }
-    }
-    
-    alert(`✅ Calificaciones guardadas!\n\n${guardadas} calificaciones actualizadas${errores > 0 ? `\n${errores} errores` : ''}`);
-    
-    // Recargar
-    await cargarAlumnosYCalificaciones();
-    
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error al guardar calificaciones');
-  }
-}
-
-// Navegación
 function volverMenu() {
   document.getElementById('seccionMaterias').style.display = 'none';
   document.getElementById('seccionCalificaciones').style.display = 'none';

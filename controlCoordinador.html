@@ -339,10 +339,38 @@
   <!-- SECCIÓN: CALIFICACIONES -->
   <div id="seccionCalificaciones" class="seccion-contenido">
     <div class="seccion-header">
-      <h2>📊 Ver Calificaciones</h2>
+      <h2>📊 Gestionar Calificaciones</h2>
       <button onclick="volverMenu()" class="btn-volver">← Volver al Menú</button>
     </div>
-    <p>Próximamente: Vista de calificaciones por materia</p>
+
+    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+      <h3 style="margin-top: 0;">Seleccionar Materia</h3>
+      <div style="display: grid; gap: 15px;">
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Materia:</label>
+          <select id="selectMateriaCalif" onchange="cargarCalificacionesMateria()" 
+                  style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 5px;">
+            <option value="">Seleccionar materia...</option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <div id="contenedorCalificaciones" style="display: none;">
+      <div style="background: white; padding: 20px; border-radius: 10px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+          <div>
+            <h3 style="margin: 0;" id="tituloMateriaCalif">Materia</h3>
+            <p style="margin: 5px 0; color: #666;" id="infoMateriaCalif">Información de la materia</p>
+          </div>
+          <button onclick="guardarTodasCalificacionesCoord()" 
+                  style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem;">
+            💾 Guardar Calificaciones
+          </button>
+        </div>
+        <div id="tablaCalificacionesCoord"></div>
+      </div>
+    </div>
   </div>
 
   <!-- MODAL GENÉRICO -->
