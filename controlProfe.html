@@ -81,6 +81,7 @@
     <div class="user-info">
       <p><strong id="userName">Cargando...</strong></p>
       <p id="userEmail"></p>
+      <button id="btnVolverMenu" onclick="volverMenuProfe()" class="btn-config" style="display: none;">← Volver</button>
       <button id="btnVolverCoord" onclick="volverCoordinador()" class="btn-config" style="display: none;">🎓 Volver a Coordinador</button>
       <button onclick="mostrarConfiguracion()" class="btn-config">⚙️ Configuración</button>
       <button onclick="cerrarSesion()" class="btn-config">🚪 Cerrar Sesión</button>
@@ -146,7 +147,6 @@
   <div id="seccionMaterias" class="seccion-contenido" style="display: none;">
     <div class="seccion-header">
       <h2 style="color: #667eea; margin: 0;">📚 Mis Materias</h2>
-      <button onclick="volverMenuProfe()" class="btn-volver">← Volver al Menú</button>
     </div>
     <div id="listaMaterias"></div>
   </div>
@@ -158,7 +158,6 @@
     </div>
     <div class="seccion-header">
       <h2 style="color: #667eea; margin: 0;">📝 Calificaciones</h2>
-      <button onclick="volverMenuProfe()" class="btn-volver">← Volver</button>
     </div>
     <div id="infoMateriaActual" style="margin-bottom: 20px; padding: 15px; background: #f0f7ff; border-radius: 8px;"></div>
     <div id="tablaCalificaciones"></div>
@@ -372,6 +371,19 @@
       }
     }
 
+    // Volver al menú principal
+    function volverMenuProfe() {
+      document.getElementById('seccionMaterias').style.display = 'none';
+      document.getElementById('seccionCalificaciones').style.display = 'none';
+      document.querySelector('.menu-profesor').style.display = 'grid';
+      document.getElementById('btnVolverMenu').style.display = 'none'; // Ocultar botón
+    }
+
+    // Volver a coordinador
+    function volverCoordinador() {
+      window.location.href = 'ControlCoordinador.html';
+    }
+
     // Cerrar modal al hacer clic fuera
     window.onclick = function(event) {
       const modal = document.getElementById('modalConfig');
@@ -479,6 +491,7 @@ async function verCalificacionesMateria(asignacionId) {
     document.querySelector('.menu-profesor').style.display = 'none';
     document.getElementById('seccionMaterias').style.display = 'none';
     document.getElementById('seccionCalificaciones').style.display = 'block';
+    document.getElementById('btnVolverMenu').style.display = 'inline-block'; // Mostrar botón
     
     // Cargar alumnos del grupo
     await cargarAlumnosYCalificaciones();

@@ -94,27 +94,32 @@
     <div class="user-info">
       <p><strong id="userName">Cargando...</strong></p>
       <p id="userEmail"></p>
-      <button onclick="cerrarSesion()" class="btn-logout">🚪 Cerrar Sesión</button>
+      <button onclick="cerrarSesion()" class="btn-logout"> Cerrar Sesión</button>
     </div>
   </div>
 
   <div class="menu-opciones">
+    <div class="opcion" onclick="mostrarModalCarrera()">
+      <h3>Crear Carrera</h3>
+      <p>Registrar nueva carrera en el sistema</p>
+    </div>
+
     <div class="opcion" onclick="mostrarModalCoordinador()">
-      <h3> Crear Coordinador</h3>
+      <h3>Crear Coordinador</h3>
       <p>Registrar nuevo coordinador de carrera</p>
     </div>
 
     <div class="opcion" onclick="window.location.href='gestionUsuarios.html'">
-      <h3> Gestionar Usuarios</h3>
+      <h3>Gestionar Usuarios</h3>
       <p>Crear profesores y alumnos</p>
     </div>
-<!---
+
     <div class="opcion" onclick="window.location.href='MenuPersonas.html'">
       <h3> Gestionar Alumnos (Viejo)</h3>
       <p>Sistema anterior de alumnos</p>
     </div>
----->
-    <div class="opcion" onclick="window.location.href='controlCoordinador.html'">
+
+    <div class="opcion" onclick="window.location.href='ControlCoordinador.html'">
       <h3> Control Coordinador</h3>
       <p>Gestionar carreras, materias, grupos, profesores y alumnos</p>
     </div>
@@ -177,6 +182,48 @@
       </form>
 
       <div id="mensajeCoord" style="margin-top: 15px; padding: 15px; border-radius: 8px; display: none;"></div>
+    </div>
+  </div>
+
+  <!-- MODAL CREAR CARRERA -->
+  <div id="modalCarrera" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
+    <div style="background: white; padding: 40px; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <h2 style="margin: 0; color: #667eea;">Nueva Carrera</h2>
+        <button onclick="cerrarModalCarrera()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+      </div>
+
+      <form id="formCarrera" onsubmit="crearCarrera(event)">
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Código de Carrera:</label>
+          <input type="text" id="codigoCarrera" required placeholder="Ej: ING, MAT, MED" maxlength="10"
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; text-transform: uppercase;">
+          <small style="color: #666;">Código único de 3-10 caracteres (mayúsculas)</small>
+        </div>
+
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Nombre de la Carrera:</label>
+          <input type="text" id="nombreCarrera" required placeholder="Ej: Ingeniería en Sistemas"
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+        </div>
+
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600; color: #333;">Descripción (opcional):</label>
+          <textarea id="descripcionCarrera" placeholder="Descripción de la carrera..." rows="3"
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; resize: vertical;"></textarea>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+            Crear Carrera
+          </button>
+          <button type="button" onclick="cerrarModalCarrera()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
+            Cancelar
+          </button>
+        </div>
+      </form>
+
+      <div id="mensajeCarrera" style="margin-top: 15px; padding: 15px; border-radius: 8px; display: none;"></div>
     </div>
   </div>
 
@@ -286,7 +333,8 @@
         const newUid = userCredential.user.uid;
         
         // Crear en Firestore
-        await db.collection('usuarios').doc(newUid).set({
+        console.log('💾 Guardando coordinador en Firestore...');
+        const docRef = await db.collection('usuarios').doc(newUid).set({
           nombre: nombre,
           email: email,
           rol: 'coordinador',
@@ -297,10 +345,23 @@
           fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
         });
         
+        console.log(' Documento guardado en Firestore');
+        
+        // Esperar un momento para asegurar que Firestore termine
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Verificar que se guardó
+        const verificar = await db.collection('usuarios').doc(newUid).get();
+        if (!verificar.exists) {
+          throw new Error('El documento no se guardó correctamente');
+        }
+        
+        console.log(' Documento verificado');
+        
         // Cerrar sesión del coordinador
         await auth.signOut();
         
-        alert(` Coordinador creado!\n\nNombre: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nDebes volver a hacer login como admin.`);
+        alert(` Coordinador creado exitosamente!\n\nNombre: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVerificado en Firebase ✓\n\nDebes volver a hacer login como admin.`);
         window.location.href = 'login.html';
         
       } catch (error) {
@@ -322,6 +383,67 @@
       div.style.display = 'block';
       div.style.background = tipo === 'error' ? '#ffebee' : tipo === 'success' ? '#e8f5e9' : '#e3f2fd';
       div.style.color = tipo === 'error' ? '#c62828' : tipo === 'success' ? '#2e7d32' : '#1565c0';
+    }
+
+    // ===== CREAR CARRERA =====
+    function mostrarModalCarrera() {
+      document.getElementById('modalCarrera').style.display = 'flex';
+    }
+
+    function cerrarModalCarrera() {
+      document.getElementById('modalCarrera').style.display = 'none';
+      document.getElementById('formCarrera').reset();
+      document.getElementById('mensajeCarrera').style.display = 'none';
+    }
+
+    async function crearCarrera(event) {
+      event.preventDefault();
+      
+      const codigo = document.getElementById('codigoCarrera').value.trim().toUpperCase();
+      const nombre = document.getElementById('nombreCarrera').value.trim();
+      const descripcion = document.getElementById('descripcionCarrera').value.trim();
+      
+      // Validar código (solo letras y números)
+      if (!/^[A-Z0-9]+$/.test(codigo)) {
+        mostrarMensajeCarrera('El código solo puede contener letras y números', 'error');
+        return;
+      }
+      
+      try {
+        mostrarMensajeCarrera('Creando carrera...', 'info');
+        
+        // Verificar si el código ya existe
+        const existeDoc = await db.collection('carreras').doc(codigo).get();
+        if (existeDoc.exists) {
+          mostrarMensajeCarrera('Este código de carrera ya existe', 'error');
+          return;
+        }
+        
+        // Crear carrera
+        await db.collection('carreras').doc(codigo).set({
+          codigo: codigo,
+          nombre: nombre,
+          descripcion: descripcion || '',
+          activa: true,
+          fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        
+        alert(`Carrera creada exitosamente\n\nCódigo: ${codigo}\nNombre: ${nombre}`);
+        cerrarModalCarrera();
+        
+      } catch (error) {
+        console.error('Error:', error);
+        mostrarMensajeCarrera('Error al crear carrera', 'error');
+      }
+    }
+
+    function mostrarMensajeCarrera(texto, tipo) {
+      const div = document.getElementById('mensajeCarrera');
+      div.textContent = texto;
+      div.style.display = 'block';
+      div.style.background = tipo === 'error' ? '#ffebee' : tipo === 'success' ? '#e8f5e9' : '#e3f2fd';
+      div.style.color = tipo === 'error' ? '#c62828' : tipo === 'success' ? '#2e7d32' : '#1565c0';
+      div.style.border = `2px solid ${tipo === 'error' ? '#ef5350' : tipo === 'success' ? '#66bb6a' : '#42a5f5'}`;
     }
   </script>
 </body>
