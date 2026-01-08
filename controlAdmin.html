@@ -333,7 +333,7 @@
         const newUid = userCredential.user.uid;
         
         // Crear en Firestore
-        console.log('💾 Guardando coordinador en Firestore...');
+        console.log(' Guardando coordinador en Firestore...');
         const docRef = await db.collection('usuarios').doc(newUid).set({
           nombre: nombre,
           email: email,
@@ -356,12 +356,15 @@
           throw new Error('El documento no se guardó correctamente');
         }
         
-        console.log(' Documento verificado');
+        console.log('Documento verificado en Firestore');
         
-        // Cerrar sesión del coordinador
+        // IMPORTANTE: Firebase cambia la sesión al nuevo usuario automáticamente
+        // Debemos cerrar sesión y que el admin vuelva a entrar
         await auth.signOut();
         
-        alert(` Coordinador creado exitosamente!\n\nNombre: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVerificado en Firebase ✓\n\nDebes volver a hacer login como admin.`);
+        alert(`Coordinador creado exitosamente\n\nNombre: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nIMPORTANTE: Debes iniciar sesión de nuevo como administrador.`);
+        
+        // Redirigir al login
         window.location.href = 'login.html';
         
       } catch (error) {
