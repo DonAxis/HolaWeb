@@ -77,9 +77,9 @@ async function cargarCarrera() {
     if (carreraDoc.exists) {
       carreraActual = carreraDoc.data();
       carreraActual.id = carreraDoc.id;
-      document.getElementById('carreraInfo').textContent = ` Carrera: ${carreraActual.nombre}`;
+      document.getElementById('carreraInfo').textContent = `Carrera: ${carreraActual.nombre}`;
     } else {
-      document.getElementById('carreraInfo').textContent = ' Carrera no encontrada';
+      document.getElementById('carreraInfo').textContent = 'Carrera no encontrada';
       document.getElementById('carreraInfo').style.color = '#ff5252';
     }
   } catch (error) {
@@ -173,8 +173,8 @@ async function cargarCarreras() {
             <p>Código: ${carrera.codigo || 'N/A'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarCarrera('${doc.id}')" class="btn-editar"> Editar</button>
-            ${usuarioActual.rol === 'admin' ? `<button onclick="eliminarCarrera('${doc.id}')" class="btn-eliminar">🗑️</button>` : ''}
+            <button onclick="editarCarrera('${doc.id}')" class="btn-editar">Editar</button>
+            ${usuarioActual.rol === 'admin' ? `<button onclick="eliminarCarrera('${doc.id}')" class="btn-eliminar"></button>` : ''}
           </div>
         </div>
       `;
@@ -1146,7 +1146,7 @@ async function guardarProfesor(event, profesorId) {
       mensaje = 'La contraseña debe tener al menos 6 caracteres';
     }
     
-    alert( mensaje);
+    alert(mensaje);
   }
 }
 
@@ -1619,7 +1619,7 @@ function generarTablaCalificaciones() {
       </table>
     </div>
     <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
-       Desliza horizontalmente para ver todas las columnas en móvil
+      Calificaciones de los 3 parciales
     </p>
   `;
   
