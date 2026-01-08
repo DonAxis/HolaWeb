@@ -64,7 +64,7 @@ async function cargarCarrera() {
   }
 
   if (!usuarioActual.carreraId) {
-    document.getElementById('carreraInfo').textContent = '⚠️ Sin carrera asignada - Contacta al administrador';
+    document.getElementById('carreraInfo').textContent = ' Sin carrera asignada - Contacta al administrador';
     document.getElementById('carreraInfo').style.color = '#ff5252';
     
     // Deshabilitar acceso si no tiene carrera
@@ -77,9 +77,9 @@ async function cargarCarrera() {
     if (carreraDoc.exists) {
       carreraActual = carreraDoc.data();
       carreraActual.id = carreraDoc.id;
-      document.getElementById('carreraInfo').textContent = `📚 Carrera: ${carreraActual.nombre}`;
+      document.getElementById('carreraInfo').textContent = ` Carrera: ${carreraActual.nombre}`;
     } else {
-      document.getElementById('carreraInfo').textContent = '⚠️ Carrera no encontrada';
+      document.getElementById('carreraInfo').textContent = ' Carrera no encontrada';
       document.getElementById('carreraInfo').style.color = '#ff5252';
     }
   } catch (error) {
@@ -208,8 +208,8 @@ function mostrarFormCarrera(carreraId = null) {
         <input type="text" id="codigoCarrera" required placeholder="Ej: ING" maxlength="10">
       </div>
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -291,8 +291,8 @@ async function cargarMaterias() {
             <p>Grupo: ${materia.codigo} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarMateria('${doc.id}')" class="btn-editar">✏️ Editar</button>
-            <button onclick="eliminarMateria('${doc.id}')" class="btn-eliminar">🗑️</button>
+            <button onclick="editarMateria('${doc.id}')" class="btn-editar"> Editar</button>
+            <button onclick="eliminarMateria('${doc.id}')" class="btn-eliminar"></button>
           </div>
         </div>
       `;
@@ -531,13 +531,13 @@ async function cargarAsignaciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4>📚 ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
-            <p>👨‍🏫 Profesor: ${asignacion.profesorNombre}</p>
-            <p>👥 Grupo: ${asignacion.grupoNombre} | 📅 Periodo: ${asignacion.periodo}</p>
+            <h4> ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
+            <p> Profesor: ${asignacion.profesorNombre}</p>
+            <p> Grupo: ${asignacion.grupoNombre} |  Periodo: ${asignacion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar">🔄 Reasignar</button>
-            <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar">❌ Desactivar</button>
+            <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar"> Reasignar</button>
+            <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar"> Desactivar</button>
           </div>
         </div>
       `;
@@ -770,12 +770,12 @@ async function cargarInscripciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4>👨‍🎓 ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
-            <p>📚 Materia: ${inscripcion.materiaNombre}</p>
-            <p>👥 Grupo: ${inscripcion.grupoNombre} | 📅 Periodo: ${inscripcion.periodo}</p>
+            <h4> ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
+            <p> Materia: ${inscripcion.materiaNombre}</p>
+            <p> Grupo: ${inscripcion.grupoNombre} |  Periodo: ${inscripcion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar">❌ Dar de Baja</button>
+            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar"> Dar de Baja</button>
           </div>
         </div>
       `;
@@ -1146,7 +1146,7 @@ async function guardarProfesor(event, profesorId) {
       mensaje = 'La contraseña debe tener al menos 6 caracteres';
     }
     
-    alert('❌ ' + mensaje);
+    alert( mensaje);
   }
 }
 
@@ -1185,15 +1185,15 @@ async function cargarAlumnos() {
         <div class="item">
           <div class="item-info">
             <h4>${alumno.nombre}</h4>
-            <p>🎓 Matrícula: ${alumno.matricula || 'N/A'}</p>
-            <p>👥 Grupo: ${grupoNombre}</p>
-            <p>📧 ${alumno.email}</p>
+            <p> Matrícula: ${alumno.matricula || 'N/A'}</p>
+            <p> Grupo: ${grupoNombre}</p>
+            <p> ${alumno.email}</p>
             <p>${alumno.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
           <div class="item-acciones">
             <button onclick="editarAlumno('${doc.id}')" class="btn-editar">✏️ Editar</button>
             <button onclick="toggleActivoUsuario('${doc.id}', 'alumno', ${!alumno.activo})" class="botAzu">
-              ${alumno.activo ? '🔒 Desactivar' : '🔓 Activar'}
+              ${alumno.activo ? ' Desactivar' : ' Activar'}
             </button>
           </div>
         </div>
@@ -1259,8 +1259,8 @@ async function mostrarFormAlumno(alumnoId = null) {
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar">💾 Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
+        <button type="submit" class="btn-guardar"> Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
       </div>
     </form>
   `;
@@ -1312,20 +1312,20 @@ async function guardarAlumno(event, alumnoId) {
     if (alumnoId) {
       // Editar
       await db.collection('usuarios').doc(alumnoId).update(userData);
-      alert('✅ Alumno actualizado');
+      alert(' Alumno actualizado');
     } else {
       // Crear nuevo - SOLO en Firestore (sin Authentication)
       userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('usuarios').add(userData);
       
-      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
+      alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
     }
     
     cerrarModal();
     cargarAlumnos();
   } catch (error) {
     console.error('Error:', error);
-    alert('❌ Error al guardar alumno');
+    alert(' Error al guardar alumno');
   }
 }
 
@@ -1422,7 +1422,7 @@ window.onclick = function(event) {
   }
 }
 
-console.log('📱 Panel de Coordinador cargado');
+console.log(' Panel de Coordinador cargado');
 
 // ===== SISTEMA DE MODOS (COORDINADOR / PROFESOR) =====
 function cambiarModo(modo) {

@@ -75,7 +75,7 @@
 
   <div class="header-profesor">
     <div>
-      <h1>👨‍🏫 Panel de Profesor</h1>
+      <h1> Panel de Profesor</h1>
       <p id="profesorInfo">Cargando...</p>
     </div>
     <div class="user-info">
@@ -93,7 +93,7 @@
   <div id="modalConfig" class="modal">
     <div class="modal-contenido">
       <span class="cerrar" onclick="cerrarModalConfig()">&times;</span>
-      <h2>⚙️ Configuración</h2>
+      <h2> Configuración</h2>
       
       <div style="margin: 20px 0;">
         <h3 style="color: #1976d2;">Cambiar Contraseña</h3>
@@ -114,8 +114,8 @@
           </div>
           
           <div class="form-botones">
-            <button type="submit" class="btn-guardar">💾 Cambiar Contraseña</button>
-            <button type="button" onclick="cerrarModalConfig()" class="btn-cancelar">❌ Cancelar</button>
+            <button type="submit" class="btn-guardar"> Cambiar Contraseña</button>
+            <button type="button" onclick="cerrarModalConfig()" class="btn-cancelar"> Cancelar</button>
           </div>
         </form>
       </div>
@@ -133,12 +133,12 @@
   <!-- MENÚ PRINCIPAL PROFESOR -->
   <div class="menu-profesor">
     <div class="card-profesor" onclick="mostrarMisMaterias()">
-      <h3>📚 Mis Materias</h3>
+      <h3> Mis Materias</h3>
       <p>Ver mis asignaciones y consultar calificaciones</p>
     </div>
 
     <div class="card-profesor" onclick="mostrarConfiguracion()">
-      <h3>⚙️ Configuración</h3>
+      <h3> Configuración</h3>
       <p>Ajustes de perfil y preferencias</p>
     </div>
   </div>
@@ -154,10 +154,10 @@
   <!-- SECCIÓN: CALIFICACIONES -->
   <div id="seccionCalificaciones" class="seccion-contenido" style="display: none;">
     <div id="mensajeCalificaciones" style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #0c5460;">
-      <strong>ℹ️ Instrucciones:</strong> Puedes registrar calificaciones vacías (<strong>-</strong>). Una vez guardadas, solo el coordinador puede modificarlas.
+      <strong> Instrucciones:</strong> Puedes registrar calificaciones vacías (<strong>-</strong>). Una vez guardadas, solo el coordinador puede modificarlas.
     </div>
     <div class="seccion-header">
-      <h2 style="color: #667eea; margin: 0;">📝 Calificaciones</h2>
+      <h2 style="color: #667eea; margin: 0;"> Calificaciones</h2>
     </div>
     <div id="infoMateriaActual" style="margin-bottom: 20px; padding: 15px; background: #f0f7ff; border-radius: 8px;"></div>
     <div id="tablaCalificaciones"></div>
@@ -176,7 +176,7 @@
     // Protección y autenticación
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        console.log('❌ No hay sesión activa');
+        console.log(' No hay sesión activa');
         window.location.href = 'login.html';
         return;
       }
@@ -185,7 +185,7 @@
         const userDoc = await db.collection('usuarios').doc(user.uid).get();
         
         if (!userDoc.exists) {
-          console.log('❌ Usuario no encontrado en Firestore');
+          console.log(' Usuario no encontrado en Firestore');
           await auth.signOut();
           window.location.href = 'login.html';
           return;
@@ -194,7 +194,7 @@
         usuarioActual = userDoc.data();
         usuarioActual.uid = user.uid;
 
-        console.log('📋 Usuario cargado:', {
+        console.log(' Usuario cargado:', {
           nombre: usuarioActual.nombre,
           rol: usuarioActual.rol,
           esProfesor: usuarioActual.esProfesor,
@@ -220,7 +220,7 @@
         // Verificar que sea profesor o coordinador-profesor
         if (usuarioActual.rol !== 'profesor' && 
             !(usuarioActual.rol === 'coordinador' && usuarioActual.esProfesor === true)) {
-          console.log('❌ No tienes permisos de profesor');
+          console.log(' No tienes permisos de profesor');
           console.log('Rol:', usuarioActual.rol, 'esProfesor:', usuarioActual.esProfesor);
           alert('No tienes permisos para acceder a este panel');
           window.location.href = 'login.html';
@@ -228,7 +228,7 @@
         }
 
         const tipoUsuario = usuarioActual.rol === 'coordinador' ? 'Coordinador-Profesor' : 'Profesor';
-        console.log(`✅ ${tipoUsuario} autorizado:`, usuarioActual.nombre);
+        console.log(` ${tipoUsuario} autorizado:`, usuarioActual.nombre);
         
         // Mostrar info del usuario
         document.getElementById('userName').textContent = usuarioActual.nombre;
@@ -243,7 +243,7 @@
         await cargarInfoCarreras();
         
       } catch (error) {
-        console.error('❌ Error:', error);
+        console.error(' Error:', error);
         alert('Error al verificar permisos');
         window.location.href = 'login.html';
       }
@@ -253,7 +253,7 @@
       try {
         const infoElement = document.getElementById('profesorInfo');
         if (!infoElement) {
-          console.log('⚠️ Elemento profesorInfo no encontrado');
+          console.log(' Elemento profesorInfo no encontrado');
           return;
         }
         
@@ -319,13 +319,13 @@
       
       // Validar que las contraseñas coincidan
       if (passwordNueva !== passwordConfirmar) {
-        alert('❌ Las contraseñas nuevas no coinciden');
+        alert(' Las contraseñas nuevas no coinciden');
         return;
       }
       
       // Validar longitud
       if (passwordNueva.length < 6) {
-        alert('❌ La contraseña debe tener al menos 6 caracteres');
+        alert(' La contraseña debe tener al menos 6 caracteres');
         return;
       }
       
@@ -342,18 +342,18 @@
         // Cambiar contraseña
         await user.updatePassword(passwordNueva);
         
-        alert('✅ Contraseña cambiada exitosamente');
+        alert(' Contraseña cambiada exitosamente');
         cerrarModalConfig();
         
       } catch (error) {
         console.error('Error al cambiar contraseña:', error);
         
         if (error.code === 'auth/wrong-password') {
-          alert('❌ La contraseña actual es incorrecta');
+          alert(' La contraseña actual es incorrecta');
         } else if (error.code === 'auth/weak-password') {
-          alert('❌ La contraseña es muy débil');
+          alert(' La contraseña es muy débil');
         } else {
-          alert('❌ Error al cambiar contraseña: ' + error.message);
+          alert(' Error al cambiar contraseña: ' + error.message);
         }
       }
     }
@@ -416,7 +416,7 @@ async function mostrarMisMaterias() {
     if (snapshot.empty) {
       container.innerHTML = `
         <div style="text-align: center; padding: 60px 20px; max-width: 500px; margin: 0 auto;">
-          <div style="font-size: 4rem; margin-bottom: 20px;">📚</div>
+          <div style="font-size: 4rem; margin-bottom: 20px;"></div>
           <h3 style="color: #667eea; margin-bottom: 10px;">No tienes materias asignadas</h3>
           <p style="color: #666; margin-bottom: 20px;">
             Aún no se te ha asignado ninguna materia para este periodo.
@@ -440,12 +440,12 @@ async function mostrarMisMaterias() {
         <div style="background: #f8f9fa; padding: 20px; border-radius: 10px; border-left: 4px solid #667eea; cursor: pointer; transition: all 0.3s;" onclick="verCalificacionesMateria('${doc.id}')">
           <h3 style="margin: 0 0 10px 0; color: #333;">${asignacion.materiaNombre}</h3>
           <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">
-            📋 Código: ${asignacion.materiaCodigo} | 
-            👥 Grupo: ${asignacion.grupoNombre} | 
-            📅 Periodo: ${asignacion.periodo}
+             Código: ${asignacion.materiaCodigo} | 
+             Grupo: ${asignacion.grupoNombre} | 
+             Periodo: ${asignacion.periodo}
           </p>
           <button style="background: #667eea; color: white; border: none; padding: 8px 20px; border-radius: 5px; margin-top: 10px; cursor: pointer; font-weight: 600;">
-            📝 Ver Calificaciones →
+             Ver Calificaciones →
           </button>
         </div>
       `;
@@ -481,8 +481,8 @@ async function verCalificacionesMateria(asignacionId) {
       infoDiv.innerHTML = `
         <h3 style="margin: 0 0 10px 0; color: #667eea;">${asignacionActual.materiaNombre}</h3>
         <p style="margin: 0; color: #666;">
-          📋 Grupo: ${asignacionActual.grupoNombre} | 
-          📅 Periodo: ${asignacionActual.periodo}
+           Grupo: ${asignacionActual.grupoNombre} | 
+           Periodo: ${asignacionActual.periodo}
         </p>
       `;
     }
@@ -506,7 +506,7 @@ async function verCalificacionesMateria(asignacionId) {
 async function cargarAlumnosYCalificaciones() {
   try {
     const container = document.getElementById('tablaCalificaciones');
-    container.innerHTML = '<p style="text-align: center; color: #999;">⏳ Cargando alumnos...</p>';
+    container.innerHTML = '<p style="text-align: center; color: #999;"> Cargando alumnos...</p>';
     
     // Buscar alumnos del grupo
     const alumnosSnap = await db.collection('usuarios')
@@ -649,7 +649,7 @@ async function cargarAlumnosYCalificaciones() {
       <div style="margin-top: 20px; text-align: right;">
         <button onclick="guardarCalificacionesProfe()" 
                 style="padding: 12px 30px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer; box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);">
-          💾 Guardar Calificaciones
+           Guardar Calificaciones
         </button>
       </div>
     `;
@@ -751,11 +751,11 @@ async function guardarCalificacionesProfe() {
     }
     
     if (guardadas > 0) {
-      alert(`✅ Calificaciones guardadas!\n\n${guardadas} alumno(s) actualizado(s).`);
+      alert(` Calificaciones guardadas!\n\n${guardadas} alumno(s) actualizado(s).`);
       // Recargar
       await cargarAlumnosYCalificaciones();
     } else {
-      alert('ℹ️ No hay calificaciones nuevas para guardar.\n\nLas calificaciones ya registradas solo pueden ser modificadas por el coordinador.');
+      alert(' No hay calificaciones nuevas para guardar.\n\nLas calificaciones ya registradas solo pueden ser modificadas por el coordinador.');
     }
     
   } catch (error) {
