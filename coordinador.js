@@ -64,7 +64,7 @@ async function cargarCarrera() {
   }
 
   if (!usuarioActual.carreraId) {
-    document.getElementById('carreraInfo').textContent = ' Sin carrera asignada - Contacta al administrador';
+    document.getElementById('carreraInfo').textContent = '⚠️ Sin carrera asignada - Contacta al administrador';
     document.getElementById('carreraInfo').style.color = '#ff5252';
     
     // Deshabilitar acceso si no tiene carrera
@@ -77,9 +77,9 @@ async function cargarCarrera() {
     if (carreraDoc.exists) {
       carreraActual = carreraDoc.data();
       carreraActual.id = carreraDoc.id;
-      document.getElementById('carreraInfo').textContent = ` Carrera: ${carreraActual.nombre}`;
+      document.getElementById('carreraInfo').textContent = `📚 Carrera: ${carreraActual.nombre}`;
     } else {
-      document.getElementById('carreraInfo').textContent = ' Carrera no encontrada';
+      document.getElementById('carreraInfo').textContent = '⚠️ Carrera no encontrada';
       document.getElementById('carreraInfo').style.color = '#ff5252';
     }
   } catch (error) {
@@ -208,8 +208,8 @@ function mostrarFormCarrera(carreraId = null) {
         <input type="text" id="codigoCarrera" required placeholder="Ej: ING" maxlength="10">
       </div>
       <div class="form-botones">
-        <button type="submit" class="btn-guardar"> Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
+        <button type="submit" class="btn-guardar">💾 Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
       </div>
     </form>
   `;
@@ -434,12 +434,12 @@ function mostrarFormGrupo(grupoId = null) {
   const html = `
     <form onsubmit="guardarGrupo(event, '${grupoId || ''}')">
       <div class="form-grupo">
-        <label>Nombre del Grupo:</label>
-        <input type="text" id="nombreGrupo" required placeholder="Ej: 3101TT">
+        <label>Nombre del Grupo (número y sigla):</label>
+        <input type="text" id="nombreGrupo" required placeholder="1101SS">
       </div>
       <div class="form-grupo">
-        <label>Semestre:</label>
-        <input type="number" id="semestreGrupo" min="1" max="12" required>
+        <label>Semestre (número):</label>
+        <input type="number" id="semestreGrupo" min="1" max="12" required placeholder="1">
       </div>
       <div class="form-grupo">
         <label>Turno:</label>
@@ -531,13 +531,13 @@ async function cargarAsignaciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4> ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
-            <p> Profesor: ${asignacion.profesorNombre}</p>
-            <p> Grupo: ${asignacion.grupoNombre} |  Periodo: ${asignacion.periodo}</p>
+            <h4>📚 ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
+            <p>👨‍🏫 Profesor: ${asignacion.profesorNombre}</p>
+            <p>👥 Grupo: ${asignacion.grupoNombre} | 📅 Periodo: ${asignacion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar"> Reasignar</button>
-            <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar"> Desactivar</button>
+            <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar">🔄 Reasignar</button>
+            <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar">❌ Desactivar</button>
           </div>
         </div>
       `;
@@ -623,8 +623,8 @@ async function mostrarFormAsignarProfesor() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoAsignar" required placeholder="Ej: 2025-1" value="2025-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
+        <input type="text" id="periodoAsignar" required placeholder="Ej: 2026-1" value="2026-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
       </div>
       
       <div class="form-botones">
@@ -770,12 +770,12 @@ async function cargarInscripciones() {
       html += `
         <div class="item">
           <div class="item-info">
-            <h4> ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
-            <p> Materia: ${inscripcion.materiaNombre}</p>
-            <p> Grupo: ${inscripcion.grupoNombre} |  Periodo: ${inscripcion.periodo}</p>
+            <h4>👨‍🎓 ${inscripcion.alumnoNombre} (${inscripcion.alumnoMatricula})</h4>
+            <p>📚 Materia: ${inscripcion.materiaNombre}</p>
+            <p>👥 Grupo: ${inscripcion.grupoNombre} | 📅 Periodo: ${inscripcion.periodo}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar"> Dar de Baja</button>
+            <button onclick="darDeBajaAlumno('${doc.id}')" class="btn-eliminar">❌ Dar de Baja</button>
           </div>
         </div>
       `;
@@ -849,8 +849,8 @@ async function mostrarFormInscribirAlumno() {
       
       <div class="form-grupo">
         <label>Periodo: *</label>
-        <input type="text" id="periodoInscribir" required placeholder="Ej: 2025-1" value="2025-1">
-        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2025-1)</small>
+        <input type="text" id="periodoInscribir" required placeholder="Ej: 2026-1" value="2026-1">
+        <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
       </div>
       
       <div class="form-botones">
@@ -1086,13 +1086,17 @@ async function guardarProfesor(event, profesorId) {
         userData.carreras = [usuarioActual.carreraId];
         userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
         
-        console.log(' Guardando profesor en Firestore...', newUid);
+        console.log('💾 Guardando profesor en Firestore...', newUid);
         await db.collection('usuarios').doc(newUid).set(userData);
-        console.log(' Profesor guardado en Firestore');
+        console.log('Profesor guardado en Firestore');
+        
+        // Guardar info del coordinador para re-login automático
+        sessionStorage.setItem('returnToCoord', 'true');
+        sessionStorage.setItem('coordEmail', usuarioActual.email);
         
         // Usuario creado - redirigir a login
         await auth.signOut();
-        alert(` Registro exitoso!\n\nProfesor: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nVerifica en Firebase que el documento se creó correctamente.\n\nVuelve a iniciar sesión.`);
+        alert(`Profesor creado exitosamente\n\nNombre: ${nombre}\nEmail: ${email}\nPassword: ${password}\n\nDebes iniciar sesión de nuevo como coordinador.`);
         window.location.href = 'login.html';
         return;
         
@@ -1142,7 +1146,7 @@ async function guardarProfesor(event, profesorId) {
       mensaje = 'La contraseña debe tener al menos 6 caracteres';
     }
     
-    alert(' ' + mensaje);
+    alert('❌ ' + mensaje);
   }
 }
 
@@ -1181,15 +1185,15 @@ async function cargarAlumnos() {
         <div class="item">
           <div class="item-info">
             <h4>${alumno.nombre}</h4>
-            <p> Matrícula: ${alumno.matricula || 'N/A'}</p>
-            <p> Grupo: ${grupoNombre}</p>
-            <p> ${alumno.email}</p>
+            <p>🎓 Matrícula: ${alumno.matricula || 'N/A'}</p>
+            <p>👥 Grupo: ${grupoNombre}</p>
+            <p>📧 ${alumno.email}</p>
             <p>${alumno.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
           <div class="item-acciones">
             <button onclick="editarAlumno('${doc.id}')" class="btn-editar">✏️ Editar</button>
             <button onclick="toggleActivoUsuario('${doc.id}', 'alumno', ${!alumno.activo})" class="botAzu">
-              ${alumno.activo ? ' Desactivar' : ' Activar'}
+              ${alumno.activo ? '🔒 Desactivar' : '🔓 Activar'}
             </button>
           </div>
         </div>
@@ -1255,8 +1259,8 @@ async function mostrarFormAlumno(alumnoId = null) {
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar"> Guardar</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
+        <button type="submit" class="btn-guardar">💾 Guardar</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">❌ Cancelar</button>
       </div>
     </form>
   `;
@@ -1308,20 +1312,20 @@ async function guardarAlumno(event, alumnoId) {
     if (alumnoId) {
       // Editar
       await db.collection('usuarios').doc(alumnoId).update(userData);
-      alert(' Alumno actualizado');
+      alert('✅ Alumno actualizado');
     } else {
       // Crear nuevo - SOLO en Firestore (sin Authentication)
       userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
       await db.collection('usuarios').add(userData);
       
-      alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\ncontrolAlumno.html`);
+      alert(`✅ Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
     }
     
     cerrarModal();
     cargarAlumnos();
   } catch (error) {
     console.error('Error:', error);
-    alert(' Error al guardar alumno');
+    alert('❌ Error al guardar alumno');
   }
 }
 
@@ -1418,7 +1422,7 @@ window.onclick = function(event) {
   }
 }
 
-console.log(' Panel de Coordinador cargado');
+console.log('📱 Panel de Coordinador cargado');
 
 // ===== SISTEMA DE MODOS (COORDINADOR / PROFESOR) =====
 function cambiarModo(modo) {
@@ -1458,13 +1462,25 @@ async function cargarMateriasCalificaciones() {
     const select = document.getElementById('selectMateriaCalif');
     if (!select) return;
     
-    select.innerHTML = '<option value="">Seleccionar materia...</option>';
+    select.innerHTML = '<option value="">Cargando materias...</option>';
+    
+    console.log('Buscando asignaciones para carrera:', usuarioActual.carreraId);
     
     // Buscar asignaciones de la carrera
     const snapshot = await db.collection('profesorMaterias')
       .where('carreraId', '==', usuarioActual.carreraId)
       .where('activa', '==', true)
       .get();
+    
+    console.log('Asignaciones encontradas:', snapshot.size);
+    
+    if (snapshot.empty) {
+      select.innerHTML = '<option value="">No hay materias asignadas</option>';
+      alert('No hay materias asignadas en tu carrera.\n\nDebes primero:\n1. Crear grupos\n2. Asignar profesores a materias\n3. Luego podrás gestionar calificaciones');
+      return;
+    }
+    
+    select.innerHTML = '<option value="">Seleccionar materia...</option>';
     
     snapshot.forEach(doc => {
       const asig = doc.data();
@@ -1473,6 +1489,7 @@ async function cargarMateriasCalificaciones() {
     
   } catch (error) {
     console.error('Error al cargar materias:', error);
+    alert('Error al cargar materias: ' + error.message);
   }
 }
 

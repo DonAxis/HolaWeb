@@ -381,7 +381,7 @@
 
     // Volver a coordinador
     function volverCoordinador() {
-      window.location.href = 'ControlCoordinador.html';
+      window.location.href = 'controlCoordinador.html';
     }
 
     // Cerrar modal al hacer clic fuera
@@ -683,7 +683,7 @@ function volverMaterias() {
 <script>
 // Función para guardar calificaciones (solo las vacías)
 async function guardarCalificacionesProfe() {
-  if (!confirm('¿Guardar las calificaciones?\n\nSolo se guardarán las calificaciones nuevas (que están vacías).')) {
+  if (!confirm('¿Guardar las calificaciones?\n\n El profesor no podra realizar cambios.')) {
     return;
   }
   
