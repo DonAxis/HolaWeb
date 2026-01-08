@@ -107,8 +107,8 @@ document.getElementById('loginForm').addEventListener('submit', async (e) => {
 });
 
 // Función para redirigir según el rol
-function redirigirSegunRol(rol) {
-  console.log(' Redirigiendo a:', rol);
+async function redirigirSegunRol(rol) {
+  console.log('Redirigiendo a:', rol);
   
   switch (rol) {
     case 'admin':
@@ -123,15 +123,15 @@ function redirigirSegunRol(rol) {
     case 'alumno':
       // Bloquear login de alumnos - solo consulta pública
       await auth.signOut();
-      mostrarMensaje(' Los alumnos ya no necesitan iniciar sesión.\n\nVe a controlAlumno.html y consulta con tu matrícula y correo.', 'info');
+      mostrarMensaje('Los alumnos ya no necesitan iniciar sesión.\n\nVe a ControlAlumno.html y consulta con tu matrícula y correo.', 'info');
       setTimeout(() => {
         window.location.href = 'controlAlumno.html';
       }, 3000);
       break;
     default:
       mostrarMensaje('Rol no reconocido. Contacta al administrador', 'error');
-      setTimeout(() => {
-        auth.signOut();
+      setTimeout(async () => {
+        await auth.signOut();
       }, 2000);
   }
 }
