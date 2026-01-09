@@ -1745,28 +1745,28 @@ function descargarActaPDF() {
     // Encabezado
     doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
-    doc.text('ACTA DE CALIFICACIONES', 105, 20, { align: 'center' });
+    doc.text('ACTA DE CALIFICACIONES', 105, 25, { align: 'center' });
     
     // Línea separadora
     doc.setLineWidth(0.5);
-    doc.line(20, 25, 190, 25);
+    doc.line(20, 25, 150, 30);
     
     // Información de la materia
     doc.setFontSize(11);
     doc.setFont(undefined, 'normal');
     
-    let y = 35;
+    let y = 45;
+
+    doc.text(`Fecha de generación: ${fecha}`, pageWidth - 20, y, { align: 'right' });
+    y += 5;
     doc.text(`Materia: ${asignacionCalifActual.materiaNombre}`, 20, y);
-    y += 7;
-    doc.text(`Código: ${asignacionCalifActual.materiaCodigo}`, 20, y);
-    y += 7;
+    y += 5;
     doc.text(`Grupo: ${asignacionCalifActual.grupoNombre}`, 20, y);
-    y += 7;
+    y += 5;
     doc.text(`Profesor: ${asignacionCalifActual.profesorNombre}`, 20, y);
-    y += 7;
+    y += 5;
     doc.text(`Periodo: ${asignacionCalifActual.periodo}`, 20, y);
-    y += 7;
-    doc.text(`Fecha de generación: ${fecha}`, 20, y);
+
     
     y += 10;
     
@@ -1799,7 +1799,7 @@ function descargarActaPDF() {
     // Generar tabla
     doc.autoTable({
       startY: y,
-      head: [['No.', 'Matrícula', 'Nombre del Alumno', 'Promedio Final']],
+      head: [['N.', 'Matrícula', 'Nombre del Alumno', 'Calificion']],
       body: tableData,
       theme: 'grid',
       headStyles: {
@@ -1825,6 +1825,9 @@ function descargarActaPDF() {
     
     doc.setFontSize(10);
     doc.setFont(undefined, 'bold');
+
+    y += 5;
+    
     doc.text(`Total de alumnos: ${alumnosCalifMateria.length}`, 20, finalY);
     doc.text(`Promedio del grupo: ${promedioGrupal}`, 20, finalY + 7);
     
