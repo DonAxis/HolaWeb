@@ -1730,6 +1730,9 @@ function descargarActaPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
+    // Obtener ancho de página
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
     // Fecha actual
     const fecha = new Date().toLocaleDateString('es-MX', {
       year: 'numeric',
@@ -1749,16 +1752,18 @@ function descargarActaPDF() {
     
     // Línea separadora
     doc.setLineWidth(0.5);
-    doc.line(20, 25, 150, 30);
+    doc.line(20, 30, 190, 30);
     
     // Información de la materia
     doc.setFontSize(11);
     doc.setFont(undefined, 'normal');
     
-    let y = 45;
-
-    doc.text(`Fecha de generación: ${fecha}`, pageWidth - 20, y, { align: 'right' });
+    let y = 40;
+    
+    // Fecha arriba a la derecha
+    doc.text(`Fecha: ${fecha}`, pageWidth - 20, y, { align: 'right' });
     y += 5;
+    
     doc.text(`Materia: ${asignacionCalifActual.materiaNombre}`, 20, y);
     y += 5;
     doc.text(`Grupo: ${asignacionCalifActual.grupoNombre}`, 20, y);
@@ -1766,7 +1771,6 @@ function descargarActaPDF() {
     doc.text(`Profesor: ${asignacionCalifActual.profesorNombre}`, 20, y);
     y += 5;
     doc.text(`Periodo: ${asignacionCalifActual.periodo}`, 20, y);
-
     
     y += 10;
     
