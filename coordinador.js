@@ -1721,6 +1721,12 @@ function descargarActaPDF() {
   }
   
   try {
+    // Verificar que jsPDF esté cargado
+    if (typeof window.jspdf === 'undefined') {
+      alert('Error: jsPDF no está cargado. Recarga la página.');
+      return;
+    }
+    
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF();
     
