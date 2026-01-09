@@ -82,9 +82,9 @@
       <p><strong id="userName">Cargando...</strong></p>
       <p id="userEmail"></p>
       <button id="btnVolverMenu" onclick="volverMenuProfe()" class="btn-config" style="display: none;">← Volver</button>
-      <button id="btnVolverCoord" onclick="volverCoordinador()" class="btn-config" style="display: none;">🎓 Volver a Coordinador</button>
-      <button onclick="mostrarConfiguracion()" class="btn-config">⚙️ Configuración</button>
-      <button onclick="cerrarSesion()" class="btn-config">🚪 Cerrar Sesión</button>
+      <button id="btnVolverCoord" onclick="volverCoordinador()" class="btn-config" style="display: none;">Volver a Coordinador</button>
+      <button onclick="mostrarConfiguracion()" class="btn-config">Configuración</button>
+      <button onclick="cerrarSesion()" class="btn-config">Cerrar Sesión</button>
     </div>
   </div>
 
@@ -146,7 +146,7 @@
   <!-- SECCIÓN: MIS MATERIAS -->
   <div id="seccionMaterias" class="seccion-contenido" style="display: none;">
     <div class="seccion-header">
-      <h2 style="color: #667eea; margin: 0;">📚 Mis Materias</h2>
+      <h2 style="color: #667eea; margin: 0;">Mis Materias</h2>
     </div>
     <div id="listaMaterias"></div>
   </div>
@@ -405,7 +405,7 @@ async function mostrarMisMaterias() {
     document.getElementById('seccionMaterias').style.display = 'block';
     
     const container = document.getElementById('listaMaterias');
-    container.innerHTML = '<p style="text-align: center; color: #999;">⏳ Cargando materias...</p>';
+    container.innerHTML = '<p style="text-align: center; color: #999;">Cargando materias...</p>';
     
     // Buscar asignaciones del profesor
     const snapshot = await db.collection('profesorMaterias')
