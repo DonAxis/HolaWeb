@@ -88,13 +88,13 @@
 
   <div class="header">
     <div>
-      <h1> Panel de Administrador</h1>
+      <h1>Panel de Administrador</h1>
       <p style="margin: 5px 0;">Sistema Escolar</p>
     </div>
     <div class="user-info">
       <p><strong id="userName">Cargando...</strong></p>
       <p id="userEmail"></p>
-      <button onclick="cerrarSesion()" class="btn-logout"> Cerrar Sesión</button>
+      <button onclick="cerrarSesion()" class="btn-logout">Cerrar Sesión</button>
     </div>
   </div>
 
@@ -115,22 +115,22 @@
     </div>
 
     <div class="opcion" onclick="window.location.href='MenuPersonas.html'">
-      <h3> Gestionar Alumnos (Viejo)</h3>
+      <h3>Gestionar Alumnos (Viejo)</h3>
       <p>Sistema anterior de alumnos</p>
     </div>
 
     <div class="opcion" onclick="window.location.href='controlCoordinador.html'">
-      <h3> Control Coordinador</h3>
+      <h3>Control Coordinador</h3>
       <p>Gestionar carreras, materias, grupos, profesores y alumnos</p>
     </div>
 
     <div class="opcion" onclick="alert('Próximamente')">
-      <h3> Ver Reportes</h3>
+      <h3>Ver Reportes</h3>
       <p>Reportes y estadísticas</p>
     </div>
 
     <div class="opcion" onclick="alert('Próximamente')">
-      <h3> Configuración</h3>
+      <h3>Configuración</h3>
       <p>Configuración del sistema</p>
     </div>
   </div>
@@ -139,7 +139,7 @@
   <div id="modalCoordinador" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 1000; align-items: center; justify-content: center;">
     <div style="background: white; padding: 40px; border-radius: 15px; max-width: 500px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-        <h2 style="margin: 0; color: #667eea;"> Nuevo Coordinador</h2>
+        <h2 style="margin: 0; color: #667eea;">Nuevo Coordinador</h2>
         <button onclick="cerrarModalCoordinador()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
       </div>
 
@@ -173,10 +173,10 @@
 
         <div style="display: flex; gap: 10px;">
           <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
-             Crear Coordinador
+            Crear Coordinador
           </button>
           <button type="button" onclick="cerrarModalCoordinador()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; font-weight: 600; cursor: pointer;">
-             Cancelar
+            Cancelar
           </button>
         </div>
       </form>
@@ -240,7 +240,7 @@
     // Proteger la página - solo admin
     auth.onAuthStateChanged(async (user) => {
       if (!user) {
-        console.log(' No hay usuario autenticado');
+        console.log('No hay usuario autenticado');
         window.location.href = 'login.html';
         return;
       }
@@ -249,7 +249,7 @@
       const userDoc = await db.collection('usuarios').doc(user.uid).get();
       
       if (!userDoc.exists) {
-        console.log(' Usuario no encontrado en Firestore');
+        console.log('Usuario no encontrado en Firestore');
         await auth.signOut();
         window.location.href = 'login.html';
         return;
@@ -258,7 +258,7 @@
       const userData = userDoc.data();
 
       if (userData.rol !== 'admin') {
-        console.log(' No tienes permisos de administrador');
+        console.log('No tienes permisos de administrador');
         alert('No tienes permisos para acceder a esta página');
         window.location.href = 'login.html';
         return;
@@ -268,7 +268,7 @@
       document.getElementById('userName').textContent = userData.nombre;
       document.getElementById('userEmail').textContent = user.email;
       
-      console.log(' Dashboard de admin cargado');
+      console.log('Dashboard de admin cargado');
     });
 
     // Función para cerrar sesión
@@ -321,19 +321,19 @@
       const carreraId = document.getElementById('carreraCoord').value;
       
       if (password.length < 6) {
-        mostrarMensaje(' La contraseña debe tener al menos 6 caracteres', 'error');
+        mostrarMensaje('La contraseña debe tener al menos 6 caracteres', 'error');
         return;
       }
       
       try {
-        mostrarMensaje(' Creando coordinador...', 'info');
+        mostrarMensaje('Creando coordinador...', 'info');
         
         // Crear en Authentication
         const userCredential = await auth.createUserWithEmailAndPassword(email, password);
         const newUid = userCredential.user.uid;
         
         // Crear en Firestore
-        console.log(' Guardando coordinador en Firestore...');
+        console.log('Guardando coordinador en Firestore...');
         const docRef = await db.collection('usuarios').doc(newUid).set({
           nombre: nombre,
           email: email,
@@ -345,7 +345,7 @@
           fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
         });
         
-        console.log(' Documento guardado en Firestore');
+        console.log('Documento guardado en Firestore');
         
         // Esperar un momento para asegurar que Firestore termine
         await new Promise(resolve => setTimeout(resolve, 1000));
@@ -369,11 +369,11 @@
         
       } catch (error) {
         console.error('Error:', error);
-        let mensaje = ' Error al crear coordinador';
+        let mensaje = 'Error al crear coordinador';
         if (error.code === 'auth/email-already-in-use') {
-          mensaje = ' Este email ya está registrado';
+          mensaje = 'Este email ya está registrado';
         } else if (error.code === 'auth/invalid-email') {
-          mensaje = ' Email inválido';
+          mensaje = 'Email inválido';
         }
         mostrarMensaje(mensaje, 'error');
       }
