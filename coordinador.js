@@ -1089,7 +1089,7 @@ async function guardarProfesor(event, profesorId) {
         userData.carreras = [usuarioActual.carreraId];
         userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
         
-        console.log('💾 Guardando profesor en Firestore...', newUid);
+        console.log(' Guardando profesor en Firestore...', newUid);
         await db.collection('usuarios').doc(newUid).set(userData);
         console.log('Profesor guardado en Firestore');
         
@@ -1707,5 +1707,137 @@ async function guardarTodasCalificacionesCoord() {
   } catch (error) {
     console.error('Error:', error);
     alert('Error al guardar calificaciones');
+  }
+}
+
+
+
+// ===== GENERAR ACTA DE CALIFICACIONES PDF =====
+
+function descargarActaPDF() {
+  if (!asignacionCalifActual || alumnosCalifMateria.length === 0) {
+    alert('Primero selecciona una materia y carga los alumnos.');
+    return;
+  }
+  
+  try {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Fecha actual
+    const fecha = new Date().toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // Encabezado
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('ACTA DE CALIFICACIONES', 105, 20, { align: 'center' });
+    
+    // Línea separadora
+    doc.setLineWidth(0.5);
+    doc.line(20, 25, 190, 25);
+    
+    // Información de la materia
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    
+    let y = 35;
+    doc.text(`Materia: ${asignacionCalifActual.materiaNombre}`, 20, y);
+    y += 7;
+    doc.text(`Código: ${asignacionCalifActual.materiaCodigo}`, 20, y);
+    y += 7;
+    doc.text(`Grupo: ${asignacionCalifActual.grupoNombre}`, 20, y);
+    y += 7;
+    doc.text(`Profesor: ${asignacionCalifActual.profesorNombre}`, 20, y);
+    y += 7;
+    doc.text(`Periodo: ${asignacionCalifActual.periodo}`, 20, y);
+    y += 7;
+    doc.text(`Fecha de generación: ${fecha}`, 20, y);
+    
+    y += 10;
+    
+    // Preparar datos para la tabla
+    const tableData = [];
+    let sumaPromedios = 0;
+    let countPromedios = 0;
+    
+    alumnosCalifMateria.forEach((alumno, index) => {
+      const promedio = calcularPromedioAlumno(alumno);
+      
+      if (promedio !== '-') {
+        sumaPromedios += parseFloat(promedio);
+        countPromedios++;
+      }
+      
+      tableData.push([
+        (index + 1).toString(),
+        alumno.matricula,
+        alumno.nombre,
+        promedio
+      ]);
+    });
+    
+    // Calcular promedio grupal
+    const promedioGrupal = countPromedios > 0 
+      ? (sumaPromedios / countPromedios).toFixed(1) 
+      : '-';
+    
+    // Generar tabla
+    doc.autoTable({
+      startY: y,
+      head: [['No.', 'Matrícula', 'Nombre del Alumno', 'Promedio Final']],
+      body: tableData,
+      theme: 'grid',
+      headStyles: {
+        fillColor: [102, 126, 234],
+        textColor: 255,
+        fontStyle: 'bold',
+        halign: 'center'
+      },
+      styles: {
+        fontSize: 10,
+        cellPadding: 5
+      },
+      columnStyles: {
+        0: { halign: 'center', cellWidth: 15 },
+        1: { halign: 'center', cellWidth: 30 },
+        2: { halign: 'left', cellWidth: 100 },
+        3: { halign: 'center', cellWidth: 35, fontStyle: 'bold' }
+      }
+    });
+    
+    // Pie de página con estadísticas
+    const finalY = doc.lastAutoTable.finalY + 10;
+    
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'bold');
+    doc.text(`Total de alumnos: ${alumnosCalifMateria.length}`, 20, finalY);
+    doc.text(`Promedio del grupo: ${promedioGrupal}`, 20, finalY + 7);
+    
+    // Línea de firmas
+    const firmasY = finalY + 30;
+    doc.setLineWidth(0.3);
+    doc.line(30, firmasY, 90, firmasY);
+    doc.line(120, firmasY, 180, firmasY);
+    
+    doc.setFont(undefined, 'normal');
+    doc.setFontSize(9);
+    doc.text('Profesor', 60, firmasY + 5, { align: 'center' });
+    doc.text('Coordinador', 150, firmasY + 5, { align: 'center' });
+    
+    // Generar nombre del archivo
+    const nombreArchivo = `Acta_${asignacionCalifActual.materiaCodigo}_${asignacionCalifActual.grupoNombre}_${asignacionCalifActual.periodo}.pdf`;
+    
+    // Descargar
+    doc.save(nombreArchivo);
+    
+    console.log('PDF generado:', nombreArchivo);
+    
+  } catch (error) {
+    console.error('Error al generar PDF:', error);
+    alert('Error al generar PDF. Verifica que jsPDF esté cargado correctamente.');
   }
 }

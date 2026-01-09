@@ -366,10 +366,16 @@
             <h3 style="margin: 0;" id="tituloMateriaCalif">Materia</h3>
             <p style="margin: 5px 0; color: #666;" id="infoMateriaCalif">Información de la materia</p>
           </div>
-          <button onclick="guardarTodasCalificacionesCoord()" 
-                  style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem;">
-             Guardar Calificaciones
-          </button>
+          <div style="display: flex; gap: 10px;">
+            <button onclick="guardarTodasCalificacionesCoord()" 
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem;">
+              Guardar Calificaciones
+            </button>
+            <button onclick="descargarActaPDF()" 
+                    style="padding: 12px 24px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1rem;">
+              Descargar PDF
+            </button>
+          </div>
         </div>
         <div id="tablaCalificacionesCoord"></div>
       </div>
