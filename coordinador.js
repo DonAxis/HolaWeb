@@ -136,6 +136,9 @@ function mostrarSeccion(seccion) {
       case 'inscripciones':
         cargarInscripciones();
         break;
+      case 'calificaciones':
+        cargarMateriasCalificaciones();
+        break;
     }
   }
 }
