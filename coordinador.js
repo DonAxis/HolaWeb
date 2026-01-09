@@ -1748,17 +1748,17 @@ function descargarActaPDF() {
     // Encabezado
     doc.setFontSize(18);
     doc.setFont(undefined, 'bold');
-    doc.text('ACTA DE CALIFICACIONES', 105, 25, { align: 'center' });
+    doc.text('ACTA DE CALIFICACIONES', 105, 35, { align: 'center' });
     
     // Línea separadora
     doc.setLineWidth(0.5);
-    doc.line(20, 30, 190, 30);
+    doc.line(20, 40, 150, 30);
     
     // Información de la materia
     doc.setFontSize(11);
     doc.setFont(undefined, 'normal');
     
-    let y = 40;
+    let y = 50;
     
     // Fecha arriba a la derecha
     doc.text(`Fecha: ${fecha}`, pageWidth - 20, y, { align: 'right' });
