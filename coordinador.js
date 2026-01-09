@@ -1752,7 +1752,8 @@ function descargarActaPDF() {
     
     // Línea separadora
     doc.setLineWidth(0.5);
-    doc.line(20, 40, 150, 30);
+    doc.line(50, 40, 160, 40);
+    //doc.line(20, 30, 190, 30); linea mal
     
     // Información de la materia
     doc.setFontSize(11);
