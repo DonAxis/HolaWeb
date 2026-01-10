@@ -139,6 +139,9 @@ function mostrarSeccion(seccion) {
       case 'calificaciones':
         cargarMateriasCalificaciones();
         break;
+      case 'periodos':
+        cargarPeriodos();
+        break;
     }
   }
 }
@@ -969,13 +972,13 @@ async function cargarProfesores() {
         <div class="item">
           <div class="item-info">
             <h4>${profesor.nombre}</h4>
-            <p> ${profesor.email}</p>
+            <p>${profesor.email}</p>
             <p>${profesor.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarProfesor('${doc.id}')" class="btn-editar"> Editar</button>
+            <button onclick="editarProfesor('${doc.id}')" class="btn-editar">Editar</button>
             <button onclick="toggleActivoUsuario('${doc.id}', 'profesor', ${!profesor.activo})" class="botAzu">
-              ${profesor.activo ? ' Desactivar' : ' Activar'}
+              ${profesor.activo ? 'Desactivar' : 'Activar'}
             </button>
           </div>
         </div>
@@ -1194,9 +1197,9 @@ async function cargarAlumnos() {
             <p>${alumno.activo ? '<span style="color: #4caf50;">●</span> Activo' : '<span style="color: #f44336;">●</span> Inactivo'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarAlumno('${doc.id}')" class="btn-editar">✏️ Editar</button>
+            <button onclick="editarAlumno('${doc.id}')" class="btn-editar">Editar</button>
             <button onclick="toggleActivoUsuario('${doc.id}', 'alumno', ${!alumno.activo})" class="botAzu">
-              ${alumno.activo ? ' Desactivar' : ' Activar'}
+              ${alumno.activo ? 'Desactivar' : 'Activar'}
             </button>
           </div>
         </div>
@@ -1425,7 +1428,7 @@ window.onclick = function(event) {
   }
 }
 
-console.log(' Panel de Coordinador cargado');
+console.log('Panel de Coordinador cargado');
 
 // ===== SISTEMA DE MODOS (COORDINADOR / PROFESOR) =====
 function cambiarModo(modo) {
@@ -1858,5 +1861,558 @@ function descargarActaPDF() {
   } catch (error) {
     console.error('Error al generar PDF:', error);
     alert('Error al generar PDF. Verifica que jsPDF esté cargado correctamente.');
+  }
+}
+
+
+
+// ===== GESTIÓN DE PERIODOS =====
+
+let periodoActivo = null;
+
+// Cargar periodos al abrir la sección
+async function cargarPeriodos() {
+  try {
+    // Obtener periodo activo del coordinador
+    const configDoc = await db.collection('configuracion')
+      .doc(`periodo_${usuarioActual.carreraId}`)
+      .get();
+    
+    if (configDoc.exists) {
+      periodoActivo = configDoc.data().periodoActivo;
+    } else {
+      // Si no existe, crear con periodo actual
+      periodoActivo = generarPeriodoActual();
+      await db.collection('configuracion')
+        .doc(`periodo_${usuarioActual.carreraId}`)
+        .set({
+          periodoActivo: periodoActivo,
+          carreraId: usuarioActual.carreraId,
+          fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+        });
+    }
+    
+    // Actualizar selector
+    await actualizarSelectorPeriodos();
+    
+    // Cargar lista de periodos con estadísticas
+    await cargarListaPeriodos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Generar periodo actual (formato: YYYY-S)
+function generarPeriodoActual() {
+  const fecha = new Date();
+  const año = fecha.getFullYear();
+  const mes = fecha.getMonth() + 1; // 0-11
+  const semestre = mes <= 6 ? 1 : 2;
+  return `${año}-${semestre}`;
+}
+
+// Actualizar selector de periodos
+async function actualizarSelectorPeriodos() {
+  const select = document.getElementById('selectPeriodoActivo');
+  if (!select) return;
+  
+  try {
+    // Obtener todos los periodos únicos de profesorMaterias
+    const snapshot = await db.collection('profesorMaterias')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .get();
+    
+    const periodosSet = new Set();
+    snapshot.forEach(doc => {
+      const periodo = doc.data().periodo;
+      if (periodo) periodosSet.add(periodo);
+    });
+    
+    // Agregar periodo activo si no está
+    if (periodoActivo) periodosSet.add(periodoActivo);
+    
+    // Ordenar periodos
+    const periodos = Array.from(periodosSet).sort().reverse();
+    
+    // Llenar selector
+    select.innerHTML = '';
+    periodos.forEach(periodo => {
+      const option = document.createElement('option');
+      option.value = periodo;
+      option.textContent = periodo + (periodo === periodoActivo ? ' (Activo)' : '');
+      if (periodo === periodoActivo) option.selected = true;
+      select.appendChild(option);
+    });
+    
+    if (periodos.length === 0) {
+      select.innerHTML = '<option value="">Sin periodos</option>';
+    }
+    
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Cambiar periodo activo
+async function cambiarPeriodoActivo() {
+  const select = document.getElementById('selectPeriodoActivo');
+  const nuevoPeriodo = select.value;
+  
+  if (!nuevoPeriodo || nuevoPeriodo === periodoActivo) return;
+  
+  if (!confirm(`¿Cambiar el periodo activo a ${nuevoPeriodo}?\n\nTodo el sistema se filtrará por este periodo.`)) {
+    select.value = periodoActivo;
+    return;
+  }
+  
+  try {
+    await db.collection('configuracion')
+      .doc(`periodo_${usuarioActual.carreraId}`)
+      .set({
+        periodoActivo: nuevoPeriodo,
+        carreraId: usuarioActual.carreraId,
+        fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    
+    periodoActivo = nuevoPeriodo;
+    alert(`Periodo activo cambiado a: ${nuevoPeriodo}\n\nActualiza las secciones para ver los datos del nuevo periodo.`);
+    
+    await actualizarSelectorPeriodos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cambiar periodo');
+    select.value = periodoActivo;
+  }
+}
+
+// Crear nuevo periodo
+async function crearNuevoPeriodo() {
+  const año = prompt('Año del periodo (ej: 2026):');
+  if (!año || isNaN(año)) return;
+  
+  const semestre = prompt('Semestre (1 o 2):');
+  if (semestre !== '1' && semestre !== '2') {
+    alert('Semestre inválido. Debe ser 1 o 2.');
+    return;
+  }
+  
+  const nuevoPeriodo = `${año}-${semestre}`;
+  
+  // Verificar si ya existe
+  const snapshot = await db.collection('profesorMaterias')
+    .where('carreraId', '==', usuarioActual.carreraId)
+    .where('periodo', '==', nuevoPeriodo)
+    .limit(1)
+    .get();
+  
+  if (!snapshot.empty) {
+    alert(`El periodo ${nuevoPeriodo} ya existe.`);
+    return;
+  }
+  
+  if (confirm(`¿Crear y activar el periodo ${nuevoPeriodo}?`)) {
+    await db.collection('configuracion')
+      .doc(`periodo_${usuarioActual.carreraId}`)
+      .set({
+        periodoActivo: nuevoPeriodo,
+        carreraId: usuarioActual.carreraId,
+        fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
+      }, { merge: true });
+    
+    periodoActivo = nuevoPeriodo;
+    alert(`Periodo ${nuevoPeriodo} creado y activado.\n\nAhora puedes crear grupos y asignaciones para este periodo.`);
+    
+    await cargarPeriodos();
+  }
+}
+
+// Cargar lista de periodos con estadísticas
+async function cargarListaPeriodos() {
+  const container = document.getElementById('listaPeriodos');
+  if (!container) return;
+  
+  try {
+    container.innerHTML = '<p style="text-align: center; color: #999;">Cargando...</p>';
+    
+    // Obtener periodos únicos
+    const snapshot = await db.collection('profesorMaterias')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .get();
+    
+    const periodoStats = {};
+    
+    snapshot.forEach(doc => {
+      const periodo = doc.data().periodo;
+      if (!periodo) return;
+      
+      if (!periodoStats[periodo]) {
+        periodoStats[periodo] = {
+          asignaciones: 0,
+          activas: 0
+        };
+      }
+      
+      periodoStats[periodo].asignaciones++;
+      if (doc.data().activa) periodoStats[periodo].activas++;
+    });
+    
+    // Contar calificaciones por periodo
+    const calificacionesSnap = await db.collection('calificaciones')
+      .get();
+    
+    calificacionesSnap.forEach(doc => {
+      const periodo = doc.data().periodo;
+      if (periodo && periodoStats[periodo]) {
+        periodoStats[periodo].calificaciones = (periodoStats[periodo].calificaciones || 0) + 1;
+      }
+    });
+    
+    // Ordenar periodos
+    const periodos = Object.keys(periodoStats).sort().reverse();
+    
+    if (periodos.length === 0) {
+      container.innerHTML = '<p style="text-align: center; color: #999;">No hay periodos registrados.</p>';
+      return;
+    }
+    
+    let html = '<div style="display: grid; gap: 15px;">';
+    
+    periodos.forEach(periodo => {
+      const stats = periodoStats[periodo];
+      const esActivo = periodo === periodoActivo;
+      const tamañoEstimado = (stats.calificaciones || 0) * 0.5; // KB aproximados
+      
+      html += `
+        <div style="padding: 15px; border: 2px solid ${esActivo ? '#667eea' : '#ddd'}; border-radius: 10px; background: ${esActivo ? '#f0f4ff' : 'white'};">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4 style="margin: 0 0 10px 0; color: #333;">
+                ${periodo} ${esActivo ? '<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">ACTIVO</span>' : ''}
+              </h4>
+              <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">
+                Asignaciones: ${stats.asignaciones} (${stats.activas} activas) | 
+                Calificaciones: ${stats.calificaciones || 0} | 
+                Tamaño: ~${tamañoEstimado.toFixed(1)} KB
+              </p>
+            </div>
+            <div>
+              ${!esActivo ? `<button onclick="eliminarPeriodo('${periodo}')" 
+                style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
+                Eliminar
+              </button>` : '<span style="color: #667eea; font-weight: 600;">En uso</span>'}
+            </div>
+          </div>
+        </div>
+      `;
+    });
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    container.innerHTML = '<p style="color: red;">Error al cargar periodos</p>';
+  }
+}
+
+// Eliminar periodo completo
+async function eliminarPeriodo(periodo) {
+  if (periodo === periodoActivo) {
+    alert('No puedes eliminar el periodo activo.');
+    return;
+  }
+  
+  const confirmacion = prompt(`ADVERTENCIA: Esto eliminará PERMANENTEMENTE:\n- Todas las asignaciones del periodo ${periodo}\n- Todas las calificaciones del periodo ${periodo}\n\nEscribe "ELIMINAR" para confirmar:`);
+  
+  if (confirmacion !== 'ELIMINAR') {
+    return;
+  }
+  
+  try {
+    const batch = db.batch();
+    let contador = 0;
+    
+    // Eliminar asignaciones
+    const asignaciones = await db.collection('profesorMaterias')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('periodo', '==', periodo)
+      .get();
+    
+    asignaciones.forEach(doc => {
+      batch.delete(doc.ref);
+      contador++;
+    });
+    
+    // Eliminar calificaciones
+    const calificaciones = await db.collection('calificaciones')
+      .where('periodo', '==', periodo)
+      .get();
+    
+    calificaciones.forEach(doc => {
+      batch.delete(doc.ref);
+      contador++;
+    });
+    
+    await batch.commit();
+    
+    alert(`Periodo ${periodo} eliminado.\n\n${contador} documentos eliminados de Firestore.`);
+    await cargarPeriodos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al eliminar periodo');
+  }
+}
+
+
+
+// ===== PROMOCIÓN DE SEMESTRE =====
+
+function mostrarPromocionSemestre() {
+  const html = `
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: 20px auto;">
+      <h3 style="margin: 0 0 20px 0; color: #667eea;">Promover Alumnos de Semestre</h3>
+      
+      <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+        <strong>Importante:</strong> Esta acción moverá TODOS los alumnos del semestre origen al destino.
+        Los grupos se crearán automáticamente manteniendo el turno y número de grupo.
+      </div>
+      
+      <form onsubmit="ejecutarPromocion(event)">
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Semestre Origen:</label>
+          <select id="semestreOrigen" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            <option value="">Seleccionar...</option>
+            <option value="1">1° Semestre</option>
+            <option value="2">2° Semestre</option>
+            <option value="3">3° Semestre</option>
+            <option value="4">4° Semestre</option>
+            <option value="5">5° Semestre</option>
+            <option value="6">6° Semestre</option>
+            <option value="7">7° Semestre</option>
+            <option value="8">8° Semestre</option>
+            <option value="9">9° Semestre</option>
+          </select>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Semestre Destino:</label>
+          <select id="semestreDestino" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            <option value="">Seleccionar...</option>
+            <option value="2">2° Semestre</option>
+            <option value="3">3° Semestre</option>
+            <option value="4">4° Semestre</option>
+            <option value="5">5° Semestre</option>
+            <option value="6">6° Semestre</option>
+            <option value="7">7° Semestre</option>
+            <option value="8">8° Semestre</option>
+            <option value="9">9° Semestre</option>
+          </select>
+          <small style="color: #666;">Ejemplo: 1° → 2°, o 3° → 4°</small>
+        </div>
+        
+        <div id="vistaPrevia" style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
+          <h4 style="margin: 0 0 10px 0;">Vista Previa:</h4>
+          <div id="detallesPromocion"></div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" onclick="previsualizarPromocion()" 
+                  style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Vista Previa
+          </button>
+          <button type="submit" 
+                  style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Ejecutar Promoción
+          </button>
+          <button type="button" onclick="cerrarModal()" 
+                  style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGeneral').style.display = 'flex';
+}
+
+async function previsualizarPromocion() {
+  const origen = document.getElementById('semestreOrigen').value;
+  const destino = document.getElementById('semestreDestino').value;
+  
+  if (!origen || !destino) {
+    alert('Selecciona ambos semestres');
+    return;
+  }
+  
+  if (parseInt(destino) <= parseInt(origen)) {
+    alert('El semestre destino debe ser mayor que el origen');
+    return;
+  }
+  
+  try {
+    // Buscar grupos del semestre origen
+    const grupos = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('semestre', '==', parseInt(origen))
+      .get();
+    
+    if (grupos.empty) {
+      alert(`No hay grupos en ${origen}° semestre`);
+      return;
+    }
+    
+    let html = '<table style="width: 100%; border-collapse: collapse;">';
+    html += '<tr style="background: #667eea; color: white;"><th style="padding: 8px; border: 1px solid #ddd;">Grupo Actual</th><th style="padding: 8px; border: 1px solid #ddd;">→</th><th style="padding: 8px; border: 1px solid #ddd;">Grupo Nuevo</th><th style="padding: 8px; border: 1px solid #ddd;">Alumnos</th></tr>';
+    
+    let totalAlumnos = 0;
+    
+    for (const doc of grupos.docs) {
+      const grupoActual = doc.data();
+      const nombreActual = grupoActual.nombre;
+      
+      // Generar nombre del nuevo grupo
+      const nuevoNombre = generarNombreGrupoDestino(nombreActual, origen, destino);
+      
+      // Contar alumnos
+      const alumnos = await db.collection('usuarios')
+        .where('rol', '==', 'alumno')
+        .where('grupoId', '==', doc.id)
+        .get();
+      
+      totalAlumnos += alumnos.size;
+      
+      html += `<tr>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${nombreActual}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">→</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #667eea;">${nuevoNombre}</td>
+        <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${alumnos.size}</td>
+      </tr>`;
+    }
+    
+    html += '</table>';
+    html += `<p style="margin-top: 15px; font-weight: bold; text-align: center;">Total: ${totalAlumnos} alumnos en ${grupos.size} grupos</p>`;
+    
+    document.getElementById('detallesPromocion').innerHTML = html;
+    document.getElementById('vistaPrevia').style.display = 'block';
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al generar vista previa');
+  }
+}
+
+function generarNombreGrupoDestino(nombreActual, semestreOrigen, semestreDestino) {
+  // Formato: TSGG-SIGLAS
+  // T = Turno, S = Semestre, GG = Grupo
+  
+  // Extraer partes del nombre
+  const regex = /^([1-3])([0-9])([0-9]{2})(.*)$/;
+  const match = nombreActual.match(regex);
+  
+  if (!match) {
+    // Si no coincide con el formato, solo reemplazar el semestre
+    return nombreActual.replace(semestreOrigen, semestreDestino);
+  }
+  
+  const turno = match[1];
+  const grupo = match[3];
+  const siglas = match[4];
+  
+  return `${turno}${semestreDestino}${grupo}${siglas}`;
+}
+
+async function ejecutarPromocion(event) {
+  event.preventDefault();
+  
+  const origen = document.getElementById('semestreOrigen').value;
+  const destino = document.getElementById('semestreDestino').value;
+  
+  if (!origen || !destino) {
+    alert('Selecciona ambos semestres');
+    return;
+  }
+  
+  if (parseInt(destino) <= parseInt(origen)) {
+    alert('El semestre destino debe ser mayor que el origen');
+    return;
+  }
+  
+  const confirmacion = confirm(
+    `CONFIRMAR PROMOCIÓN\n\n` +
+    `Semestre: ${origen}° → ${destino}°\n\n` +
+    `Esto creará nuevos grupos y moverá a TODOS los alumnos.\n\n` +
+    `¿Continuar?`
+  );
+  
+  if (!confirmacion) return;
+  
+  try {
+    // Buscar grupos del semestre origen
+    const gruposOrigen = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('semestre', '==', parseInt(origen))
+      .get();
+    
+    if (gruposOrigen.empty) {
+      alert(`No hay grupos en ${origen}° semestre`);
+      return;
+    }
+    
+    let gruposCreados = 0;
+    let alumnosMovidos = 0;
+    
+    // Para cada grupo origen
+    for (const grupoDoc of gruposOrigen.docs) {
+      const grupoActual = grupoDoc.data();
+      const nombreNuevo = generarNombreGrupoDestino(grupoActual.nombre, origen, destino);
+      
+      // Crear nuevo grupo
+      const nuevoGrupoRef = await db.collection('grupos').add({
+        nombre: nombreNuevo,
+        carreraId: usuarioActual.carreraId,
+        semestre: parseInt(destino),
+        turno: grupoActual.turno,
+        activo: true,
+        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      gruposCreados++;
+      
+      // Mover alumnos
+      const alumnos = await db.collection('usuarios')
+        .where('rol', '==', 'alumno')
+        .where('grupoId', '==', grupoDoc.id)
+        .get();
+      
+      const batch = db.batch();
+      
+      alumnos.forEach(alumnoDoc => {
+        batch.update(alumnoDoc.ref, {
+          grupoId: nuevoGrupoRef.id
+        });
+        alumnosMovidos++;
+      });
+      
+      await batch.commit();
+    }
+    
+    alert(
+      `Promoción completada\n\n` +
+      `Grupos creados: ${gruposCreados}\n` +
+      `Alumnos movidos: ${alumnosMovidos}\n\n` +
+      `Los alumnos ahora están en ${destino}° semestre.`
+    );
+    
+    cerrarModal();
+    cargarAlumnos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al ejecutar promoción');
   }
 }

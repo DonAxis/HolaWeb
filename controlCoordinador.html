@@ -250,6 +250,11 @@
       <h3>Calificaciones</h3>
       <p>Ver y editar calificaciones</p>
     </div>
+
+    <div class="menu-card" onclick="mostrarSeccion('periodos')">
+      <h3>Periodos</h3>
+      <p>Gestionar periodos académicos</p>
+    </div>
   </div>
 
   <!-- SECCIÓN: CARRERAS -->
@@ -308,6 +313,9 @@
     </div>
     <div class="botones-accion">
       <button onclick="mostrarFormAlumno()" class="botAzu">Nuevo Alumno</button>
+      <button onclick="mostrarPromocionSemestre()" class="botAzu" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+        Promover Semestre
+      </button>
     </div>
     <div id="listaAlumnos" class="lista-items"></div>
   </div>
@@ -400,6 +408,39 @@
     <iframe id="iframeProfesor" src="" style="width: 100%; height: calc(100vh - 60px); border: none;"></iframe>
   </div>
   <!-- FIN MODO PROFESOR -->
+
+  <!-- SECCIÓN: PERIODOS -->
+  <div id="seccionPeriodos" class="seccion-contenido">
+    <div class="seccion-header">
+      <h2>Periodos Académicos</h2>
+      <button onclick="volverMenu()" class="btn-volver">Volver al Menú</button>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+      <h3 style="margin-top: 0;">Periodo Activo</h3>
+      <div style="display: grid; gap: 15px;">
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Selecciona el periodo actual:</label>
+          <select id="selectPeriodoActivo" onchange="cambiarPeriodoActivo()" 
+                  style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            <option value="">Cargando...</option>
+          </select>
+          <small style="color: #666; display: block; margin-top: 5px;">
+            Todo el sistema se filtrará por este periodo
+          </small>
+        </div>
+        <button onclick="crearNuevoPeriodo()" 
+                style="padding: 12px 24px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          Crear Nuevo Periodo
+        </button>
+      </div>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 10px;">
+      <h3 style="margin-top: 0;">Historial de Periodos</h3>
+      <div id="listaPeriodos"></div>
+    </div>
+  </div>
 
   <!-- jsPDF para generar PDFs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
