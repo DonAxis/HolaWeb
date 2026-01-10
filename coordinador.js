@@ -2877,3 +2877,114 @@ async function regenerarEstructura() {
  alert('Error al regenerar');
  }
 }
+
+// ===== GENERAR GRUPOS SIMPLE =====
+
+function mostrarGenerarGrupos() {
+  const html = `
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: 20px auto;">
+      <h3 style="margin: 0 0 20px 0; color: #667eea;">Generar Grupos</h3>
+      
+      <form onsubmit="generarGruposSimple(event)">
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Sigla de carrera:</label>
+          <input type="text" id="siglaCarrera" required 
+                 placeholder="Ej. LI, TA"
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; text-transform: uppercase;">
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Número de semestres en tu carrera:</label>
+          <select id="numSemestres" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            <option value="">Seleccionar...</option>
+            <option value="4">4 semestres</option>
+            <option value="5">5 semestres</option>
+            <option value="6">6 semestres</option>
+            <option value="7">7 semestres</option>
+            <option value="8">8 semestres</option>
+            <option value="9">9 semestres</option>
+          </select>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Generar
+          </button>
+          <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'flex';
+}
+
+async function generarGruposSimple(event) {
+  event.preventDefault();
+  
+  const sigla = document.getElementById('siglaCarrera').value.trim().toUpperCase();
+  const numSemestres = parseInt(document.getElementById('numSemestres').value);
+  
+  if (!sigla || !numSemestres) {
+    alert('Completa todos los campos');
+    return;
+  }
+  
+  // Verificar si ya existen grupos
+  const gruposExistentes = await db.collection('grupos')
+    .where('carreraId', '==', usuarioActual.carreraId)
+    .limit(1)
+    .get();
+  
+  if (!gruposExistentes.empty) {
+    const confirmacion = confirm('Ya existen grupos para esta carrera.\n\n¿Deseas agregar más grupos?');
+    if (!confirmacion) {
+      return;
+    }
+  }
+  
+  const confirmacion = confirm(
+    `Se generarán ${numSemestres} grupos:\n\n` +
+    `1101-${sigla}\n` +
+    `1201-${sigla}\n` +
+    `...\n` +
+    `${numSemestres}01-${sigla}\n\n` +
+    `¿Continuar?`
+  );
+  
+  if (!confirmacion) return;
+  
+  try {
+    const batch = db.batch();
+    
+    for (let sem = 1; sem <= numSemestres; sem++) {
+      const nombreGrupo = `1${sem}01-${sigla}`;
+      
+      const nuevoGrupo = {
+        nombre: nombreGrupo,
+        carreraId: usuarioActual.carreraId,
+        semestre: sem,
+        turno: 'Matutino',
+        activo: true,
+        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+      };
+      
+      const ref = db.collection('grupos').doc();
+      batch.set(ref, nuevoGrupo);
+    }
+    
+    await batch.commit();
+    
+    alert(`${numSemestres} grupos creados exitosamente`);
+    
+    cerrarModal();
+    cargarGrupos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al generar grupos');
+  }
+}
