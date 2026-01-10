@@ -220,7 +220,7 @@ function mostrarFormCarrera(carreraId = null) {
     </form>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalContenido').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
   
   // Si es edición, cargar datos
@@ -297,7 +297,7 @@ async function cargarMaterias() {
             <p>Grupo: ${materia.codigo} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarMateria('${doc.id}')" class="btn-editar"> Editar</button>
+            <button onclick="editarMateria('${doc.id}')" class="btn-editar">Editar</button>
             <button onclick="eliminarMateria('${doc.id}')" class="btn-eliminar"></button>
           </div>
         </div>
@@ -340,7 +340,7 @@ function mostrarFormMateria(materiaId = null) {
     </form>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalContenido').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
   
   if (esEdicion) {
@@ -419,7 +419,7 @@ async function cargarGrupos() {
             <p>Semestre: ${grupo.semestre} | Turno: ${grupo.turno || 'N/A'}</p>
           </div>
           <div class="item-acciones">
-            <button onclick="editarGrupo('${doc.id}')" class="btn-editar"> Editar</button>
+            <button onclick="editarGrupo('${doc.id}')" class="btn-editar">Editar</button>
             <button onclick="eliminarGrupo('${doc.id}')" class="btn-eliminar"></button>
           </div>
         </div>
@@ -462,7 +462,7 @@ function mostrarFormGrupo(grupoId = null) {
     </form>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalContenido').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
   
   if (esEdicion) {
@@ -634,13 +634,13 @@ async function mostrarFormAsignarProfesor() {
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar"> Asignar Profesor</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
+        <button type="submit" class="btn-guardar">Asignar Profesor</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">Cancelar</button>
       </div>
     </form>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalContenido').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
 }
 
@@ -860,13 +860,13 @@ async function mostrarFormInscribirAlumno() {
       </div>
       
       <div class="form-botones">
-        <button type="submit" class="btn-guardar"> Inscribir Alumno</button>
-        <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
+        <button type="submit" class="btn-guardar">Inscribir Alumno</button>
+        <button type="button" onclick="cerrarModal()" class="btn-cancelar">Cancelar</button>
       </div>
     </form>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalContenido').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
 }
 
@@ -1030,7 +1030,7 @@ function mostrarFormProfesor(profesorId = null) {
     </form>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalContenido').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
   
   if (esEdicion) {
@@ -1271,7 +1271,7 @@ async function mostrarFormAlumno(alumnoId = null) {
     </form>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalContenido').innerHTML = html;
   document.getElementById('modalGenerico').style.display = 'block';
   
   if (esEdicion) {
@@ -2236,8 +2236,8 @@ function mostrarPromocionSemestre() {
     </div>
   `;
   
-  document.getElementById('contenidoModal').innerHTML = html;
-  document.getElementById('modalGeneral').style.display = 'flex';
+  document.getElementById('modalContenido').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'flex';
 }
 
 async function previsualizarPromocion() {
@@ -2414,5 +2414,470 @@ async function ejecutarPromocion(event) {
   } catch (error) {
     console.error('Error:', error);
     alert('Error al ejecutar promoción');
+  }
+}
+
+
+
+// ===== GENERACIÓN AUTOMÁTICA DE GRUPOS =====
+
+async function verificarYGenerarGrupos() {
+  try {
+    // Verificar si ya existen grupos para esta carrera
+    const gruposExistentes = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .limit(1)
+      .get();
+    
+    if (!gruposExistentes.empty) {
+      // Ya existen grupos, mostrar gestión normal
+      return false;
+    }
+    
+    // No hay grupos, mostrar formulario de generación inicial
+    mostrarFormularioGeneracionInicial();
+    return true;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    return false;
+  }
+}
+
+function mostrarFormularioGeneracionInicial() {
+  const html = `
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: 20px auto;">
+      <h3 style="margin: 0 0 20px 0; color: #667eea;">Configuración Inicial de Grupos</h3>
+      
+      <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #0c5460;">
+        <strong>Primera vez:</strong> Configura la estructura de grupos para tu carrera.
+        El sistema generará automáticamente todos los grupos siguiendo el formato estándar.
+      </div>
+      
+      <form onsubmit="generarGruposIniciales(event)">
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Siglas de la Carrera:</label>
+          <input type="text" id="siglasCarrera" required 
+                 placeholder="Ej: LI, MAT, HIS" 
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem; text-transform: uppercase;">
+          <small style="color: #666;">Estas siglas aparecerán al final del nombre del grupo (Ej: 1101-LI)</small>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Número de Semestres:</label>
+          <input type="number" id="numSemestres" required min="1" max="12" value="9"
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+          <small style="color: #666;">Cuántos semestres tiene la carrera (generalmente 9)</small>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 10px; font-weight: 600;">Turnos a Crear:</label>
+          <div style="display: grid; gap: 10px;">
+            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+              <input type="checkbox" id="turnoMatutino" value="1" checked style="width: 20px; height: 20px;">
+              <span>Matutino (1000)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+              <input type="checkbox" id="turnoVespertino" value="2" style="width: 20px; height: 20px;">
+              <span>Vespertino (2000)</span>
+            </label>
+            <label style="display: flex; align-items: center; gap: 10px; padding: 10px; border: 2px solid #ddd; border-radius: 8px; cursor: pointer;">
+              <input type="checkbox" id="turnoNocturno" value="3" style="width: 20px; height: 20px;">
+              <span>Nocturno (3000)</span>
+            </label>
+          </div>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Grupos por Semestre/Turno:</label>
+          <input type="number" id="gruposPorSemestre" required min="1" max="9" value="3"
+                 style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+          <small style="color: #666;">Cuántos grupos paralelos por cada semestre (Ej: 1101, 1102, 1103)</small>
+        </div>
+        
+        <div id="vistaPreviewGrupos" style="margin: 20px 0; padding: 15px; background: #f8f9fa; border-radius: 8px; display: none;">
+          <h4 style="margin: 0 0 10px 0;">Vista Previa:</h4>
+          <div id="detallesGrupos"></div>
+        </div>
+        
+        <div style="display: flex; gap: 10px; margin-top: 20px;">
+          <button type="button" onclick="previsualizarGrupos()" 
+                  style="flex: 1; padding: 12px; background: #6c757d; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Vista Previa
+          </button>
+          <button type="submit" 
+                  style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Generar Grupos
+          </button>
+          <button type="button" onclick="cerrarModal()" 
+                  style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Cancelar
+          </button>
+        </div>
+      </form>
+    </div>
+  `;
+  
+  document.getElementById('modalContenido').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'flex';
+}
+
+function previsualizarGrupos() {
+  const siglas = document.getElementById('siglasCarrera').value.trim().toUpperCase();
+  const numSemestres = parseInt(document.getElementById('numSemestres').value);
+  const gruposPorSemestre = parseInt(document.getElementById('gruposPorSemestre').value);
+  
+  if (!siglas || !numSemestres || !gruposPorSemestre) {
+    alert('Completa todos los campos');
+    return;
+  }
+  
+  const turnos = [];
+  if (document.getElementById('turnoMatutino').checked) turnos.push({ cod: '1', nombre: 'Matutino' });
+  if (document.getElementById('turnoVespertino').checked) turnos.push({ cod: '2', nombre: 'Vespertino' });
+  if (document.getElementById('turnoNocturno').checked) turnos.push({ cod: '3', nombre: 'Nocturno' });
+  
+  if (turnos.length === 0) {
+    alert('Selecciona al menos un turno');
+    return;
+  }
+  
+  let html = '<div style="max-height: 400px; overflow-y: auto;">';
+  let totalGrupos = 0;
+  
+  turnos.forEach(turno => {
+    html += `<div style="margin-bottom: 20px;">`;
+    html += `<h4 style="margin: 0 0 10px 0; color: #667eea;">${turno.nombre}</h4>`;
+    html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">`;
+    
+    for (let sem = 1; sem <= numSemestres; sem++) {
+      for (let grupo = 1; grupo <= gruposPorSemestre; grupo++) {
+        const nombreGrupo = `${turno.cod}${sem}${grupo.toString().padStart(2, '0')}-${siglas}`;
+        html += `<div style="padding: 8px; background: white; border: 1px solid #ddd; border-radius: 5px; text-align: center; font-size: 0.9rem;">${nombreGrupo}</div>`;
+        totalGrupos++;
+      }
+    }
+    
+    html += `</div></div>`;
+  });
+  
+  html += `</div>`;
+  html += `<p style="margin-top: 15px; font-weight: bold; text-align: center;">Total: ${totalGrupos} grupos</p>`;
+  
+  document.getElementById('detallesGrupos').innerHTML = html;
+  document.getElementById('vistaPreviewGrupos').style.display = 'block';
+}
+
+async function generarGruposIniciales(event) {
+  event.preventDefault();
+  
+  const siglas = document.getElementById('siglasCarrera').value.trim().toUpperCase();
+  const numSemestres = parseInt(document.getElementById('numSemestres').value);
+  const gruposPorSemestre = parseInt(document.getElementById('gruposPorSemestre').value);
+  
+  const turnos = [];
+  const turnosNombres = {
+    '1': 'Matutino',
+    '2': 'Vespertino',
+    '3': 'Nocturno'
+  };
+  
+  if (document.getElementById('turnoMatutino').checked) turnos.push('1');
+  if (document.getElementById('turnoVespertino').checked) turnos.push('2');
+  if (document.getElementById('turnoNocturno').checked) turnos.push('3');
+  
+  const totalGrupos = turnos.length * numSemestres * gruposPorSemestre;
+  
+  const confirmacion = confirm(
+    `GENERAR GRUPOS INICIALES\n\n` +
+    `Carrera: ${siglas}\n` +
+    `Semestres: ${numSemestres}\n` +
+    `Turnos: ${turnos.map(t => turnosNombres[t]).join(', ')}\n` +
+    `Grupos por semestre: ${gruposPorSemestre}\n\n` +
+    `Total a crear: ${totalGrupos} grupos\n\n` +
+    `¿Continuar?`
+  );
+  
+  if (!confirmacion) return;
+  
+  try {
+    let creados = 0;
+    const batch = db.batch();
+    
+    for (const turno of turnos) {
+      for (let sem = 1; sem <= numSemestres; sem++) {
+        for (let grupo = 1; grupo <= gruposPorSemestre; grupo++) {
+          const nombreGrupo = `${turno}${sem}${grupo.toString().padStart(2, '0')}-${siglas}`;
+          
+          const nuevoGrupo = {
+            nombre: nombreGrupo,
+            carreraId: usuarioActual.carreraId,
+            semestre: sem,
+            turno: turnosNombres[turno],
+            activo: true,
+            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          
+          const ref = db.collection('grupos').doc();
+          batch.set(ref, nuevoGrupo);
+          creados++;
+          
+          // Firestore batch tiene límite de 500 operaciones
+          if (creados % 400 === 0) {
+            await batch.commit();
+          }
+        }
+      }
+    }
+    
+    // Commit final
+    await batch.commit();
+    
+    // Guardar configuración
+    await db.collection('configuracion').doc(`grupos_${usuarioActual.carreraId}`).set({
+      siglas: siglas,
+      numSemestres: numSemestres,
+      gruposPorSemestre: gruposPorSemestre,
+      turnos: turnos,
+      fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    alert(
+      `Grupos creados exitosamente\n\n` +
+      `Total: ${creados} grupos\n\n` +
+      `Ahora puedes activar/desactivar grupos según necesites.`
+    );
+    
+    cerrarModal();
+    cargarGrupos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al generar grupos');
+  }
+}
+
+
+
+// ===== AJUSTAR ESTRUCTURA DE GRUPOS =====
+
+async function gestionarEstructuraGrupos() {
+  try {
+    // Cargar configuración actual
+    const configDoc = await db.collection('configuracion')
+      .doc(`grupos_${usuarioActual.carreraId}`)
+      .get();
+    
+    let config = {};
+    if (configDoc.exists) {
+      config = configDoc.data();
+    }
+    
+    const html = `
+      <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: 20px auto;">
+        <h3 style="margin: 0 0 20px 0; color: #667eea;">Ajustar Estructura de Grupos</h3>
+        
+        <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
+          <strong>Configuración actual:</strong><br>
+          Siglas: ${config.siglas || 'No configurado'}<br>
+          Semestres: ${config.numSemestres || 'No configurado'}<br>
+          Grupos por semestre: ${config.gruposPorSemestre || 'No configurado'}
+        </div>
+        
+        <form onsubmit="ajustarGrupos(event)">
+          <div style="margin-bottom: 20px;">
+            <label style="display: block; margin-bottom: 10px; font-weight: 600;">Acción:</label>
+            <select id="accionAjuste" onchange="mostrarOpcionesAjuste()" 
+                    style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+              <option value="">Seleccionar...</option>
+              <option value="agregar">Agregar más grupos a un semestre</option>
+              <option value="desactivar">Desactivar grupos</option>
+              <option value="regenerar">Regenerar toda la estructura</option>
+            </select>
+          </div>
+          
+          <div id="opcionesAjuste" style="display: none;"></div>
+          
+          <div style="display: flex; gap: 10px; margin-top: 20px;">
+            <button type="submit" 
+                    style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+              Aplicar
+            </button>
+            <button type="button" onclick="cerrarModal()" 
+                    style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+              Cancelar
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+    
+    document.getElementById('modalContenido').innerHTML = html;
+    document.getElementById('modalGenerico').style.display = 'flex';
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar configuración');
+  }
+}
+
+function mostrarOpcionesAjuste() {
+  const accion = document.getElementById('accionAjuste').value;
+  const container = document.getElementById('opcionesAjuste');
+  
+  if (!accion) {
+    container.style.display = 'none';
+    return;
+  }
+  
+  let html = '';
+  
+  if (accion === 'agregar') {
+    html = `
+      <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Cuántos grupos agregar:</label>
+        <input type="number" id="numGruposAgregar" min="1" max="5" value="1" required
+               style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+        <small style="color: #666; display: block; margin-top: 5px;">
+          Ejemplo: Si tienes 1101, 1102, 1103 y agregas 2, creará 1104 y 1105
+        </small>
+      </div>
+    `;
+  } else if (accion === 'desactivar') {
+    html = `
+      <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <p style="margin: 0;">Selecciona los grupos a desactivar en la lista principal.</p>
+        <small style="color: #666;">Los grupos desactivados no aparecerán en asignaciones.</small>
+      </div>
+    `;
+  } else if (accion === 'regenerar') {
+    html = `
+      <div style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+        <p style="margin: 0; color: #dc3545; font-weight: bold;">ADVERTENCIA:</p>
+        <p style="margin: 10px 0 0 0;">Esto eliminará TODOS los grupos actuales y creará nuevos.</p>
+        <small style="color: #666;">Solo usa esto si cometiste un error en la configuración inicial.</small>
+      </div>
+    `;
+  }
+  
+  container.innerHTML = html;
+  container.style.display = 'block';
+}
+
+async function ajustarGrupos(event) {
+  event.preventDefault();
+  
+  const accion = document.getElementById('accionAjuste').value;
+  
+  if (accion === 'agregar') {
+    await agregarMasGrupos();
+  } else if (accion === 'regenerar') {
+    await regenerarEstructura();
+  }
+}
+
+async function agregarMasGrupos() {
+  const numGrupos = parseInt(document.getElementById('numGruposAgregar').value);
+  
+  if (!confirm(`¿Agregar ${numGrupos} grupo(s) más a cada semestre y turno?`)) {
+    return;
+  }
+  
+  try {
+    // Cargar configuración
+    const configDoc = await db.collection('configuracion')
+      .doc(`grupos_${usuarioActual.carreraId}`)
+      .get();
+    
+    if (!configDoc.exists) {
+      alert('No hay configuración de grupos. Genera la estructura inicial primero.');
+      return;
+    }
+    
+    const config = configDoc.data();
+    const siglas = config.siglas;
+    const numSemestres = config.numSemestres;
+    const gruposActuales = config.gruposPorSemestre;
+    const turnos = config.turnos || ['1'];
+    
+    const turnosNombres = {
+      '1': 'Matutino',
+      '2': 'Vespertino',
+      '3': 'Nocturno'
+    };
+    
+    const batch = db.batch();
+    let creados = 0;
+    
+    for (const turno of turnos) {
+      for (let sem = 1; sem <= numSemestres; sem++) {
+        for (let i = 1; i <= numGrupos; i++) {
+          const numeroGrupo = gruposActuales + i;
+          const nombreGrupo = `${turno}${sem}${numeroGrupo.toString().padStart(2, '0')}-${siglas}`;
+          
+          const nuevoGrupo = {
+            nombre: nombreGrupo,
+            carreraId: usuarioActual.carreraId,
+            semestre: sem,
+            turno: turnosNombres[turno],
+            activo: true,
+            fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
+          };
+          
+          const ref = db.collection('grupos').doc();
+          batch.set(ref, nuevoGrupo);
+          creados++;
+        }
+      }
+    }
+    
+    await batch.commit();
+    
+    // Actualizar configuración
+    await db.collection('configuracion')
+      .doc(`grupos_${usuarioActual.carreraId}`)
+      .update({
+        gruposPorSemestre: gruposActuales + numGrupos
+      });
+    
+    alert(`${creados} grupos agregados exitosamente`);
+    cerrarModal();
+    cargarGrupos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al agregar grupos');
+  }
+}
+
+async function regenerarEstructura() {
+  const confirmacion = prompt('Esto eliminará TODOS los grupos actuales.\n\nEscribe "REGENERAR" para confirmar:');
+  
+  if (confirmacion !== 'REGENERAR') {
+    return;
+  }
+  
+  try {
+    // Eliminar todos los grupos
+    const grupos = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .get();
+    
+    const batch = db.batch();
+    grupos.forEach(doc => batch.delete(doc.ref));
+    await batch.commit();
+    
+    // Eliminar configuración
+    await db.collection('configuracion')
+      .doc(`grupos_${usuarioActual.carreraId}`)
+      .delete();
+    
+    alert('Grupos eliminados. Ahora configura la nueva estructura.');
+    cerrarModal();
+    cargarGrupos(); // Mostrará el formulario inicial
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al regenerar');
   }
 }
