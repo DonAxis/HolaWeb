@@ -220,7 +220,7 @@ function mostrarFormCarrera(carreraId = null) {
  </form>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'block';
  
  // Si es edición, cargar datos
@@ -340,7 +340,7 @@ function mostrarFormMateria(materiaId = null) {
  </form>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'block';
  
  if (esEdicion) {
@@ -462,7 +462,7 @@ function mostrarFormGrupo(grupoId = null) {
  </form>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'block';
  
  if (esEdicion) {
@@ -640,7 +640,7 @@ async function mostrarFormAsignarProfesor() {
  </form>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'block';
 }
 
@@ -866,7 +866,7 @@ async function mostrarFormInscribirAlumno() {
  </form>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'block';
 }
 
@@ -1030,7 +1030,7 @@ function mostrarFormProfesor(profesorId = null) {
  </form>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'block';
  
  if (esEdicion) {
@@ -1271,7 +1271,7 @@ async function mostrarFormAlumno(alumnoId = null) {
  </form>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'block';
  
  if (esEdicion) {
@@ -2232,7 +2232,7 @@ function mostrarPromocionSemestre() {
  </div>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'flex';
 }
 
@@ -2514,7 +2514,7 @@ function mostrarFormularioGeneracionInicial() {
  </div>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'flex';
 }
 
@@ -2708,7 +2708,7 @@ async function gestionarEstructuraGrupos() {
  </div>
  `;
  
- document.getElementById('modalContenido').innerHTML = html;
+ document.getElementById('contenidoModal').innerHTML = html;
  document.getElementById('modalGenerico').style.display = 'flex';
  
  } catch (error) {
