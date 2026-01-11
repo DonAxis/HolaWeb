@@ -2988,3 +2988,67 @@ async function generarGruposSimple(event) {
     alert('Error al generar grupos');
   }
 }
+
+
+// ===== ACTIVAR/DESACTIVAR GRUPOS =====
+
+async function desactivarGrupo(grupoId) {
+  if (!confirm('¿Desactivar este grupo?\n\nNo aparecerá en asignaciones nuevas.')) {
+    return;
+  }
+  
+  try {
+    await db.collection('grupos').doc(grupoId).update({
+      activo: false
+    });
+    
+    alert('Grupo desactivado');
+    cargarGrupos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al desactivar grupo');
+  }
+}
+
+async function activarGrupo(grupoId) {
+  try {
+    await db.collection('grupos').doc(grupoId).update({
+      activo: true
+    });
+    
+    alert('Grupo activado');
+    cargarGrupos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al activar grupo');
+  }
+}
+
+async function eliminarGrupo(grupoId) {
+  // Verificar que no tenga alumnos
+  const alumnos = await db.collection('usuarios')
+    .where('rol', '==', 'alumno')
+    .where('grupoId', '==', grupoId)
+    .get();
+  
+  if (!alumnos.empty) {
+    alert(`No se puede eliminar.\n\nEste grupo tiene ${alumnos.size} alumno(s) asignado(s).`);
+    return;
+  }
+  
+  const confirmacion = confirm('¿Eliminar este grupo permanentemente?\n\nEsta acción no se puede deshacer.');
+  
+  if (!confirmacion) return;
+  
+  try {
+    await db.collection('grupos').doc(grupoId).delete();
+    alert('Grupo eliminado');
+    cargarGrupos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al eliminar grupo');
+  }
+}
