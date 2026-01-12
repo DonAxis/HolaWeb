@@ -320,6 +320,16 @@
  Ver Historial
  </button>
  </div>
+ 
+ <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+ <label style="font-weight: 600; margin-right: 10px;">Filtrar por estado:</label>
+ <select id="filtroEstadoAlumnos" onchange="cargarAlumnos()" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 5px;">
+ <option value="todos">Todos</option>
+ <option value="activos">Solo estudiando</option>
+ <option value="inactivos">Solo suspendidos</option>
+ </select>
+ </div>
+ 
  <div id="listaAlumnos" class="lista-items"></div>
  </div>
 
