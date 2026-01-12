@@ -316,32 +316,47 @@ function mostrarFormMateria(materiaId = null) {
  document.getElementById('tituloModal').textContent = esEdicion ? 'Editar Materia' : 'Nueva Materia';
  
  const html = `
+ <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: 20px auto;">
+ <h3 style="margin: 0 0 20px 0; color: #667eea;">${esEdicion ? 'Editar Materia' : 'Nueva Materia'}</h3>
  <form onsubmit="guardarMateria(event, '${materiaId || ''}')">
- <div class="form-grupo">
- <label>Nombre de la Materia:</label>
- <input type="text" id="nombreMateria" required placeholder="Ej: Programación Web">
+ <div style="margin-bottom: 15px;">
+ <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre de la Materia:</label>
+ <input type="text" id="nombreMateria" required placeholder="Ej: Programación Web"
+ style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
  </div>
- <div class="form-grupo">
- <label>Grupo:</label>
- <input type="text" id="codigoMateria" required placeholder="Ej: 3101LA">
+ <div style="margin-bottom: 15px;">
+ <label style="display: block; margin-bottom: 5px; font-weight: 600;">Grupo:</label>
+ <select id="codigoMateria" required style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+ <option value="">Cargando grupos...</option>
+ </select>
  </div>
- <div class="form-grupo">
- <label>Créditos:</label>
- <input type="number" id="creditos" min="1" max="12" value="6">
+ <div style="margin-bottom: 15px;">
+ <label style="display: block; margin-bottom: 5px; font-weight: 600;">Créditos:</label>
+ <input type="number" id="creditos" min="1" max="12" value="6"
+ style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
  </div>
- <div class="form-grupo">
- <label>Semestre:</label>
- <input type="number" id="semestre" min="1" max="12" value="1">
+ <div style="margin-bottom: 15px;">
+ <label style="display: block; margin-bottom: 5px; font-weight: 600;">Semestre:</label>
+ <input type="number" id="semestre" min="1" max="12" value="1"
+ style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
  </div>
- <div class="form-botones">
- <button type="submit" class="btn-guardar"> Guardar</button>
- <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
+ <div style="display: flex; gap: 10px; margin-top: 20px;">
+ <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+ Guardar
+ </button>
+ <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+ Cancelar
+ </button>
  </div>
  </form>
+ </div>
  `;
  
  document.getElementById('contenidoModal').innerHTML = html;
- document.getElementById('modalGenerico').style.display = 'block';
+ document.getElementById('modalGenerico').style.display = 'flex';
+ 
+ // Cargar grupos en el selector
+ cargarGruposEnSelector('codigoMateria');
  
  if (esEdicion) {
  cargarDatosMateria(materiaId);
@@ -597,6 +612,7 @@ async function mostrarFormAsignarProfesor() {
  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
  gruposQuery = gruposQuery.where('carreraId', '==', usuarioActual.carreraId);
  }
+ gruposQuery = gruposQuery.where('activo', '==', true).orderBy('ordenamiento');
  const gruposSnap = await gruposQuery.get();
  let gruposHtml = '<option value="">Seleccionar grupo...</option>';
  gruposSnap.forEach(doc => {
@@ -823,6 +839,7 @@ async function mostrarFormInscribirAlumno() {
  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
  gruposQuery = gruposQuery.where('carreraId', '==', usuarioActual.carreraId);
  }
+ gruposQuery = gruposQuery.where('activo', '==', true).orderBy('ordenamiento');
  const gruposSnap = await gruposQuery.get();
  let gruposHtml = '<option value="">Seleccionar grupo...</option>';
  gruposSnap.forEach(doc => {
@@ -1625,7 +1642,7 @@ function generarTablaCalificaciones() {
  </table>
  </div>
  <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
- Calificaciones primer segundo y tercer parcial
+ Desliza horizontalmente para ver todas las columnas en móvil
  </p>
  `;
  
@@ -2894,6 +2911,16 @@ function mostrarGenerarGrupos() {
         </div>
         
         <div style="margin-bottom: 20px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Turno:</label>
+          <select id="turnoGrupos" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+            <option value="">Seleccionar...</option>
+            <option value="1">Matutino (1000)</option>
+            <option value="2">Vespertino (2000)</option>
+            <option value="3">Nocturno (3000)</option>
+          </select>
+        </div>
+        
+        <div style="margin-bottom: 20px;">
           <label style="display: block; margin-bottom: 5px; font-weight: 600;">Número de semestres en tu carrera:</label>
           <select id="numSemestres" required style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
             <option value="">Seleccionar...</option>
@@ -2926,12 +2953,20 @@ async function generarGruposSimple(event) {
   event.preventDefault();
   
   const sigla = document.getElementById('siglaCarrera').value.trim().toUpperCase();
+  const turno = document.getElementById('turnoGrupos').value;
   const numSemestres = parseInt(document.getElementById('numSemestres').value);
   
-  if (!sigla || !numSemestres) {
+  if (!sigla || !turno || !numSemestres) {
     alert('Completa todos los campos');
     return;
   }
+  
+  const turnosNombres = {
+    '1': 'Matutino',
+    '2': 'Vespertino',
+    '3': 'Nocturno'
+  };
+  const turnoNombre = turnosNombres[turno];
   
   // Verificar si ya existen grupos
   const gruposExistentes = await db.collection('grupos')
@@ -2947,11 +2982,11 @@ async function generarGruposSimple(event) {
   }
   
   const confirmacion = confirm(
-    `Se generarán ${numSemestres} grupos:\n\n` +
-    `1101-${sigla}\n` +
-    `1201-${sigla}\n` +
+    `Se generarán ${numSemestres} grupos ${turnoNombre}:\n\n` +
+    `${turno}101-${sigla}\n` +
+    `${turno}201-${sigla}\n` +
     `...\n` +
-    `${numSemestres}01-${sigla}\n\n` +
+    `${turno}${numSemestres}01-${sigla}\n\n` +
     `¿Continuar?`
   );
   
@@ -2961,14 +2996,15 @@ async function generarGruposSimple(event) {
     const batch = db.batch();
     
     for (let sem = 1; sem <= numSemestres; sem++) {
-      const nombreGrupo = `1${sem}01-${sigla}`;
+      const nombreGrupo = `${turno}${sem}01-${sigla}`;
       
       const nuevoGrupo = {
         nombre: nombreGrupo,
         carreraId: usuarioActual.carreraId,
         semestre: sem,
-        turno: 'Matutino',
+        turno: turnoNombre,
         activo: true,
+        ordenamiento: parseInt(`${turno}${sem}01`),
         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
       };
       
@@ -3372,5 +3408,47 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
   } catch (error) {
     console.error('Error:', error);
     alert('Error al cargar detalle del historial');
+  }
+}
+
+
+
+// ===== CARGAR GRUPOS EN SELECTORES =====
+
+async function cargarGruposEnSelector(selectId) {
+  try {
+    const select = document.getElementById(selectId);
+    if (!select) return;
+    
+    select.innerHTML = '<option value="">Cargando...</option>';
+    
+    const snapshot = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('activo', '==', true)
+      .orderBy('ordenamiento')
+      .get();
+    
+    if (snapshot.empty) {
+      select.innerHTML = '<option value="">No hay grupos disponibles</option>';
+      return;
+    }
+    
+    select.innerHTML = '<option value="">Seleccionar grupo...</option>';
+    
+    snapshot.forEach(doc => {
+      const grupo = doc.data();
+      const option = document.createElement('option');
+      option.value = doc.id;
+      option.textContent = grupo.nombre;
+      option.dataset.nombre = grupo.nombre;
+      select.appendChild(option);
+    });
+    
+  } catch (error) {
+    console.error('Error al cargar grupos:', error);
+    const select = document.getElementById(selectId);
+    if (select) {
+      select.innerHTML = '<option value="">Error al cargar grupos</option>';
+    }
   }
 }
