@@ -1625,7 +1625,7 @@ function generarTablaCalificaciones() {
  </table>
  </div>
  <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
- Desliza horizontalmente para ver todas las columnas en móvil
+ Calificaciones primer segundo y tercer parcial
  </p>
  `;
  
@@ -3050,5 +3050,327 @@ async function eliminarGrupo(grupoId) {
   } catch (error) {
     console.error('Error:', error);
     alert('Error al eliminar grupo');
+  }
+}
+
+
+
+// ===== FINALIZAR CURSO (ELIMINAR ALUMNOS) =====
+
+async function finalizarCursoAlumnos(semestre) {
+  try {
+    // Buscar grupos del semestre
+    const gruposSnap = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('semestre', '==', parseInt(semestre))
+      .get();
+    
+    if (gruposSnap.empty) {
+      alert(`No hay grupos en ${semestre}° semestre`);
+      return;
+    }
+    
+    let alumnosEliminados = 0;
+    let asignacionesDesactivadas = 0;
+    
+    // Por cada grupo
+    for (const grupoDoc of gruposSnap.docs) {
+      // Buscar alumnos
+      const alumnosSnap = await db.collection('usuarios')
+        .where('rol', '==', 'alumno')
+        .where('grupoId', '==', grupoDoc.id)
+        .get();
+      
+      // Eliminar alumnos
+      const batch = db.batch();
+      alumnosSnap.forEach(alumnoDoc => {
+        batch.delete(alumnoDoc.ref);
+        alumnosEliminados++;
+      });
+      
+      if (alumnosSnap.size > 0) {
+        await batch.commit();
+      }
+    }
+    
+    // Desactivar asignaciones del semestre
+    const asignaciones = await db.collection('profesorMaterias')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .get();
+    
+    const batchAsig = db.batch();
+    
+    for (const asigDoc of asignaciones.docs) {
+      const asig = asigDoc.data();
+      // Verificar si el grupo pertenece al semestre
+      for (const grupoDoc of gruposSnap.docs) {
+        if (asig.grupoId === grupoDoc.id && asig.activa) {
+          batchAsig.update(asigDoc.ref, {
+            activa: false,
+            fechaFin: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          asignacionesDesactivadas++;
+          break;
+        }
+      }
+    }
+    
+    if (asignacionesDesactivadas > 0) {
+      await batchAsig.commit();
+    }
+    
+    alert(
+      `Curso finalizado\n\n` +
+      `Alumnos eliminados: ${alumnosEliminados}\n` +
+      `Asignaciones desactivadas: ${asignacionesDesactivadas}\n\n` +
+      `Las calificaciones se conservan en el historial.`
+    );
+    
+    cerrarModal();
+    cargarAlumnos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al finalizar curso');
+  }
+}
+
+
+
+// ===== ELIMINAR ALUMNO =====
+
+async function eliminarAlumno(alumnoId) {
+  const confirmacion = confirm(
+    'ELIMINAR ALUMNO\n\n' +
+    'ADVERTENCIA: Esta acción es PERMANENTE.\n\n' +
+    'El alumno será eliminado pero sus calificaciones\n' +
+    'se conservarán en el historial.\n\n' +
+    '¿Continuar?'
+  );
+  
+  if (!confirmacion) return;
+  
+  const confirmacion2 = prompt('Escribe "ELIMINAR" para confirmar:');
+  
+  if (confirmacion2 !== 'ELIMINAR') {
+    return;
+  }
+  
+  try {
+    await db.collection('usuarios').doc(alumnoId).delete();
+    alert('Alumno eliminado exitosamente');
+    cargarAlumnos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al eliminar alumno');
+  }
+}
+
+
+// ===== HISTORIAL DE ALUMNOS =====
+
+function mostrarHistorialAlumnos() {
+  const html = `
+    <div style="background: white; padding: 30px; border-radius: 15px; max-width: 900px; margin: 20px auto;">
+      <h3 style="margin: 0 0 20px 0; color: #667eea;">Historial de Alumnos</h3>
+      
+      <div style="margin-bottom: 20px;">
+        <label style="display: block; margin-bottom: 5px; font-weight: 600;">Filtrar por estado:</label>
+        <select id="filtroEstadoHistorial" onchange="cargarHistorialAlumnos()" 
+                style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+          <option value="todos">Todos los alumnos</option>
+          <option value="activos">Solo activos</option>
+          <option value="inactivos">Solo inactivos</option>
+        </select>
+      </div>
+      
+      <div id="listaHistorialAlumnos" style="max-height: 500px; overflow-y: auto;">
+        Cargando...
+      </div>
+      
+      <div style="margin-top: 20px;">
+        <button onclick="cerrarModal()" style="width: 100%; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          Cerrar
+        </button>
+      </div>
+    </div>
+  `;
+  
+  document.getElementById('contenidoModal').innerHTML = html;
+  document.getElementById('modalGenerico').style.display = 'flex';
+  
+  cargarHistorialAlumnos();
+}
+
+async function cargarHistorialAlumnos() {
+  const container = document.getElementById('listaHistorialAlumnos');
+  const filtro = document.getElementById('filtroEstadoHistorial').value;
+  
+  try {
+    let query = db.collection('usuarios')
+      .where('rol', '==', 'alumno')
+      .where('carreraId', '==', usuarioActual.carreraId);
+    
+    if (filtro === 'activos') {
+      query = query.where('activo', '==', true);
+    } else if (filtro === 'inactivos') {
+      query = query.where('activo', '==', false);
+    }
+    
+    const snapshot = await query.get();
+    
+    if (snapshot.empty) {
+      container.innerHTML = '<p style="text-align: center; color: #999;">No hay alumnos</p>';
+      return;
+    }
+    
+    let html = '<div style="display: grid; gap: 15px;">';
+    
+    for (const doc of snapshot.docs) {
+      const alumno = doc.data();
+      
+      // Obtener calificaciones del alumno
+      const calificaciones = await db.collection('calificaciones')
+        .where('alumnoId', '==', doc.id)
+        .get();
+      
+      const materiasMap = {};
+      
+      calificaciones.forEach(calDoc => {
+        const cal = calDoc.data();
+        const materiaId = cal.materiaId;
+        
+        if (!materiasMap[materiaId]) {
+          materiasMap[materiaId] = {
+            materiaNombre: cal.materiaNombre || materiaId,
+            periodo: cal.periodo,
+            parciales: cal.parciales || {}
+          };
+        }
+      });
+      
+      const numMaterias = Object.keys(materiasMap).length;
+      const estado = alumno.activo ? 'Activo' : 'Inactivo';
+      const colorEstado = alumno.activo ? '#28a745' : '#dc3545';
+      
+      html += `
+        <div style="padding: 15px; border: 2px solid #ddd; border-radius: 10px; background: white;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              <h4 style="margin: 0 0 5px 0;">${alumno.nombre} <span style="color: ${colorEstado}; font-size: 0.9rem;">(${estado})</span></h4>
+              <p style="margin: 5px 0; color: #666;">Matrícula: ${alumno.matricula || 'N/A'}</p>
+              <p style="margin: 5px 0; color: #666;">Materias cursadas: ${numMaterias}</p>
+            </div>
+            <button onclick="verDetalleHistorial('${doc.id}', '${alumno.nombre}')" 
+                    style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
+              Ver Historial Completo
+            </button>
+          </div>
+        </div>
+      `;
+    }
+    
+    html += '</div>';
+    container.innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    container.innerHTML = '<p style="color: red;">Error al cargar historial</p>';
+  }
+}
+
+async function verDetalleHistorial(alumnoId, nombreAlumno) {
+  try {
+    // Obtener todas las calificaciones del alumno
+    const calificaciones = await db.collection('calificaciones')
+      .where('alumnoId', '==', alumnoId)
+      .get();
+    
+    if (calificaciones.empty) {
+      alert('Este alumno no tiene calificaciones registradas');
+      return;
+    }
+    
+    const materiasMap = {};
+    
+    calificaciones.forEach(calDoc => {
+      const cal = calDoc.data();
+      const key = `${cal.materiaId}_${cal.periodo}`;
+      
+      materiasMap[key] = {
+        materiaNombre: cal.materiaNombre || 'Materia',
+        materiaCodigo: cal.materiaCodigo || '',
+        periodo: cal.periodo || 'N/A',
+        parcial1: cal.parciales?.parcial1 || '-',
+        parcial2: cal.parciales?.parcial2 || '-',
+        parcial3: cal.parciales?.parcial3 || '-'
+      };
+    });
+    
+    let html = `
+      <div style="background: white; padding: 30px; border-radius: 15px; max-width: 1000px; margin: 20px auto;">
+        <h3 style="margin: 0 0 20px 0; color: #667eea;">Historial Académico: ${nombreAlumno}</h3>
+        
+        <div style="overflow-x: auto;">
+          <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+              <tr style="background: #667eea; color: white;">
+                <th style="padding: 12px; border: 1px solid #ddd;">Materia</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Periodo</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Parcial 1</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Parcial 2</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Parcial 3</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Promedio</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    Object.values(materiasMap).forEach(materia => {
+      const p1 = parseFloat(materia.parcial1);
+      const p2 = parseFloat(materia.parcial2);
+      const p3 = parseFloat(materia.parcial3);
+      
+      let promedio = '-';
+      const validos = [];
+      if (!isNaN(p1)) validos.push(p1);
+      if (!isNaN(p2)) validos.push(p2);
+      if (!isNaN(p3)) validos.push(p3);
+      
+      if (validos.length > 0) {
+        promedio = (validos.reduce((a, b) => a + b, 0) / validos.length).toFixed(1);
+      }
+      
+      html += `
+        <tr>
+          <td style="padding: 10px; border: 1px solid #ddd;">${materia.materiaNombre}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.periodo}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.parcial1}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.parcial2}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.parcial3}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${promedio}</td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top: 20px;">
+          <button onclick="mostrarHistorialAlumnos()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Volver
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('contenidoModal').innerHTML = html;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar detalle del historial');
   }
 }
