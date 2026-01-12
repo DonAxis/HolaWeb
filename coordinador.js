@@ -3425,8 +3425,14 @@ async function cargarGruposEnSelector(selectId) {
     const snapshot = await db.collection('grupos')
       .where('carreraId', '==', usuarioActual.carreraId)
       .where('activo', '==', true)
-      .orderBy('ordenamiento')
       .get();
+    
+    // Ordenar en cliente
+    const grupos = [];
+    snapshot.forEach(doc => {
+      grupos.push({ id: doc.id, data: doc.data() });
+    });
+    grupos.sort((a, b) => (a.data.ordenamiento || 0) - (b.data.ordenamiento || 0));
     
     if (snapshot.empty) {
       select.innerHTML = '<option value="">No hay grupos disponibles</option>';
@@ -3435,12 +3441,11 @@ async function cargarGruposEnSelector(selectId) {
     
     select.innerHTML = '<option value="">Seleccionar grupo...</option>';
     
-    snapshot.forEach(doc => {
-      const grupo = doc.data();
+    grupos.forEach(item => {
       const option = document.createElement('option');
-      option.value = doc.id;
-      option.textContent = grupo.nombre;
-      option.dataset.nombre = grupo.nombre;
+      option.value = item.id;
+      option.textContent = item.data.nombre;
+      option.dataset.nombre = item.data.nombre;
       select.appendChild(option);
     });
     
