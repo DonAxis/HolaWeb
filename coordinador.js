@@ -612,12 +612,19 @@ async function mostrarFormAsignarProfesor() {
  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
  gruposQuery = gruposQuery.where('carreraId', '==', usuarioActual.carreraId);
  }
- gruposQuery = gruposQuery.where('activo', '==', true).orderBy('ordenamiento');
+ gruposQuery = gruposQuery.where('activo', '==', true);
  const gruposSnap = await gruposQuery.get();
- let gruposHtml = '<option value="">Seleccionar grupo...</option>';
+ 
+ // Ordenar en cliente
+ const gruposArray = [];
  gruposSnap.forEach(doc => {
- const grp = doc.data();
- gruposHtml += `<option value="${doc.id}" data-nombre="${grp.nombre}">${grp.nombre} (Semestre ${grp.semestre})</option>`;
+ gruposArray.push({ id: doc.id, data: doc.data() });
+ });
+ gruposArray.sort((a, b) => (a.data.ordenamiento || 0) - (b.data.ordenamiento || 0));
+ 
+ let gruposHtml = '<option value="">Seleccionar grupo...</option>';
+ gruposArray.forEach(item => {
+ gruposHtml += `<option value="${item.id}" data-nombre="${item.data.nombre}">${item.data.nombre}</option>`;
  });
  
  const html = `
@@ -839,12 +846,19 @@ async function mostrarFormInscribirAlumno() {
  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
  gruposQuery = gruposQuery.where('carreraId', '==', usuarioActual.carreraId);
  }
- gruposQuery = gruposQuery.where('activo', '==', true).orderBy('ordenamiento');
+ gruposQuery = gruposQuery.where('activo', '==', true);
  const gruposSnap = await gruposQuery.get();
- let gruposHtml = '<option value="">Seleccionar grupo...</option>';
+ 
+ // Ordenar en cliente
+ const gruposArray = [];
  gruposSnap.forEach(doc => {
- const grp = doc.data();
- gruposHtml += `<option value="${doc.id}" data-nombre="${grp.nombre}">${grp.nombre} (Semestre ${grp.semestre})</option>`;
+ gruposArray.push({ id: doc.id, data: doc.data() });
+ });
+ gruposArray.sort((a, b) => (a.data.ordenamiento || 0) - (b.data.ordenamiento || 0));
+ 
+ let gruposHtml = '<option value="">Seleccionar grupo...</option>';
+ gruposArray.forEach(item => {
+ gruposHtml += `<option value="${item.id}" data-nombre="${item.data.nombre}">${item.data.nombre}</option>`;
  });
  
  const html = `
