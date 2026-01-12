@@ -294,7 +294,7 @@ async function cargarMaterias() {
  <div class="item">
  <div class="item-info">
  <h4>${materia.nombre}</h4>
- <p>Grupo: ${materia.codigo} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
+ <p>Grupo: ${materia.ordenamiento} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
  </div>
  <div class="item-acciones">
  <button onclick="editarMateria('${doc.id}')" class="btn-editar"> Editar</button>
