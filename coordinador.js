@@ -3043,7 +3043,8 @@ async function generarGruposSimple(event) {
         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
       };
       
-      const ref = db.collection('grupos').doc();
+      // Usar el nombre del grupo como ID del documento
+      const ref = db.collection('grupos').doc(nombreGrupo);
       batch.set(ref, nuevoGrupo);
     }
     
