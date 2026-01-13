@@ -294,7 +294,7 @@ async function cargarMaterias() {
  <div class="item">
  <div class="item-info">
  <h4>${materia.nombre}</h4>
- <p>Grupo: ${materia.ordenamiento} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
+ <p>Grupo: ${materia.codigo} | Créditos: ${materia.creditos || 0} | Semestre: ${materia.semestre || 'N/A'}</p>
  </div>
  <div class="item-acciones">
  <button onclick="editarMateria('${doc.id}')" class="btn-editar"> Editar</button>
@@ -337,8 +337,9 @@ function mostrarFormMateria(materiaId = null) {
  </div>
  <div style="margin-bottom: 15px;">
  <label style="display: block; margin-bottom: 5px; font-weight: 600;">Semestre:</label>
- <input type="number" id="semestre" min="1" max="12" value="1"
- style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px;">
+ <input type="number" id="semestre" min="1" max="12" value="1" readonly
+ style="width: 100%; padding: 10px; border: 2px solid #ddd; border-radius: 8px; background: #f5f5f5;">
+ <small style="color: #666; display: block; margin-top: 5px;">Se asigna automáticamente según el grupo seleccionado</small>
  </div>
  <div style="display: flex; gap: 10px; margin-top: 20px;">
  <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
@@ -357,6 +358,26 @@ function mostrarFormMateria(materiaId = null) {
  
  // Cargar grupos en el selector
  cargarGruposEnSelector('codigoMateria');
+ 
+ // Agregar listener para actualizar semestre cuando cambie el grupo
+ setTimeout(() => {
+ const grupoSelect = document.getElementById('codigoMateria');
+ if (grupoSelect) {
+ grupoSelect.addEventListener('change', async function() {
+ const grupoId = this.value;
+ if (grupoId) {
+ try {
+ const grupoDoc = await db.collection('grupos').doc(grupoId).get();
+ if (grupoDoc.exists) {
+ document.getElementById('semestre').value = grupoDoc.data().semestre || 1;
+ }
+ } catch (error) {
+ console.error('Error:', error);
+ }
+ }
+ });
+ }
+ }, 500);
  
  if (esEdicion) {
  cargarDatosMateria(materiaId);
@@ -1355,7 +1376,7 @@ async function guardarAlumno(event, alumnoId) {
  userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
  await db.collection('usuarios').add(userData);
  
- alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\ncontrolAlumno.html`);
+ alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
  }
  
  cerrarModal();
