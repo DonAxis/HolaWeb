@@ -1318,6 +1318,7 @@ async function mostrarFormAlumno(alumnoId = null) {
  
  <div class="form-botones">
  <button type="submit" class="btn-guardar"> Guardar</button>
+ ` + (esEdicion ? `<button type="button" onclick="eliminarAlumnoDesdeEdicion('` + alumnoId + `')" style="background: #dc3545;"> Eliminar Alumno</button>` : '') + `
  <button type="button" onclick="cerrarModal()" class="btn-cancelar"> Cancelar</button>
  </div>
  </form>
@@ -3414,17 +3415,15 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
         promedio = (validos.reduce((a, b) => a + b, 0) / validos.length).toFixed(1);
       }
       
-      html += `
-        <tr>
-          <td style="padding: 10px; border: 1px solid #ddd;">${materia.materiaNombre}</td>
-          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.periodo}</td>
-          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.parcial1}</td>
-          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.parcial2}</td>
-          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.parcial3}</td>
-          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${promedio}</td>
-        </tr>
-      `;
-    }
+      html += '<tr>' +
+        '<td style="padding: 10px; border: 1px solid #ddd;">' + materia.materiaNombre + '</td>' +
+        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.periodo + '</td>' +
+        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial1 + '</td>' +
+        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial2 + '</td>' +
+        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial3 + '</td>' +
+        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">' + promedio + '</td>' +
+        '</tr>';
+    });
     
     html += `
             </tbody>
