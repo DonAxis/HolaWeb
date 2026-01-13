@@ -3493,3 +3493,34 @@ async function cargarGruposEnSelector(selectId) {
     }
   }
 }
+
+
+
+// ===== ELIMINAR ALUMNO DESDE EDICIÓN =====
+
+async function eliminarAlumnoDesdeEdicion(alumnoId) {
+  const confirmacion1 = confirm(
+    'ELIMINAR ALUMNO\n\n' +
+    'ADVERTENCIA: Esta acción es PERMANENTE.\n\n' +
+    'El alumno será eliminado pero sus calificaciones\n' +
+    'se conservarán en el historial.\n\n' +
+    '¿Continuar?'
+  );
+  
+  if (!confirmacion1) return;
+  
+  const confirmacion2 = confirm('¿Estás seguro? Esta acción no se puede deshacer.');
+  
+  if (!confirmacion2) return;
+  
+  try {
+    await db.collection('usuarios').doc(alumnoId).delete();
+    alert('Alumno eliminado exitosamente');
+    cerrarModal();
+    cargarAlumnos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al eliminar alumno');
+  }
+}
