@@ -321,13 +321,22 @@
  </button>
  </div>
  
- <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
- <label style="font-weight: 600; margin-right: 10px;">Filtrar por estado:</label>
- <select id="filtroEstadoAlumnos" onchange="cargarAlumnos()" style="padding: 8px 12px; border: 2px solid #ddd; border-radius: 5px;">
+ <div style="background: white; padding: 15px; border-radius: 8px; margin-bottom: 15px; display: grid; grid-template-columns: 1fr 1fr; gap: 15px;">
+ <div>
+ <label style="font-weight: 600; display: block; margin-bottom: 5px;">Filtrar por estado:</label>
+ <select id="filtroEstadoAlumnos" onchange="cargarAlumnos()" style="width: 100%; padding: 8px 12px; border: 2px solid #ddd; border-radius: 5px;">
  <option value="todos">Todos</option>
  <option value="activos">Solo estudiando</option>
  <option value="inactivos">Solo suspendidos</option>
  </select>
+ </div>
+ 
+ <div>
+ <label style="font-weight: 600; display: block; margin-bottom: 5px;">Filtrar por grupo:</label>
+ <select id="filtroGrupoAlumnos" onchange="cargarAlumnos()" style="width: 100%; padding: 8px 12px; border: 2px solid #ddd; border-radius: 5px;">
+ <option value="todos">Todos los grupos</option>
+ </select>
+ </div>
  </div>
  
  <div id="listaAlumnos" class="lista-items"></div>

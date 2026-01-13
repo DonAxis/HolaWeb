@@ -3424,7 +3424,7 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
           <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">${promedio}</td>
         </tr>
       `;
-    });
+    }
     
     html += `
             </tbody>
