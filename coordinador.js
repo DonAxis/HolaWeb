@@ -252,85 +252,85 @@ async function ejecutarCambioPeriodo(event) {
 
 // ===== PROTECCIÓN Y AUTENTICACIÓN =====
 auth.onAuthStateChanged(async (user) => {
- if (!user) {
- console.log(' No hay sesión activa');
- //alert('Debes iniciar sesión');
- window.location.href = 'login.html';
- return;
- }
+  if (!user) {
+    console.log('⚠ No hay sesión activa');
+    alert('Debes iniciar sesión');
+    window.location.href = 'login.html';
+    return;
+  }
 
- try {
- const userDoc = await db.collection('usuarios').doc(user.uid).get();
- 
- if (!userDoc.exists) {
- console.log(' Usuario no encontrado');
- await auth.signOut();
- window.location.href = 'login.html';
- return;
- }
+  try {
+    const userDoc = await db.collection('usuarios').doc(user.uid).get();
+    
+    if (!userDoc.exists) {
+      console.log('⚠ Usuario no encontrado');
+      await auth.signOut();
+      window.location.href = 'login.html';
+      return;
+    }
 
- usuarioActual = userDoc.data();
- usuarioActual.uid = user.uid;
+    usuarioActual = userDoc.data();
+    usuarioActual.uid = user.uid;
 
- // Verificar rol (coordinador o admin)
- if (usuarioActual.rol !== 'coordinador' && usuarioActual.rol !== 'admin') {
- console.log(' No tienes permisos de coordinador');
- alert('No tienes permisos para acceder');
- window.location.href = 'login.html';
- return;
- }
+    // Verificar rol (coordinador o admin)
+    if (usuarioActual.rol !== 'coordinador' && usuarioActual.rol !== 'admin') {
+      console.log('⚠ No tienes permisos de coordinador');
+      alert('No tienes permisos para acceder');
+      window.location.href = 'login.html';
+      return;
+    }
 
- console.log(' Coordinador autorizado:', usuarioActual.nombre);
- 
- // Mostrar info del usuario
- document.getElementById('userName').textContent = usuarioActual.nombre;
- document.getElementById('userEmail').textContent = user.email;
- 
- // Mostrar opción de carreras solo para admin
- if (usuarioActual.rol === 'admin') {
- document.getElementById('menuCarreras').style.display = 'block';
- }
- 
- // Cargar carrera del coordinador
- await cargarCarrera();
- 
- } catch (error) {
- console.error(' Error:', error);
- alert('Error al verificar permisos');
- window.location.href = 'login.html';
- }
+    console.log('✅ Coordinador autorizado:', usuarioActual.nombre);
+    
+    // Cargar periodo actual primero
+    await cargarPeriodoActual();
+    
+    // Mostrar info del usuario (intentar con ambos IDs por compatibilidad)
+    const nombreElem = document.getElementById('nombreUsuario') || document.getElementById('userName');
+    const emailElem = document.getElementById('emailUsuario') || document.getElementById('userEmail');
+    const carreraInfoElem = document.getElementById('carreraInfo');
+    
+    if (nombreElem) nombreElem.textContent = usuarioActual.nombre;
+    if (emailElem) emailElem.textContent = user.email;
+    
+    // Mostrar opción de carreras solo para admin
+    if (usuarioActual.rol === 'admin') {
+      const menuCarreras = document.getElementById('menuCarreras');
+      if (menuCarreras) menuCarreras.style.display = 'block';
+    }
+    
+    // Cargar carrera
+    if (usuarioActual.rol === 'admin') {
+      if (carreraInfoElem) carreraInfoElem.textContent = 'Administrador - Todas las carreras';
+    } else if (usuarioActual.carreraId) {
+      try {
+        const carreraDoc = await db.collection('carreras').doc(usuarioActual.carreraId).get();
+        if (carreraDoc.exists) {
+          const carrera = carreraDoc.data();
+          if (carreraInfoElem) carreraInfoElem.textContent = `Carrera: ${carrera.nombre}`;
+          
+          // También actualizar en user-info si existe
+          const carreraUsuarioElem = document.getElementById('carreraUsuario');
+          if (carreraUsuarioElem) carreraUsuarioElem.textContent = carrera.nombre;
+          
+          carreraActual = carrera;
+        } else {
+          if (carreraInfoElem) carreraInfoElem.textContent = 'Carrera no encontrada';
+        }
+      } catch (error) {
+        console.error('Error al cargar carrera:', error);
+        if (carreraInfoElem) carreraInfoElem.textContent = 'Error al cargar carrera';
+      }
+    } else {
+      if (carreraInfoElem) carreraInfoElem.textContent = 'Sin carrera asignada';
+    }
+    
+  } catch (error) {
+    console.error('❌ Error:', error);
+    alert('Error al verificar permisos: ' + error.message);
+    window.location.href = 'login.html';
+  }
 });
-
-// Cargar información de la carrera del coordinador
-async function cargarCarrera() {
- if (usuarioActual.rol === 'admin') {
- document.getElementById('carreraInfo').textContent = 'Administrador - Todas las carreras';
- return;
- }
-
- if (!usuarioActual.carreraId) {
- document.getElementById('carreraInfo').textContent = ' Sin carrera asignada - Contacta al administrador';
- document.getElementById('carreraInfo').style.color = '#ff5252';
- 
- // Deshabilitar acceso si no tiene carrera
- alert('No tienes una carrera asignada. Contacta al administrador.');
- return;
- }
-
- try {
- const carreraDoc = await db.collection('carreras').doc(usuarioActual.carreraId).get();
- if (carreraDoc.exists) {
- carreraActual = carreraDoc.data();
- carreraActual.id = carreraDoc.id;
- document.getElementById('carreraInfo').textContent = ` Carrera: ${carreraActual.nombre}`;
- } else {
- document.getElementById('carreraInfo').textContent = ' Carrera no encontrada';
- document.getElementById('carreraInfo').style.color = '#ff5252';
- }
- } catch (error) {
- console.error('Error al cargar carrera:', error);
- }
-}
 
 // Cerrar sesión
 async function cerrarSesion() {
