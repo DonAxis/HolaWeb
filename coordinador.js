@@ -3553,9 +3553,12 @@ async function eliminarAlumnoDesdeEdicion(alumnoId) {
     alert('Alumno eliminado exitosamente');
     cerrarModal();
     cargarAlumnos();
-    
   } catch (error) {
     console.error('Error:', error);
     alert('Error al eliminar alumno');
-  }
+
+}-e }
+}
+}
+}
 }
