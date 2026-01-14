@@ -1,0 +1,204 @@
+@startuml Estructura Firestore
+
+!define COLLECTION(x) class x << (C,#FF6655) Collection >>
+!define DOCUMENT(x) class x << (D,#66AAFF) Document >>
+
+title Sistema de Gestión Escolar - Estructura Firestore
+
+package "Collections" {
+  
+  COLLECTION(usuarios) {
+    + uid: string
+    + nombre: string
+    + email: string
+    + rol: string (alumno|profesor|coordinador|admin)
+    + activo: boolean
+    --
+    **Si es Alumno:**
+    + matricula: string
+    + grupoId: string
+    + carreraId: string
+    + periodo: string ⭐ NUEVO
+    + semestreActual: number ⭐ NUEVO
+    + generacion: string ⭐ NUEVO
+    + graduado: boolean
+    + fechaGraduacion: timestamp
+    + periodoGraduacion: string
+    --
+    **Si es Profesor:**
+    + carreras: array<string>
+    --
+    **Si es Coordinador:**
+    + carreraId: string
+    + esProfesor: boolean (opcional)
+  }
+  
+  COLLECTION(carreras) {
+    + nombre: string
+    + codigo: string
+    + activa: boolean
+    + fechaActualizacion: timestamp
+  }
+  
+  COLLECTION(materias) {
+    + nombre: string
+    + codigo: string
+    + creditos: number
+    + semestre: number
+    + carreraId: string
+    + fechaActualizacion: timestamp
+  }
+  
+  COLLECTION(grupos) {
+    + nombre: string (formato: TSGG-SIGLA)
+    + semestre: number
+    + turno: string
+    + carreraId: string
+    + activo: boolean
+    + ordenamiento: number
+    + fechaCreacion: timestamp
+  }
+  
+  COLLECTION(profesorMaterias) {
+    + materiaId: string
+    + materiaNombre: string
+    + materiaCodigo: string
+    + profesorId: string
+    + profesorNombre: string
+    + grupoId: string
+    + grupoNombre: string
+    + carreraId: string
+    + periodo: string ⭐ IMPORTANTE
+    + activa: boolean
+    + fechaAsignacion: timestamp
+    + fechaFin: timestamp
+  }
+  
+  COLLECTION(alumnoMaterias) {
+    + alumnoId: string
+    + alumnoNombre: string
+    + alumnoMatricula: string
+    + materiaId: string
+    + materiaNombre: string
+    + materiaCodigo: string
+    + grupoId: string
+    + grupoNombre: string
+    + carreraId: string
+    + periodo: string
+    + inscrito: boolean
+    + fechaInscripcion: timestamp
+    + fechaBaja: timestamp
+  }
+  
+  COLLECTION(calificaciones) {
+    **DocID:** {alumnoId}_{materiaId}
+    + alumnoId: string
+    + materiaId: string
+    + grupoId: string
+    + profesorId: string
+    + periodo: string
+    + parciales: {
+      - parcial1: number|"NP"|null
+      - parcial2: number|"NP"|null
+      - parcial3: number|"NP"|null
+    }
+    + actualizadoPor: string
+    + fechaActualizacion: timestamp
+  }
+  
+  COLLECTION(config) {
+    **Doc:** periodoActual
+    + periodo: string (ej: "2026-1")
+    + fechaCambio: timestamp
+    + periodoAnterior: string
+  }
+}
+
+' ===== RELACIONES =====
+usuarios "1" -- "0..*" profesorMaterias : profesor
+usuarios "1" -- "0..*" alumnoMaterias : alumno
+usuarios "0..*" -- "1" grupos : pertenece
+usuarios "0..*" -- "1" carreras : coordinador
+
+materias "1" -- "0..*" profesorMaterias
+materias "1" -- "0..*" alumnoMaterias
+materias "1" -- "0..*" calificaciones
+materias "0..*" -- "1" carreras
+
+grupos "1" -- "0..*" profesorMaterias
+grupos "1" -- "0..*" alumnoMaterias
+grupos "0..*" -- "1" carreras
+
+profesorMaterias "1" -- "0..*" calificaciones
+
+carreras "1" -- "0..*" materias
+carreras "1" -- "0..*" grupos
+
+' ===== NOTAS =====
+note right of usuarios
+  **REGLA DE NEGOCIO**
+  
+  Los campos periodo, semestreActual
+  y generacion son CRÍTICOS para
+  el sistema de periodos.
+  
+  Se actualizan automáticamente
+  al cambiar de periodo.
+end note
+
+note right of calificaciones
+  **REGLA DE CALIFICACIÓN**
+  
+  Si parcial1, parcial2 o parcial3
+  contiene "NP":
+    → Promedio = 5.0
+  
+  Si no hay "NP":
+    → Promedio = (suma válidos) / cantidad
+  
+  Escala: 0-10 o "NP"
+end note
+
+note right of grupos
+  **FORMATO DE NOMBRE**
+  
+  TSGG-SIGLA
+  
+  T = Turno (1=Matutino, 2=Vesp, 3=Noct)
+  S = Semestre (1-9)
+  GG = Número de grupo (01-99)
+  SIGLA = Carrera
+  
+  Ejemplos:
+  - 1201-MAT (Matutino, 2do, grupo 01, Matemáticas)
+  - 2501-LI (Vespertino, 5to, grupo 01, LI)
+end note
+
+note right of config
+  **PERIODO ACTUAL**
+  
+  Formato: YYYY-S
+  S = 1 (Enero-Junio) o 2 (Julio-Dic)
+  
+  Periodos disponibles:
+  2024-1, 2024-2
+  2025-1, 2025-2
+  2026-1, 2026-2 ← Default
+  2027-1, 2027-2
+  2028-1, 2028-2
+end note
+
+note right of profesorMaterias
+  **FILTRADO POR PERIODO**
+  
+  Todas las consultas de
+  asignaciones DEBEN filtrar
+  por periodo activo.
+  
+  Al cambiar periodo:
+  - Las activas se desactivan
+  - Se crean nuevas para
+    el nuevo periodo
+end note
+
+@enduml

@@ -1,0 +1,69 @@
+@startuml Sistema de Periodos - Flujo de Cambio
+
+title Cambio de Periodo Académico - Flujo Completo
+
+actor Coordinador
+participant "ControlCoordinador.html" as UI
+participant "coordinador.js" as JS
+database "Firestore" as DB
+
+== Inicialización ==
+Coordinador -> UI: Accede al sistema
+UI -> JS: cargarPeriodoActual()
+JS -> DB: GET config/periodoActual
+DB --> JS: periodo: "2026-1"
+JS -> UI: Mostrar periodo en 3 lugares:\n- Header\n- User info\n- Footer
+
+== Cambio de Periodo ==
+Coordinador -> UI: Click "Cambiar Periodo"
+UI -> JS: mostrarCambioPeriodo()
+JS -> JS: generarPeriodos()\n(2024-1 a 2028-2)
+JS -> UI: Mostrar modal con selector
+
+Coordinador -> UI: Selecciona "2026-2"
+Coordinador -> UI: Click "Cambiar Periodo"
+UI -> JS: ejecutarCambioPeriodo(event)
+
+JS -> Coordinador: Confirmación:\n"De 2026-1 a 2026-2\n¿Continuar?"
+Coordinador -> JS: Confirma
+
+== Procesamiento ==
+JS -> UI: Mostrar "Cambiando periodo..."
+
+loop Para cada alumno activo
+    JS -> DB: GET usuarios\n.where('periodo', '==', '2026-1')\n.where('activo', '==', true)
+    DB --> JS: Lista de alumnos
+    
+    JS -> JS: semestreActual++
+    
+    alt Semestre > 9
+        JS -> DB: UPDATE usuario\n{activo: false,\ngraduado: true,\nperiodoGraduacion: "2026-2"}
+        note right: Alumno se gradúa
+    else Semestre <= 9
+        JS -> JS: Calcular nuevo grupo\nEj: 1201-MAT → 1301-MAT
+        JS -> DB: UPDATE usuario\n{semestreActual: 3,\ngrupoId: "1301-MAT",\nperiodo: "2026-2"}
+        note right: Alumno avanza
+    end
+end
+
+== Desactivar Asignaciones ==
+JS -> DB: GET profesorMaterias\n.where('periodo', '==', '2026-1')\n.where('activa', '==', true)
+DB --> JS: Lista de asignaciones
+
+loop Para cada asignación
+    JS -> DB: UPDATE profesorMaterias\n{activa: false,\nfechaFin: timestamp}
+end
+
+== Actualizar Config ==
+JS -> DB: UPDATE config/periodoActual\n{periodo: "2026-2",\nperiodoAnterior: "2026-1"}
+DB --> JS: OK
+
+JS -> JS: periodoActual = "2026-2"
+JS -> UI: Actualizar displays
+
+== Resultado ==
+JS -> Coordinador: "CAMBIO COMPLETADO\n\nAlumnos avanzados: 45\nAlumnos graduados: 12\nAsignaciones desactivadas: 8"
+Coordinador -> UI: Click "OK"
+UI -> UI: location.reload()
+
+@enduml

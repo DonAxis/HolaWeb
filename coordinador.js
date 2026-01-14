@@ -2311,7 +2311,7 @@ async function cambiarPeriodoActivo() {
  if (infoPeriodo) {
  infoPeriodo.innerHTML = `
  <div style="text-align: center; padding: 20px;">
- <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">⏳ Cambiando periodo...</div>
+ <div style="font-size: 18px; font-weight: 600; margin-bottom: 10px;">Cambiando periodo...</div>
  <div style="color: #666;">Por favor espera, esto puede tomar unos momentos.</div>
  </div>
  `;
@@ -2404,9 +2404,9 @@ async function cambiarPeriodoActivo() {
  
  // 7. Mostrar resultado
  alert(
- `✅ CAMBIO DE PERIODO COMPLETADO\n\n` +
+ `CAMBIO DE PERIODO COMPLETADO\n\n` +
  `Nuevo periodo: ${nuevoPeriodo}\n\n` +
- `📊 Estadísticas:\n` +
+ `Estadísticas:\n` +
  `• Alumnos avanzados: ${alumnosAvanzados}\n` +
  `• Alumnos graduados: ${alumnosGraduados}\n` +
  `• Asignaciones desactivadas: ${asignacionesDesactivadas}\n\n` +
@@ -2418,7 +2418,7 @@ async function cambiarPeriodoActivo() {
  
  } catch (error) {
  console.error('Error:', error);
- alert('❌ Error al cambiar periodo: ' + error.message);
+ alert('Error al cambiar periodo: ' + error.message);
  select.value = periodoActual;
  
  // Restaurar info

@@ -1,0 +1,213 @@
+@startuml Sistema de Gestión Escolar
+
+' ===== CONFIGURACIÓN =====
+left to right direction
+skinparam actorStyle awesome
+skinparam packageStyle rectangle
+
+' ===== ACTORES =====
+actor "Coordinador" as coord #lightgreen
+actor "Profesor" as prof #salmon
+actor "Alumno" as alumno #lightblue
+actor "Sistema\nFirebase" as firebase #gray
+
+' ===== PAQUETES PRINCIPALES =====
+
+package "Gestión Académica" {
+  
+  package "Gestión de Periodos" #TECHNOLOGY {
+    usecase (UC01: Ver Periodo Actual) as UC01
+    usecase (UC02: Cambiar Periodo) as UC02
+    usecase (UC03: Avanzar Alumnos\nde Semestre) as UC03
+    usecase (UC04: Graduar Alumnos) as UC04
+  }
+  
+  package "Gestión de Estructura" #BUSINESS {
+    usecase (UC05: Crear Carrera) as UC05
+    usecase (UC06: Crear/Editar Materias) as UC06
+    usecase (UC07: Generar Grupos) as UC07
+    usecase (UC08: Activar/Desactivar Grupos) as UC08
+  }
+  
+  package "Gestión de Usuarios" #BUSINESS {
+    usecase (UC09: Crear Profesores) as UC09
+    usecase (UC10: Crear Alumnos) as UC10
+    usecase (UC11: Editar Usuarios) as UC11
+    usecase (UC12: Activar/Desactivar\nUsuarios) as UC12
+  }
+  
+  package "Asignaciones" #BUSINESS {
+    usecase (UC13: Asignar Profesor\na Materia) as UC13
+    usecase (UC14: Inscribir Alumno\na Materia) as UC14
+    usecase (UC15: Gestionar\nAsignaciones) as UC15
+  }
+}
+
+package "Gestión de Calificaciones" {
+  
+  package "Captura de Calificaciones" #APPLICATION {
+    usecase (UC16: Seleccionar Materia) as UC16
+    usecase (UC17: Capturar\nCalificaciones) as UC17
+    usecase (UC18: Guardar\nCalificaciones) as UC18
+    usecase (UC19: Calcular Promedios) as UC19
+  }
+  
+  package "Consulta de Calificaciones" #APPLICATION {
+    usecase (UC20: Ver Mis\nCalificaciones) as UC20
+    usecase (UC21: Ver Boleta) as UC21
+    usecase (UC22: Ver Historial\nAcadémico) as UC22
+  }
+  
+  package "Reportes" #APPLICATION {
+    usecase (UC23: Generar Acta PDF) as UC23
+    usecase (UC24: Ver Historial\nde Alumnos) as UC24
+  }
+}
+
+package "Sistema de Autenticación" #IMPLEMENTATION {
+  usecase (UC25: Iniciar Sesión) as UC25
+  usecase (UC26: Cerrar Sesión) as UC26
+  usecase (UC27: Verificar Permisos) as UC27
+}
+
+' ===== RELACIONES COORDINADOR =====
+coord --> UC01
+coord --> UC02
+coord --> UC05
+coord --> UC06
+coord --> UC07
+coord --> UC08
+coord --> UC09
+coord --> UC10
+coord --> UC11
+coord --> UC12
+coord --> UC13
+coord --> UC14
+coord --> UC15
+coord --> UC16
+coord --> UC17
+coord --> UC18
+coord --> UC23
+coord --> UC24
+coord --> UC25
+coord --> UC26
+
+' ===== RELACIONES PROFESOR =====
+prof --> UC16
+prof --> UC17
+prof --> UC18
+prof --> UC20 : "Ver de\nsus alumnos"
+prof --> UC25
+prof --> UC26
+
+' ===== RELACIONES ALUMNO =====
+alumno --> UC20
+alumno --> UC21
+alumno --> UC25 : "Consulta pública\n(sin login)"
+
+' ===== RELACIONES ENTRE CASOS DE USO =====
+UC02 ..> UC03 : <<include>>
+UC02 ..> UC04 : <<include>>
+UC03 ..> UC08 : <<include>>
+
+UC17 ..> UC19 : <<include>>
+UC18 ..> UC19 : <<include>>
+
+UC20 ..> UC19 : <<include>>
+UC21 ..> UC19 : <<include>>
+UC22 ..> UC19 : <<include>>
+
+UC23 ..> UC19 : <<include>>
+
+UC25 ..> UC27 : <<include>>
+
+UC13 ..> UC07 : <<require>>
+UC13 ..> UC06 : <<require>>
+UC13 ..> UC09 : <<require>>
+
+UC14 ..> UC10 : <<require>>
+UC14 ..> UC06 : <<require>>
+
+UC17 ..> UC13 : <<require>>
+
+' ===== RELACIONES CON FIREBASE =====
+firebase <.. UC18 : <<store>>
+firebase <.. UC10 : <<store>>
+firebase <.. UC09 : <<store>>
+firebase <.. UC25 : <<authenticate>>
+firebase ..> UC20 : <<retrieve>>
+firebase ..> UC01 : <<retrieve>>
+
+' ===== NOTAS IMPORTANTES =====
+note right of UC02
+  **IMPORTANTE**
+  Cambiar periodo avanza
+  TODOS los alumnos
+  automáticamente
+  
+  Periodos: 2024-1 a 2028-2
+end note
+
+note right of UC19
+  **REGLA DE NEGOCIO**
+  Si hay NP en cualquier
+  parcial, promedio = 5.0
+  
+  Escala: 0-10 o NP
+end note
+
+note right of UC07
+  **FORMATO**
+  TSGG-SIGLA
+  T = Turno (1,2,3)
+  S = Semestre (1-9)
+  GG = Grupo (01-99)
+  
+  Ej: 1201-MAT
+end note
+
+note left of UC25
+  **3 TIPOS DE ACCESO**
+  
+  Coordinador:
+  - Login obligatorio
+  - Gestión completa
+  
+  Profesor:
+  - Login obligatorio
+  - Solo sus materias
+  
+  Alumno:
+  - Consulta pública
+  - Por matrícula
+end note
+
+note bottom of firebase
+  **FIRESTORE COLLECTIONS**
+  - usuarios
+  - carreras
+  - materias
+  - grupos
+  - profesorMaterias
+  - alumnoMaterias
+  - calificaciones
+  - config
+end note
+
+' ===== COLORES POR ROL =====
+note right of coord
+  **Color: Verde**
+  #216A32
+end note
+
+note right of prof
+  **Color: Rojo Vino**
+  #6A2135
+end note
+
+note right of alumno
+  **Color: Rojo Vino**
+  #6A2135
+end note
+
+@enduml
