@@ -2283,7 +2283,7 @@ async function cambiarPeriodoActivo() {
 
 // Crear nuevo periodo
 async function crearNuevoPeriodo() {
- const año = prompt('Año del periodo (ej: 2026):');
+ const año = prompt('Año del periodo (ej: 2026-1 o 2026-2):');
  if (!año || isNaN(año)) return;
  
  const semestre = prompt('Semestre (1 o 2):');
