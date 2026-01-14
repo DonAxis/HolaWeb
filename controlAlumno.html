@@ -254,15 +254,24 @@
         `;
         
         materias.forEach(materia => {
-          // Calcular promedio (NP = 0, ignorar null/-)
-          const cals = [materia.parcial1, materia.parcial2, materia.parcial3]
-            .filter(c => c !== '-' && c !== null && c !== undefined)
-            .map(c => c === 'NP' ? 0 : parseFloat(c))
-            .filter(c => !isNaN(c));
+          // REGLA DE NEGOCIO: Si hay NP en cualquier parcial, promedio = 5.0
+          const tieneNP = materia.parcial1 === 'NP' || materia.parcial2 === 'NP' || materia.parcial3 === 'NP';
           
-          const promedio = cals.length > 0 
-            ? (cals.reduce((a, b) => a + b, 0) / cals.length).toFixed(1)
-            : '-';
+          let promedio = '-';
+          
+          if (tieneNP) {
+            promedio = '5.0';
+          } else {
+            // Calcular promedio normal si no hay NP
+            const cals = [materia.parcial1, materia.parcial2, materia.parcial3]
+              .filter(c => c !== '-' && c !== null && c !== undefined)
+              .map(c => parseFloat(c))
+              .filter(c => !isNaN(c));
+            
+            if (cals.length > 0) {
+              promedio = (cals.reduce((a, b) => a + b, 0) / cals.length).toFixed(1);
+            }
+          }
           
           html += `
             <tr style="border-bottom: 1px solid #eee;">

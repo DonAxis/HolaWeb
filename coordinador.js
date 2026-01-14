@@ -1948,12 +1948,27 @@ function generarDropdownCalif(index, parcial, valor) {
 
 // Calcular promedio
 function calcularPromedioAlumno(alumno) {
- const cals = [alumno.calificaciones.parcial1, alumno.calificaciones.parcial2, alumno.calificaciones.parcial3]
- .filter(c => c !== null && c !== '' && c !== 'NP')
- .map(c => parseFloat(c));
+ const parciales = [
+ alumno.calificaciones.parcial1, 
+ alumno.calificaciones.parcial2, 
+ alumno.calificaciones.parcial3
+ ];
  
+ // REGLA DE NEGOCIO: Si hay NP en cualquier parcial, promedio = 5.0
+ if (parciales.includes('NP')) {
+ return '5.0';
+ }
+ 
+ // Filtrar solo valores numéricos válidos
+ const cals = parciales
+ .filter(c => c !== null && c !== '' && c !== undefined)
+ .map(c => parseFloat(c))
+ .filter(c => !isNaN(c));
+ 
+ // Si no hay calificaciones, retornar guión
  if (cals.length === 0) return '-';
  
+ // Calcular promedio normal
  const suma = cals.reduce((a, b) => a + b, 0);
  return (suma / cals.length).toFixed(1);
 }
@@ -3794,6 +3809,22 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     `;
     
     Object.values(materiasMap).forEach(materia => {
+      // REGLA DE NEGOCIO: Si hay NP en cualquier parcial, promedio = 5.0
+      if (materia.parcial1 === 'NP' || materia.parcial2 === 'NP' || materia.parcial3 === 'NP') {
+        const promedio = '5.0';
+        
+        html += '<tr>' +
+          '<td style="padding: 10px; border: 1px solid #ddd;">' + materia.materiaNombre + '</td>' +
+          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.periodo + '</td>' +
+          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial1 + '</td>' +
+          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial2 + '</td>' +
+          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial3 + '</td>' +
+          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">' + promedio + '</td>' +
+          '</tr>';
+        return;
+      }
+      
+      // Cálculo normal si no hay NP
       const p1 = parseFloat(materia.parcial1);
       const p2 = parseFloat(materia.parcial2);
       const p3 = parseFloat(materia.parcial3);
