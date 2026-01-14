@@ -6,7 +6,7 @@
 
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #6A2135 0%, #6A3221 100%);
       min-height: 100vh;
       padding: 20px;
     }
@@ -25,7 +25,7 @@
     }
 
     h1 {
-      color: #667eea;
+      color: #6A2135;
       text-align: center;
       margin-bottom: 10px;
       font-size: 2rem;
@@ -60,14 +60,14 @@
 
     input:focus {
       outline: none;
-      border-color: #667eea;
+      border-color: #6A2135;
       box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
     }
 
     .btn-consultar {
       width: 100%;
       padding: 15px;
-      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      background: linear-gradient(135deg, #6A2135 0%, #6A3221 100%);
       color: white;
       border: none;
       border-radius: 10px;
@@ -141,7 +141,7 @@
     }
 
     .seccion h3 {
-      color: #667eea;
+      color: #6A2135;
       margin-bottom: 20px;
       padding-bottom: 10px;
       border-bottom: 2px solid #e0e0e0;
@@ -152,7 +152,7 @@
       padding: 20px;
       border-radius: 10px;
       margin-bottom: 15px;
-      border-left: 4px solid #667eea;
+      border-left: 4px solid #6A2135;
     }
 
     .materia-card h4 {
@@ -198,8 +198,8 @@
 
     .btn-nuevo {
       background: #f5f5f5;
-      color: #667eea;
-      border: 2px solid #667eea;
+      color: #6A2135;
+      border: 2px solid #6A2135;
       padding: 12px 30px;
       border-radius: 10px;
       cursor: pointer;
@@ -211,7 +211,7 @@
     }
 
     .btn-nuevo:hover {
-      background: #667eea;
+      background: #6A2135;
       color: white;
     }
 

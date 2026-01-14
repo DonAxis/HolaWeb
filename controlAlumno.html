@@ -11,16 +11,16 @@
   <div class="container">
     <!-- FORMULARIO DE CONSULTA -->
     <div id="loginCard" class="login-card">
-      <h1> Consulta de Calificaciones</h1>
+      <h1>Consulta de Calificaciones</h1>
       <p class="subtitle">Ingresa tu matrícula y correo para consultar tus calificaciones</p>
       
       <!-- Botón logout solo si hay sesión activa -->
       <div id="sessionAlert" style="display: none; background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
         <p style="margin: 0 0 10px 0; color: #856404;">
-           Tienes una sesión activa. Los alumnos ya no necesitan iniciar sesión.
+          Tienes una sesión activa. Los alumnos ya no necesitan iniciar sesión.
         </p>
         <button onclick="cerrarSesion()" style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; font-weight: 600;">
-           Cerrar Sesión
+          Cerrar Sesión
         </button>
       </div>
 
@@ -36,7 +36,7 @@
         </div>
 
         <button type="submit" class="btn-consultar" id="btnConsultar">
-           Consultar
+          Consultar
         </button>
       </form>
     </div>
@@ -62,13 +62,13 @@
           </div>
         </div>
 
-        <button onclick="nuevaConsulta()" class="btn-nuevo"> Nueva Consulta</button>
-        <button class="btn-horario" title="Próximamente"> Ver Horario (Próximamente)</button>
+        <button onclick="nuevaConsulta()" class="btn-nuevo">Nueva Consulta</button>
+        <button class="btn-horario" title="Próximamente">Ver Horario (Próximamente)</button>
       </div>
 
       <!-- MATERIAS Y CALIFICACIONES -->
       <div class="seccion">
-        <h3> Mis Materias</h3>
+        <h3>Mis Materias</h3>
         <div id="listaMaterias"></div>
       </div>
     </div>
@@ -94,7 +94,7 @@
     async function cerrarSesion() {
       try {
         await firebase.auth().signOut();
-        alert(' Sesión cerrada. Ahora puedes consultar como alumno o ir al login del staff.');
+        alert('Sesión cerrada. Ahora puedes consultar como alumno o ir al login del staff.');
         window.location.href = 'login.html';
       } catch (error) {
         console.error('Error:', error);
@@ -110,7 +110,7 @@
       const btnConsultar = document.getElementById('btnConsultar');
       
       btnConsultar.disabled = true;
-      btnConsultar.textContent = ' Consultando...';
+      btnConsultar.textContent = 'Consultando...';
       
       try {
         // Buscar alumno por matrícula y email
@@ -122,9 +122,9 @@
           .get();
         
         if (snapshot.empty) {
-          alert(' No se encontró ningún alumno con esa matrícula y correo.\n\nVerifica tus datos.');
+          alert('No se encontró ningún alumno con esa matrícula y correo.\n\nVerifica tus datos.');
           btnConsultar.disabled = false;
-          btnConsultar.textContent = ' Consultar';
+          btnConsultar.textContent = 'Consultar';
           return;
         }
         
@@ -141,7 +141,7 @@
         console.error('Error:', error);
         alert('Error al consultar. Intenta de nuevo.');
         btnConsultar.disabled = false;
-        btnConsultar.textContent = ' Consultar';
+        btnConsultar.textContent = 'Consultar';
       }
     }
 
@@ -238,11 +238,11 @@
         // Generar tabla tipo boleta
         let html = `
           <div style="background: white; padding: 20px; border-radius: 10px;">
-            <h3 style="color: #667eea; margin: 0 0 20px 0; text-align: center;"> Boleta de Calificaciones</h3>
+            <h3 style="color: #6A2135; margin: 0 0 20px 0; text-align: center;">Boleta de Calificaciones</h3>
             <div style="overflow-x: auto; -webkit-overflow-scrolling: touch;">
               <table style="width: 100%; min-width: 600px; border-collapse: collapse;">
               <thead>
-                <tr style="background: #667eea; color: white;">
+                <tr style="background: #6A2135; color: white;">
                   <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Materia</th>
                   <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 90px; min-width: 90px;">Parcial 1</th>
                   <th style="padding: 12px; text-align: center; border: 1px solid #ddd; width: 90px; min-width: 90px;">Parcial 2</th>
@@ -268,7 +268,7 @@
             <tr style="border-bottom: 1px solid #eee;">
               <td style="padding: 12px; border: 1px solid #ddd;">
                 <strong>${materia.nombre}</strong>
-                <br><small style="color: #666;"> ${materia.profesor}</small>
+                <br><small style="color: #666;">${materia.profesor}</small>
               </td>
               <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial1 === 'NP' ? '#ff9800' : (materia.parcial1 !== '-' ? '#4caf50' : '#999')};">
                 ${materia.parcial1}
@@ -279,7 +279,7 @@
               <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.2rem; font-weight: bold; color: ${materia.parcial3 === 'NP' ? '#ff9800' : (materia.parcial3 !== '-' ? '#4caf50' : '#999')};">
                 ${materia.parcial3}
               </td>
-              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.3rem; font-weight: bold; background: #f0f7ff; color: #667eea;">
+              <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-size: 1.3rem; font-weight: bold; background: #f0f7ff; color: #6A2135;">
                 ${promedio}
               </td>
             </tr>
@@ -291,7 +291,7 @@
               </table>
             </div>
             <p style="text-align: center; color: #999; font-size: 0.85rem; margin-top: 10px;">
-               Desliza horizontalmente para ver todas las columnas
+              Desliza horizontalmente para ver todas las columnas
             </p>
           </div>
         `;
@@ -309,7 +309,7 @@
       document.getElementById('resultado').style.display = 'none';
       document.getElementById('formConsulta').reset();
       document.getElementById('btnConsultar').disabled = false;
-      document.getElementById('btnConsultar').textContent = ' Consultar';
+      document.getElementById('btnConsultar').textContent = 'Consultar';
       alumnoActual = null;
     }
   </script>

@@ -63,12 +63,12 @@ function mostrarCambioPeriodo() {
   
   const html = `
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: 20px auto;">
-      <h3 style="margin: 0 0 20px 0; color: #667eea;">Cambiar Periodo Académico</h3>
+      <h3 style="margin: 0 0 20px 0; color: #216A32;">Cambiar Periodo Académico</h3>
       
       <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
         <div style="margin-bottom: 15px;">
           <label style="display: block; margin-bottom: 5px; font-weight: 600;">Periodo actual:</label>
-          <div style="font-size: 24px; font-weight: bold; color: #667eea;">${periodoActual}</div>
+          <div style="font-size: 24px; font-weight: bold; color: #216A32;">${periodoActual}</div>
         </div>
         
         <div>
@@ -96,7 +96,7 @@ function mostrarCambioPeriodo() {
       
       <form onsubmit="ejecutarCambioPeriodo(event)">
         <div style="display: flex; gap: 10px;">
-          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
             Cambiar Periodo
           </button>
           <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
@@ -562,7 +562,7 @@ function mostrarFormMateria(materiaId = null) {
  
  const html = `
  <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: 20px auto;">
- <h3 style="margin: 0 0 20px 0; color: #667eea;">${esEdicion ? 'Editar Materia' : 'Nueva Materia'}</h3>
+ <h3 style="margin: 0 0 20px 0; color: #216A32;">${esEdicion ? 'Editar Materia' : 'Nueva Materia'}</h3>
  <form onsubmit="guardarMateria(event, '${materiaId || ''}')">
  <div style="margin-bottom: 15px;">
  <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nombre de la Materia:</label>
@@ -587,7 +587,7 @@ function mostrarFormMateria(materiaId = null) {
  <small style="color: #666; display: block; margin-top: 5px;">Se asigna automáticamente según el grupo seleccionado</small>
  </div>
  <div style="display: flex; gap: 10px; margin-top: 20px;">
- <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+ <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
  Guardar
  </button>
  <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
@@ -1738,8 +1738,8 @@ function cambiarModo(modo) {
  if (modo === 'coordinador') {
  // Activar modo coordinador
  tabCoord.style.background = 'white';
- tabCoord.style.color = '#667eea';
- tabCoord.style.borderBottom = '3px solid #667eea';
+ tabCoord.style.color = '#216A32';
+ tabCoord.style.borderBottom = '3px solid #216A32';
  
  tabProf.style.background = 'rgba(255,255,255,0.2)';
  tabProf.style.color = 'white';
@@ -1879,7 +1879,7 @@ function generarTablaCalificaciones() {
  <div style="overflow-x: auto;">
  <table style="width: 100%; border-collapse: collapse; min-width: 600px;">
  <thead>
- <tr style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white;">
+ <tr style="background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white;">
  <th style="padding: 12px; text-align: left; border: 1px solid #ddd;">Alumno</th>
  <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Matrícula</th>
  <th style="padding: 12px; text-align: center; border: 1px solid #ddd;">Parcial 1</th>
@@ -1911,7 +1911,7 @@ function generarTablaCalificaciones() {
  <td style="padding: 12px; text-align: center; border: 1px solid #ddd;">
  ${generarDropdownCalif(index, 'parcial3', alumno.calificaciones.parcial3)}
  </td>
- <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 1.2rem; color: #667eea;">
+ <td style="padding: 12px; text-align: center; border: 1px solid #ddd; font-weight: bold; font-size: 1.2rem; color: #216A32;">
  ${promedio}
  </td>
  </tr>
@@ -2379,11 +2379,11 @@ async function cargarListaPeriodos() {
  const tamañoEstimado = (stats.calificaciones || 0) * 0.5; // KB aproximados
  
  html += `
- <div style="padding: 15px; border: 2px solid ${esActivo ? '#667eea' : '#ddd'}; border-radius: 10px; background: ${esActivo ? '#f0f4ff' : 'white'};">
+ <div style="padding: 15px; border: 2px solid ${esActivo ? '#216A32' : '#ddd'}; border-radius: 10px; background: ${esActivo ? '#f0f4ff' : 'white'};">
  <div style="display: flex; justify-content: space-between; align-items: center;">
  <div>
  <h4 style="margin: 0 0 10px 0; color: #333;">
- ${periodo} ${esActivo ? '<span style="background: #667eea; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">ACTIVO</span>' : ''}
+ ${periodo} ${esActivo ? '<span style="background: #216A32; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">ACTIVO</span>' : ''}
  </h4>
  <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">
  Asignaciones: ${stats.asignaciones} (${stats.activas} activas) | 
@@ -2395,7 +2395,7 @@ async function cargarListaPeriodos() {
  ${!esActivo ? `<button onclick="eliminarPeriodo('${periodo}')" 
  style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
  Eliminar
- </button>` : '<span style="color: #667eea; font-weight: 600;">En uso</span>'}
+ </button>` : '<span style="color: #216A32; font-weight: 600;">En uso</span>'}
  </div>
  </div>
  </div>
@@ -2467,7 +2467,7 @@ async function eliminarPeriodo(periodo) {
 function mostrarPromocionSemestre() {
  const html = `
  <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: 20px auto;">
- <h3 style="margin: 0 0 20px 0; color: #667eea;">Promover Alumnos de Semestre</h3>
+ <h3 style="margin: 0 0 20px 0; color: #216A32;">Promover Alumnos de Semestre</h3>
  
  <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
  <strong>Importante:</strong> Esta acción moverá TODOS los alumnos del semestre origen al destino.
@@ -2518,7 +2518,7 @@ function mostrarPromocionSemestre() {
  Vista Previa
  </button>
  <button type="submit" 
- style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+ style="flex: 1; padding: 12px; background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
  Ejecutar Promoción
  </button>
  <button type="button" onclick="cerrarModal()" 
@@ -2561,7 +2561,7 @@ async function previsualizarPromocion() {
  }
  
  let html = '<table style="width: 100%; border-collapse: collapse;">';
- html += '<tr style="background: #667eea; color: white;"><th style="padding: 8px; border: 1px solid #ddd;">Grupo Actual</th><th style="padding: 8px; border: 1px solid #ddd;">→</th><th style="padding: 8px; border: 1px solid #ddd;">Grupo Nuevo</th><th style="padding: 8px; border: 1px solid #ddd;">Alumnos</th></tr>';
+ html += '<tr style="background: #216A32; color: white;"><th style="padding: 8px; border: 1px solid #ddd;">Grupo Actual</th><th style="padding: 8px; border: 1px solid #ddd;">→</th><th style="padding: 8px; border: 1px solid #ddd;">Grupo Nuevo</th><th style="padding: 8px; border: 1px solid #ddd;">Alumnos</th></tr>';
  
  let totalAlumnos = 0;
  
@@ -2583,7 +2583,7 @@ async function previsualizarPromocion() {
  html += `<tr>
  <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${nombreActual}</td>
  <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">→</td>
- <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #667eea;">${nuevoNombre}</td>
+ <td style="padding: 8px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: #216A32;">${nuevoNombre}</td>
  <td style="padding: 8px; border: 1px solid #ddd; text-align: center;">${alumnos.size}</td>
  </tr>`;
  }
@@ -2741,7 +2741,7 @@ async function verificarYGenerarGrupos() {
 function mostrarFormularioGeneracionInicial() {
  const html = `
  <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: 20px auto;">
- <h3 style="margin: 0 0 20px 0; color: #667eea;">Configuración Inicial de Grupos</h3>
+ <h3 style="margin: 0 0 20px 0; color: #216A32;">Configuración Inicial de Grupos</h3>
  
  <div style="background: #d1ecf1; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #0c5460;">
  <strong>Primera vez:</strong> Configura la estructura de grupos para tu carrera.
@@ -2800,7 +2800,7 @@ function mostrarFormularioGeneracionInicial() {
  Vista Previa
  </button>
  <button type="submit" 
- style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+ style="flex: 1; padding: 12px; background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
  Generar Grupos
  </button>
  <button type="button" onclick="cerrarModal()" 
@@ -2841,7 +2841,7 @@ function previsualizarGrupos() {
  
  turnos.forEach(turno => {
  html += `<div style="margin-bottom: 20px;">`;
- html += `<h4 style="margin: 0 0 10px 0; color: #667eea;">${turno.nombre}</h4>`;
+ html += `<h4 style="margin: 0 0 10px 0; color: #216A32;">${turno.nombre}</h4>`;
  html += `<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 10px;">`;
  
  for (let sem = 1; sem <= numSemestres; sem++) {
@@ -2969,7 +2969,7 @@ async function gestionarEstructuraGrupos() {
  
  const html = `
  <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: 20px auto;">
- <h3 style="margin: 0 0 20px 0; color: #667eea;">Ajustar Estructura de Grupos</h3>
+ <h3 style="margin: 0 0 20px 0; color: #216A32;">Ajustar Estructura de Grupos</h3>
  
  <div style="background: #fff3cd; padding: 15px; border-radius: 8px; margin-bottom: 20px; border-left: 4px solid #ffc107;">
  <strong>Configuración actual:</strong><br>
@@ -2994,7 +2994,7 @@ async function gestionarEstructuraGrupos() {
  
  <div style="display: flex; gap: 10px; margin-top: 20px;">
  <button type="submit" 
- style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+ style="flex: 1; padding: 12px; background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
  Aplicar
  </button>
  <button type="button" onclick="cerrarModal()" 
@@ -3181,7 +3181,7 @@ async function regenerarEstructura() {
 function mostrarGenerarGrupos() {
   const html = `
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: 20px auto;">
-      <h3 style="margin: 0 0 20px 0; color: #667eea;">Generar Grupos</h3>
+      <h3 style="margin: 0 0 20px 0; color: #216A32;">Generar Grupos</h3>
       
       <form onsubmit="generarGruposSimple(event)">
         <div style="margin-bottom: 20px;">
@@ -3215,7 +3215,7 @@ function mostrarGenerarGrupos() {
         </div>
         
         <div style="display: flex; gap: 10px; margin-top: 20px;">
-          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
             Generar
           </button>
           <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
@@ -3491,7 +3491,7 @@ async function eliminarAlumno(alumnoId) {
 function mostrarHistorialAlumnos() {
   const html = `
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 900px; margin: 20px auto;">
-      <h3 style="margin: 0 0 20px 0; color: #667eea;">Historial de Alumnos</h3>
+      <h3 style="margin: 0 0 20px 0; color: #216A32;">Historial de Alumnos</h3>
       
       <div style="margin-bottom: 20px;">
         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Filtrar por estado:</label>
@@ -3581,7 +3581,7 @@ async function cargarHistorialAlumnos() {
               <p style="margin: 5px 0; color: #666;">Materias cursadas: ${numMaterias}</p>
             </div>
             <button onclick="verDetalleHistorial('${doc.id}', '${alumno.nombre}')" 
-                    style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    style="padding: 10px 20px; background: #216A32; color: white; border: none; border-radius: 8px; cursor: pointer;">
               Ver Historial Completo
             </button>
           </div>
@@ -3628,12 +3628,12 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     
     let html = `
       <div style="background: white; padding: 30px; border-radius: 15px; max-width: 1000px; margin: 20px auto;">
-        <h3 style="margin: 0 0 20px 0; color: #667eea;">Historial Académico: ${nombreAlumno}</h3>
+        <h3 style="margin: 0 0 20px 0; color: #216A32;">Historial Académico: ${nombreAlumno}</h3>
         
         <div style="overflow-x: auto;">
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
-              <tr style="background: #667eea; color: white;">
+              <tr style="background: #216A32; color: white;">
                 <th style="padding: 12px; border: 1px solid #ddd;">Materia</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Periodo</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Parcial 1</th>
@@ -3676,7 +3676,7 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
         </div>
         
         <div style="margin-top: 20px;">
-          <button onclick="mostrarHistorialAlumnos()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          <button onclick="mostrarHistorialAlumnos()" style="width: 100%; padding: 12px; background: #216A32; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
             Volver
           </button>
         </div>
