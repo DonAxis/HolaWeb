@@ -441,28 +441,24 @@
  </div>
 
  <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
- <h3 style="margin-top: 0;">Periodo Activo</h3>
- <div style="display: grid; gap: 15px;">
- <div>
- <label style="display: block; margin-bottom: 5px; font-weight: 600;">Selecciona el periodo actual:</label>
+ <h3 style="margin-top: 0;">Configuración de Periodo</h3>
+ <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #216A32;">
+ <label style="display: block; margin-bottom: 10px; font-weight: 600; font-size: 1.1rem;">Selecciona el periodo actual:</label>
  <select id="selectPeriodoActivo" onchange="cambiarPeriodoActivo()" 
- style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+ style="width: 100%; max-width: 300px; padding: 12px; border: 2px solid #216A32; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
  <option value="">Cargando...</option>
  </select>
- <small style="color: #666; display: block; margin-top: 5px;">
- Todo el sistema se filtrará por este periodo
- </small>
+ <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
+ <strong>Importante:</strong> Al cambiar el periodo, todos los alumnos activos avanzarán al siguiente semestre automáticamente.
  </div>
- <button onclick="crearNuevoPeriodo()" 
- style="padding: 12px 24px; background: linear-gradient(135deg, #216A32 0%, #21596A 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
- Crear Nuevo Periodo
- </button>
  </div>
  </div>
 
  <div style="background: white; padding: 20px; border-radius: 10px;">
- <h3 style="margin-top: 0;">Historial de Periodos</h3>
- <div id="listaPeriodos"></div>
+ <h3 style="margin-top: 0;">Información del Periodo Actual</h3>
+ <div id="infoPeriodoActual" style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+ <p style="margin: 0;">Cargando información...</p>
+ </div>
  </div>
  </div>
 

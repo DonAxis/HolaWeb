@@ -952,56 +952,6 @@ async function guardarAsignacionProfesor(event) {
  
  const periodo = document.getElementById('periodoAsignar').value.trim();
  
- // Verificar si ya existe esta asignación activa
- const existe = await db.collection('profesorMaterias')
- .where('materiaId', '==', materiaId)
- .where('grupoId', '==', grupoId)
- .where('periodo', '==', periodo)
- .where('activa', '==', true)
- .get();
- 
- if (!existe.empty) {
- if (!confirm('Ya existe un profesor asignado a esta materia y grupo en este periodo.\n¿Deseas desactivar la asignación anterior y crear una nueva?')) {
- return;
- }
- 
- // Desactivar asignaciones anteriores
- const batch = db.batch();
- existe.forEach(doc => {
- batch.update(doc.ref, { 
- activa: false,
- fechaFin: firebase.firestore.FieldValue.serverTimestamp()
- });
- });
- await batch.commit();
- }
- 
- // Crear nueva asignación
- const asignacion = {
- materiaId: materiaId,
- materiaNombre: materiaNombre,
- materiaCodigo: materiaCodigo,
- profesorId: profesorId,
- profesorNombre: profesorNombre,
- grupoId: grupoId,
- grupoNombre: grupoNombre,
- carreraId: usuarioActual.carreraId || null,
- periodo: periodo,
- activa: true,
- fechaAsignacion: firebase.firestore.FieldValue.serverTimestamp()
- };
- 
- try {
- await db.collection('profesorMaterias').add(asignacion);
- alert(' Profesor asignado correctamente');
- cerrarModal();
- cargarAsignaciones();
- } catch (error) {
- console.error('Error:', error);
- alert('Error al asignar profesor');
- }
-}
-
 async function desactivarAsignacion(asignacionId) {
  if (!confirm('¿Desactivar esta asignación?\n\nEl profesor ya no aparecerá como responsable de esta materia.')) {
  return;
@@ -1947,14 +1897,34 @@ function generarDropdownCalif(index, parcial, valor) {
 
 // Calcular promedio
 function calcularPromedioAlumno(alumno) {
- const cals = [alumno.calificaciones.parcial1, alumno.calificaciones.parcial2, alumno.calificaciones.parcial3]
- .filter(c => c !== null && c !== '' && c !== 'NP')
- .map(c => parseFloat(c));
- 
- if (cals.length === 0) return '-';
- 
- const suma = cals.reduce((a, b) => a + b, 0);
- return (suma / cals.length).toFixed(1);
+  const p1 = alumno.calificaciones.parcial1;
+  const p2 = alumno.calificaciones.parcial2;
+  const p3 = alumno.calificaciones.parcial3;
+  
+  // Si cualquier parcial es NP, el promedio es 5
+  if (p1 === 'NP' || p2 === 'NP' || p3 === 'NP') {
+    return '5.0';
+  }
+  
+  // Filtrar valores válidos
+  const validos = [];
+  if (p1 !== null && p1 !== '' && p1 !== '-') {
+    const num = parseFloat(p1);
+    if (!isNaN(num)) validos.push(num);
+  }
+  if (p2 !== null && p2 !== '' && p2 !== '-') {
+    const num = parseFloat(p2);
+    if (!isNaN(num)) validos.push(num);
+  }
+  if (p3 !== null && p3 !== '' && p3 !== '-') {
+    const num = parseFloat(p3);
+    if (!isNaN(num)) validos.push(num);
+  }
+  
+  if (validos.length === 0) return '-';
+  
+  const suma = validos.reduce((a, b) => a + b, 0);
+  return (suma / validos.length).toFixed(1);
 }
 
 // Guardar todas las calificaciones
@@ -2189,9 +2159,6 @@ async function cargarPeriodos() {
  // Actualizar selector
  await actualizarSelectorPeriodos();
  
- // Cargar lista de periodos con estadísticas
- await cargarListaPeriodos();
- 
  } catch (error) {
  console.error('Error:', error);
  }
@@ -2203,212 +2170,118 @@ function generarPeriodoActual() {
  const año = fecha.getFullYear();
  const mes = fecha.getMonth() + 1; // 0-11
  const semestre = mes <= 6 ? 1 : 2;
- return `${año}-${semestre}`;
-}
-
 // Actualizar selector de periodos
 async function actualizarSelectorPeriodos() {
- const select = document.getElementById('selectPeriodoActivo');
- if (!select) return;
- 
- try {
- // Obtener todos los periodos únicos de profesorMaterias
- const snapshot = await db.collection('profesorMaterias')
- .where('carreraId', '==', usuarioActual.carreraId)
- .get();
- 
- const periodosSet = new Set();
- snapshot.forEach(doc => {
- const periodo = doc.data().periodo;
- if (periodo) periodosSet.add(periodo);
- });
- 
- // Agregar periodo activo si no está
- if (periodoActivo) periodosSet.add(periodoActivo);
- 
- // Ordenar periodos
- const periodos = Array.from(periodosSet).sort().reverse();
- 
- // Llenar selector
- select.innerHTML = '';
- periodos.forEach(periodo => {
- const option = document.createElement('option');
- option.value = periodo;
- option.textContent = periodo + (periodo === periodoActivo ? ' (Activo)' : '');
- if (periodo === periodoActivo) option.selected = true;
- select.appendChild(option);
- });
- 
- if (periodos.length === 0) {
- select.innerHTML = '<option value="">Sin periodos</option>';
- }
- 
- } catch (error) {
- console.error('Error:', error);
- }
+  const select = document.getElementById('selectPeriodoActivo');
+  if (!select) return;
+  
+  try {
+    // Generar lista de periodos (año actual - 4 años hacia atrás, + 2 hacia adelante)
+    const añoActual = new Date().getFullYear();
+    const periodos = [];
+    
+    for (let año = añoActual - 4; año <= añoActual + 2; año++) {
+      periodos.push(`${año}-1`);
+      periodos.push(`${año}-2`);
+    }
+    
+    // Llenar selector
+    select.innerHTML = '';
+    periodos.forEach(periodo => {
+      const option = document.createElement('option');
+      option.value = periodo;
+      
+      if (periodo === periodoActual) {
+        option.textContent = `${periodo} ⭐ (Activo)`;
+        option.selected = true;
+        option.style.fontWeight = 'bold';
+        option.style.background = '#e8f5e9';
+      } else {
+        option.textContent = periodo;
+      }
+      
+      select.appendChild(option);
+    });
+    
+    // Actualizar info del periodo
+    actualizarInfoPeriodo();
+    
+  } catch (error) {
+    console.error('Error:', error);
+  }
+}
+
+// Actualizar información del periodo actual
+async function actualizarInfoPeriodo() {
+  const infoDiv = document.getElementById('infoPeriodoActual');
+  if (!infoDiv) return;
+  
+  try {
+    // Contar alumnos activos en el periodo
+    const alumnosSnap = await db.collection('usuarios')
+      .where('rol', '==', 'alumno')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('periodo', '==', periodoActual)
+      .where('activo', '==', true)
+      .get();
+    
+    // Contar asignaciones activas
+    const asignacionesSnap = await db.collection('profesorMaterias')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('periodo', '==', periodoActual)
+      .where('activa', '==', true)
+      .get();
+    
+    infoDiv.innerHTML = `
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <div style="padding: 15px; background: white; border-radius: 8px; border-left: 4px solid #216A32;">
+          <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">Periodo Activo</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #216A32;">${periodoActual}</div>
+        </div>
+        <div style="padding: 15px; background: white; border-radius: 8px; border-left: 4px solid #2196F3;">
+          <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">Alumnos Activos</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #2196F3;">${alumnosSnap.size}</div>
+        </div>
+        <div style="padding: 15px; background: white; border-radius: 8px; border-left: 4px solid #FF9800;">
+          <div style="color: #666; font-size: 0.9rem; margin-bottom: 5px;">Asignaciones Activas</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #FF9800;">${asignacionesSnap.size}</div>
+        </div>
+      </div>
+    `;
+    
+  } catch (error) {
+    console.error('Error:', error);
+    infoDiv.innerHTML = '<p style="color: #dc3545; margin: 0;">Error al cargar información</p>';
+  }
 }
 
 // Cambiar periodo activo
 async function cambiarPeriodoActivo() {
- const select = document.getElementById('selectPeriodoActivo');
- const nuevoPeriodo = select.value;
- 
- if (!nuevoPeriodo || nuevoPeriodo === periodoActivo) return;
- 
- if (!confirm(`¿Cambiar el periodo activo a ${nuevoPeriodo}?\n\nTodo el sistema se filtrará por este periodo.`)) {
- select.value = periodoActivo;
- return;
- }
- 
- try {
- await db.collection('configuracion')
- .doc(`periodo_${usuarioActual.carreraId}`)
- .set({
- periodoActivo: nuevoPeriodo,
- carreraId: usuarioActual.carreraId,
- fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
- }, { merge: true });
- 
- periodoActivo = nuevoPeriodo;
- alert(`Periodo activo cambiado a: ${nuevoPeriodo}\n\nActualiza las secciones para ver los datos del nuevo periodo.`);
- 
- await actualizarSelectorPeriodos();
- 
- } catch (error) {
- console.error('Error:', error);
- alert('Error al cambiar periodo');
- select.value = periodoActivo;
- }
-}
-
-// Crear nuevo periodo
-async function crearNuevoPeriodo() {
- const año = prompt('Año del periodo (ej: 2026-1 o 2026-2):');
- if (!año || isNaN(año)) return;
- 
- const semestre = prompt('Semestre (1 o 2):');
- if (semestre !== '1' && semestre !== '2') {
- alert('Semestre inválido. Debe ser 1 o 2.');
- return;
- }
- 
- const nuevoPeriodo = `${año}-${semestre}`;
- 
- // Verificar si ya existe
- const snapshot = await db.collection('profesorMaterias')
- .where('carreraId', '==', usuarioActual.carreraId)
- .where('periodo', '==', nuevoPeriodo)
- .limit(1)
- .get();
- 
- if (!snapshot.empty) {
- alert(`El periodo ${nuevoPeriodo} ya existe.`);
- return;
- }
- 
- if (confirm(`¿Crear y activar el periodo ${nuevoPeriodo}?`)) {
- await db.collection('configuracion')
- .doc(`periodo_${usuarioActual.carreraId}`)
- .set({
- periodoActivo: nuevoPeriodo,
- carreraId: usuarioActual.carreraId,
- fechaActualizacion: firebase.firestore.FieldValue.serverTimestamp()
- }, { merge: true });
- 
- periodoActivo = nuevoPeriodo;
- alert(`Periodo ${nuevoPeriodo} creado y activado.\n\nAhora puedes crear grupos y asignaciones para este periodo.`);
- 
- await cargarPeriodos();
- }
-}
-
-// Cargar lista de periodos con estadísticas
-async function cargarListaPeriodos() {
- const container = document.getElementById('listaPeriodos');
- if (!container) return;
- 
- try {
- container.innerHTML = '<p style="text-align: center; color: #999;">Cargando...</p>';
- 
- // Obtener periodos únicos
- const snapshot = await db.collection('profesorMaterias')
- .where('carreraId', '==', usuarioActual.carreraId)
- .get();
- 
- const periodoStats = {};
- 
- snapshot.forEach(doc => {
- const periodo = doc.data().periodo;
- if (!periodo) return;
- 
- if (!periodoStats[periodo]) {
- periodoStats[periodo] = {
- asignaciones: 0,
- activas: 0
- };
- }
- 
- periodoStats[periodo].asignaciones++;
- if (doc.data().activa) periodoStats[periodo].activas++;
- });
- 
- // Contar calificaciones por periodo
- const calificacionesSnap = await db.collection('calificaciones')
- .get();
- 
- calificacionesSnap.forEach(doc => {
- const periodo = doc.data().periodo;
- if (periodo && periodoStats[periodo]) {
- periodoStats[periodo].calificaciones = (periodoStats[periodo].calificaciones || 0) + 1;
- }
- });
- 
- // Ordenar periodos
- const periodos = Object.keys(periodoStats).sort().reverse();
- 
- if (periodos.length === 0) {
- container.innerHTML = '<p style="text-align: center; color: #999;">No hay periodos registrados.</p>';
- return;
- }
- 
- let html = '<div style="display: grid; gap: 15px;">';
- 
- periodos.forEach(periodo => {
- const stats = periodoStats[periodo];
- const esActivo = periodo === periodoActivo;
- const tamañoEstimado = (stats.calificaciones || 0) * 0.5; // KB aproximados
- 
- html += `
- <div style="padding: 15px; border: 2px solid ${esActivo ? '#216A32' : '#ddd'}; border-radius: 10px; background: ${esActivo ? '#f0f4ff' : 'white'};">
- <div style="display: flex; justify-content: space-between; align-items: center;">
- <div>
- <h4 style="margin: 0 0 10px 0; color: #333;">
- ${periodo} ${esActivo ? '<span style="background: #216A32; color: white; padding: 2px 8px; border-radius: 4px; font-size: 0.8rem;">ACTIVO</span>' : ''}
- </h4>
- <p style="margin: 5px 0; color: #666; font-size: 0.9rem;">
- Asignaciones: ${stats.asignaciones} (${stats.activas} activas) | 
- Calificaciones: ${stats.calificaciones || 0} | 
- Tamaño: ~${tamañoEstimado.toFixed(1)} KB
- </p>
- </div>
- <div>
- ${!esActivo ? `<button onclick="eliminarPeriodo('${periodo}')" 
- style="padding: 8px 16px; background: #dc3545; color: white; border: none; border-radius: 6px; cursor: pointer; font-size: 0.9rem;">
- Eliminar
- </button>` : '<span style="color: #216A32; font-weight: 600;">En uso</span>'}
- </div>
- </div>
- </div>
- `;
- });
- 
- html += '</div>';
- container.innerHTML = html;
- 
- } catch (error) {
- console.error('Error:', error);
- container.innerHTML = '<p style="color: red;">Error al cargar periodos</p>';
- }
+  const select = document.getElementById('selectPeriodoActivo');
+  const nuevoPeriodo = select.value;
+  
+  if (!nuevoPeriodo || nuevoPeriodo === periodoActual) {
+    return;
+  }
+  
+  // Crear un evento temporal para usar ejecutarCambioPeriodo
+  const fakeEvent = { preventDefault: () => {} };
+  
+  // Establecer el nuevo periodo en el selector temporal
+  const tempInput = document.createElement('input');
+  tempInput.id = 'nuevoPeriodo';
+  tempInput.value = nuevoPeriodo;
+  tempInput.style.display = 'none';
+  document.body.appendChild(tempInput);
+  
+  // Ejecutar cambio de periodo
+  await ejecutarCambioPeriodo(fakeEvent);
+  
+  // Limpiar
+  document.body.removeChild(tempInput);
+  
+  // Actualizar selector
+  await actualizarSelectorPeriodos();
 }
 
 // Eliminar periodo completo
@@ -2717,27 +2590,6 @@ async function ejecutarPromocion(event) {
 
 async function verificarYGenerarGrupos() {
  try {
- // Verificar si ya existen grupos para esta carrera
- const gruposExistentes = await db.collection('grupos')
- .where('carreraId', '==', usuarioActual.carreraId)
- .limit(1)
- .get();
- 
- if (!gruposExistentes.empty) {
- // Ya existen grupos, mostrar gestión normal
- return false;
- }
- 
- // No hay grupos, mostrar formulario de generación inicial
- mostrarFormularioGeneracionInicial();
- return true;
- 
- } catch (error) {
- console.error('Error:', error);
- return false;
- }
-}
-
 function mostrarFormularioGeneracionInicial() {
  const html = `
  <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: 20px auto;">
@@ -3249,67 +3101,6 @@ async function generarGruposSimple(event) {
   };
   const turnoNombre = turnosNombres[turno];
   
-  // Verificar si ya existen grupos
-  const gruposExistentes = await db.collection('grupos')
-    .where('carreraId', '==', usuarioActual.carreraId)
-    .limit(1)
-    .get();
-  
-  if (!gruposExistentes.empty) {
-    const confirmacion = confirm('Ya existen grupos para esta carrera.\n\n¿Deseas agregar más grupos?');
-    if (!confirmacion) {
-      return;
-    }
-  }
-  
-  const confirmacion = confirm(
-    `Se generarán ${numSemestres} grupos ${turnoNombre}:\n\n` +
-    `${turno}101-${sigla}\n` +
-    `${turno}201-${sigla}\n` +
-    `...\n` +
-    `${turno}${numSemestres}01-${sigla}\n\n` +
-    `¿Continuar?`
-  );
-  
-  if (!confirmacion) return;
-  
-  try {
-    const batch = db.batch();
-    
-    for (let sem = 1; sem <= numSemestres; sem++) {
-      const nombreGrupo = `${turno}${sem}01-${sigla}`;
-      
-      const nuevoGrupo = {
-        nombre: nombreGrupo,
-        carreraId: usuarioActual.carreraId,
-        semestre: sem,
-        turno: turnoNombre,
-        activo: true,
-        ordenamiento: parseInt(`${turno}${sem}01`),
-        fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
-      };
-      
-      // Usar el nombre del grupo como ID del documento
-      const ref = db.collection('grupos').doc(nombreGrupo);
-      batch.set(ref, nuevoGrupo);
-    }
-    
-    await batch.commit();
-    
-    alert(`${numSemestres} grupos creados exitosamente`);
-    
-    cerrarModal();
-    cargarGrupos();
-    
-  } catch (error) {
-    console.error('Error:', error);
-    alert('Error al generar grupos');
-  }
-}
-
-
-// ===== ACTIVAR/DESACTIVAR GRUPOS =====
-
 async function desactivarGrupo(grupoId) {
   if (!confirm('¿Desactivar este grupo?\n\nNo aparecerá en asignaciones nuevas.')) {
     return;
