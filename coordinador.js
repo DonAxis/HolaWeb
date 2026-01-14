@@ -37,8 +37,12 @@ async function cargarPeriodoActual() {
       periodoActual = '2026-1';
     }
     
-    // Actualizar display
-    document.getElementById('periodoActualDisplay').textContent = periodoActual;
+    // Actualizar displays
+    const elementos = ['periodoActualDisplay', 'periodoUsuario', 'periodoFooter'];
+    elementos.forEach(id => {
+      const elem = document.getElementById(id);
+      if (elem) elem.textContent = periodoActual;
+    });
     
   } catch (error) {
     console.error('Error al cargar periodo:', error);
@@ -217,7 +221,11 @@ async function ejecutarCambioPeriodo(event) {
     
     // 5. Actualizar variable global
     periodoActual = nuevoPeriodo;
-    document.getElementById('periodoActualDisplay').textContent = periodoActual;
+    const elementos = ['periodoActualDisplay', 'periodoUsuario', 'periodoFooter'];
+    elementos.forEach(id => {
+      const elem = document.getElementById(id);
+      if (elem) elem.textContent = periodoActual;
+    });
     
     // Mostrar resultado
     alert(
