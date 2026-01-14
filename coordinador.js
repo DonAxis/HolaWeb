@@ -91,7 +91,7 @@ function mostrarCambioPeriodo() {
       </div>
       
       <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-        <strong>⚠️ ADVERTENCIA:</strong>
+        <strong>ADVERTENCIA:</strong>
         <p style="margin: 5px 0 0 0;">Esta acción afectará a TODOS los alumnos activos y no se puede deshacer.</p>
       </div>
       
@@ -254,8 +254,8 @@ async function ejecutarCambioPeriodo(event) {
 // ===== PROTECCIÓN Y AUTENTICACIÓN =====
 auth.onAuthStateChanged(async (user) => {
   if (!user) {
-    console.log('⚠ No hay sesión activa');
-    alert('Debes iniciar sesión');
+    console.log('No hay sesión activa');
+   // alert('Debes iniciar sesión');
     window.location.href = 'login.html';
     return;
   }
@@ -264,7 +264,7 @@ auth.onAuthStateChanged(async (user) => {
     const userDoc = await db.collection('usuarios').doc(user.uid).get();
     
     if (!userDoc.exists) {
-      console.log('⚠ Usuario no encontrado');
+      console.log('Usuario no encontrado');
       await auth.signOut();
       window.location.href = 'login.html';
       return;
@@ -275,13 +275,13 @@ auth.onAuthStateChanged(async (user) => {
 
     // Verificar rol (coordinador o admin)
     if (usuarioActual.rol !== 'coordinador' && usuarioActual.rol !== 'admin') {
-      console.log('⚠ No tienes permisos de coordinador');
+      console.log('No tienes permisos de coordinador');
       alert('No tienes permisos para acceder');
       window.location.href = 'login.html';
       return;
     }
 
-    console.log('✅ Coordinador autorizado:', usuarioActual.nombre);
+    console.log('Coordinador autorizado:', usuarioActual.nombre);
     
     // Cargar periodo actual primero
     await cargarPeriodoActual();
@@ -327,7 +327,7 @@ auth.onAuthStateChanged(async (user) => {
     }
     
   } catch (error) {
-    console.error('❌ Error:', error);
+    console.error('Error:', error);
     alert('Error al verificar permisos: ' + error.message);
     window.location.href = 'login.html';
   }
