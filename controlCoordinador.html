@@ -441,24 +441,34 @@
  </div>
 
  <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
- <h3 style="margin-top: 0;">Configuración de Periodo</h3>
- <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; border-left: 4px solid #216A32;">
- <label style="display: block; margin-bottom: 10px; font-weight: 600; font-size: 1.1rem;">Selecciona el periodo actual:</label>
- <select id="selectPeriodoActivo" onchange="cambiarPeriodoActivo()" 
- style="width: 100%; max-width: 300px; padding: 12px; border: 2px solid #216A32; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
- <option value="">Cargando...</option>
- </select>
- <div style="margin-top: 15px; padding: 12px; background: #fff3cd; border-radius: 6px; border-left: 4px solid #ffc107;">
- <strong>Importante:</strong> Al cambiar el periodo, todos los alumnos activos avanzarán al siguiente semestre automáticamente.
- </div>
- </div>
- </div>
-
- <div style="background: white; padding: 20px; border-radius: 10px;">
  <h3 style="margin-top: 0;">Información del Periodo Actual</h3>
  <div id="infoPeriodoActual" style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
  <p style="margin: 0;">Cargando información...</p>
  </div>
+ </div>
+
+ <div style="background: white; padding: 20px; border-radius: 10px;">
+ <h3 style="margin-top: 0;">Avanzar al Siguiente Periodo</h3>
+ <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 20px;">
+ <strong>ADVERTENCIA:</strong> Esta acción avanzará TODOS los alumnos activos al siguiente semestre automáticamente. Los alumnos de último semestre se graduarán.
+ </div>
+ 
+ <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
+ <div style="flex: 1;">
+ <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Periodo Actual:</div>
+ <div style="font-size: 2rem; font-weight: bold; color: #216A32;" id="periodoActualDisplay">2026-1</div>
+ </div>
+ <div style="font-size: 3rem; color: #999;">→</div>
+ <div style="flex: 1;">
+ <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Siguiente Periodo:</div>
+ <div style="font-size: 2rem; font-weight: bold; color: #1976d2;" id="siguientePeriodoDisplay">2026-2</div>
+ </div>
+ </div>
+ 
+ <button onclick="solicitarCambioPeriodo()" 
+ style="width: 100%; margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
+ Avanzar al Siguiente Periodo
+ </button>
  </div>
  </div>
 
