@@ -797,8 +797,10 @@ async function guardarGrupo(event, grupoId) {
 // ===== ASIGNAR PROFESORES A MATERIAS =====
 async function cargarAsignaciones() {
  try {
- // Cargar asignaciones activas
- let query = db.collection('profesorMaterias').where('activa', '==', true);
+ // Cargar asignaciones activas del periodo actual
+ let query = db.collection('profesorMaterias')
+ .where('activa', '==', true)
+ .where('periodo', '==', periodoActual);
  
  // Filtrar por carrera si es coordinador
  if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
@@ -809,23 +811,40 @@ async function cargarAsignaciones() {
  const container = document.getElementById('listaAsignaciones');
  
  if (snapshot.empty) {
- container.innerHTML = '<div class="sin-datos">No hay profesores asignados a materias</div>';
+ container.innerHTML = `
+ <div style="text-align: center; padding: 40px;">
+ <p style="color: #999; margin-bottom: 20px;">No hay asignaciones para el periodo actual: ${periodoActual}</p>
+ <button onclick="mostrarHistorialAsignaciones()" class="botAzu" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);">
+ Ver Historial de Asignaciones
+ </button>
+ </div>
+ `;
  return;
  }
  
- let html = '';
+ let html = `
+ <div style="background: #e3f2fd; padding: 15px; border-radius: 8px; margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;">
+ <div>
+ <strong>Mostrando asignaciones del periodo:</strong> ${periodoActual}
+ </div>
+ <button onclick="mostrarHistorialAsignaciones()" class="botAzu" style="background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); padding: 8px 16px;">
+ Ver Historial
+ </button>
+ </div>
+ `;
+ 
  snapshot.forEach(doc => {
  const asignacion = doc.data();
  html += `
  <div class="item">
  <div class="item-info">
- <h4> ${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
- <p>‍ Profesor: ${asignacion.profesorNombre}</p>
- <p> Grupo: ${asignacion.grupoNombre} | Periodo: ${asignacion.periodo}</p>
+ <h4>${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
+ <p>Profesor: ${asignacion.profesorNombre}</p>
+ <p>Grupo: ${asignacion.grupoNombre} | Periodo: ${asignacion.periodo}</p>
  </div>
  <div class="item-acciones">
- <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar"> Reasignar</button>
- <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar"> Desactivar</button>
+ <button onclick="reasignarProfesor('${doc.id}')" class="btn-editar">Reasignar</button>
+ <button onclick="desactivarAsignacion('${doc.id}')" class="btn-eliminar">Desactivar</button>
  </div>
  </div>
  `;
@@ -836,6 +855,105 @@ async function cargarAsignaciones() {
  console.error('Error al cargar asignaciones:', error);
  document.getElementById('listaAsignaciones').innerHTML = 
  '<p style="color: red;">Error al cargar asignaciones</p>';
+ }
+}
+
+// Mostrar historial de asignaciones por periodo
+async function mostrarHistorialAsignaciones() {
+ const periodos = generarPeriodos().reverse(); // Más recientes primero
+ 
+ let periodosHtml = '';
+ periodos.forEach(p => {
+ periodosHtml += `<option value="${p}" ${p === periodoActual ? 'selected' : ''}>${p}${p === periodoActual ? ' (Actual)' : ''}</option>`;
+ });
+ 
+ const html = `
+ <div style="background: white; padding: 30px; border-radius: 15px; max-width: 1000px; margin: 20px auto;">
+ <h3 style="margin: 0 0 20px 0; color: #667eea;">Historial de Asignaciones</h3>
+ 
+ <div style="margin-bottom: 20px;">
+ <label style="display: block; margin-bottom: 8px; font-weight: 600;">Selecciona un periodo:</label>
+ <select id="selectPeriodoHistorial" onchange="cargarAsignacionesPorPeriodo(this.value)" 
+ style="width: 100%; max-width: 300px; padding: 10px; border: 2px solid #ddd; border-radius: 8px; font-size: 1rem;">
+ ${periodosHtml}
+ </select>
+ </div>
+ 
+ <div id="contenidoHistorialAsignaciones" style="margin-top: 20px;">
+ <p style="text-align: center; color: #999;">Cargando...</p>
+ </div>
+ 
+ <div style="margin-top: 20px;">
+ <button onclick="mostrarSeccion('asignaciones')" class="botAzu">
+ Volver a Asignaciones Actuales
+ </button>
+ </div>
+ </div>
+ `;
+ 
+ document.getElementById('contenidoModal').innerHTML = html;
+ document.getElementById('modalGenerico').style.display = 'block';
+ 
+ // Cargar datos del periodo actual
+ await cargarAsignacionesPorPeriodo(periodoActual);
+}
+
+// Cargar asignaciones de un periodo específico
+async function cargarAsignacionesPorPeriodo(periodo) {
+ const container = document.getElementById('contenidoHistorialAsignaciones');
+ 
+ try {
+ container.innerHTML = '<p style="text-align: center; color: #999;">Cargando...</p>';
+ 
+ let query = db.collection('profesorMaterias')
+ .where('periodo', '==', periodo);
+ 
+ if (usuarioActual.rol === 'coordinador' && usuarioActual.carreraId) {
+ query = query.where('carreraId', '==', usuarioActual.carreraId);
+ }
+ 
+ const snapshot = await query.get();
+ 
+ if (snapshot.empty) {
+ container.innerHTML = `<p style="text-align: center; color: #999; padding: 30px;">No hay asignaciones registradas para el periodo ${periodo}</p>`;
+ return;
+ }
+ 
+ let html = `
+ <div style="background: #f8f9fa; padding: 15px; border-radius: 8px; margin-bottom: 15px;">
+ <strong>Periodo:</strong> ${periodo} | 
+ <strong>Total de asignaciones:</strong> ${snapshot.size}
+ </div>
+ `;
+ 
+ snapshot.forEach(doc => {
+ const asignacion = doc.data();
+ const activa = asignacion.activa === true;
+ 
+ html += `
+ <div style="background: ${activa ? '#e8f5e9' : '#fafafa'}; padding: 15px; border-radius: 8px; margin-bottom: 10px; border-left: 4px solid ${activa ? '#4caf50' : '#999'};">
+ <div style="display: flex; justify-content: space-between; align-items: start;">
+ <div>
+ <h4 style="margin: 0 0 8px 0;">${asignacion.materiaNombre} (${asignacion.materiaCodigo})</h4>
+ <p style="margin: 4px 0; color: #666;">Profesor: ${asignacion.profesorNombre}</p>
+ <p style="margin: 4px 0; color: #666;">Grupo: ${asignacion.grupoNombre}</p>
+ <p style="margin: 4px 0; color: #666;">Periodo: ${asignacion.periodo}</p>
+ </div>
+ <div style="text-align: right;">
+ <span style="background: ${activa ? '#4caf50' : '#999'}; color: white; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600;">
+ ${activa ? 'ACTIVA' : 'INACTIVA'}
+ </span>
+ </div>
+ </div>
+ </div>
+ `;
+ });
+ 
+ container.innerHTML = html;
+ 
+ } catch (error) {
+ console.error('Error:', error);
+ container.innerHTML = '<p style="color: red; text-align: center;">Error al cargar asignaciones</p>';
  }
 }
 
@@ -919,8 +1037,9 @@ async function mostrarFormAsignarProfesor() {
  
  <div class="form-grupo">
  <label>Periodo: *</label>
- <input type="text" id="periodoAsignar" required placeholder="Ej: 2026-1" value="2026-1">
- <small style="color: #666;">Formato: AÑO-SEMESTRE (ej: 2026-1)</small>
+ <input type="text" id="periodoAsignar" required readonly value="${periodoActual}" 
+ style="background: #f0f0f0; cursor: not-allowed; font-weight: bold; color: #216A32;">
+ <small style="color: #666;">Las asignaciones se crean para el periodo actual del sistema</small>
  </div>
  
  <div class="form-botones">
@@ -1613,24 +1732,39 @@ async function guardarAlumno(event, alumnoId) {
  activo: activo
  };
  
+ // IMPORTANTE: Asignar periodo, semestre y generación al crear alumno
+ if (!alumnoId) {
+ // Extraer semestre del grupoId (formato: TSGG-SIGLA, donde S es el semestre)
+ let semestreActual = 1;
+ if (grupoId && grupoId.length >= 4) {
+ const semestreChar = grupoId.charAt(1);
+ semestreActual = parseInt(semestreChar) || 1;
+ }
+ 
+ userData.periodo = periodoActual;
+ userData.semestreActual = semestreActual;
+ userData.generacion = periodoActual;
+ userData.graduado = false;
+ }
+ 
  try {
  if (alumnoId) {
  // Editar
  await db.collection('usuarios').doc(alumnoId).update(userData);
- alert(' Alumno actualizado');
+ alert('Alumno actualizado');
  } else {
  // Crear nuevo - SOLO en Firestore (sin Authentication)
  userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
  await db.collection('usuarios').add(userData);
  
- alert(` Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nEmail: ${email}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
+ alert(`Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nPeriodo: ${periodoActual}\nSemestre: ${userData.semestreActual}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
  }
  
  cerrarModal();
  cargarAlumnos();
  } catch (error) {
  console.error('Error:', error);
- alert(' Error al guardar alumno');
+ alert('Error al guardar alumno');
  }
 }
 
@@ -2186,8 +2320,8 @@ async function cargarPeriodos() {
  // Sincronizar con el periodo actual del sistema
  periodoActivo = periodoActual;
  
- // Actualizar selector con todos los periodos disponibles
- await actualizarSelectorPeriodos();
+ // Actualizar displays del periodo actual y siguiente
+ actualizarDisplaysPeriodo();
  
  // Cargar información del periodo actual
  await cargarInfoPeriodoActual();
@@ -2257,56 +2391,40 @@ function generarPeriodoActual() {
  return `${año}-${semestre}`;
 }
 
-// Actualizar selector de periodos
-async function actualizarSelectorPeriodos() {
- const select = document.getElementById('selectPeriodoActivo');
- if (!select) return;
+// Actualizar displays del periodo actual y siguiente
+function actualizarDisplaysPeriodo() {
+ const periodoActualElem = document.getElementById('periodoActualDisplay');
+ const siguientePeriodoElem = document.getElementById('siguientePeriodoDisplay');
  
- try {
- // Obtener TODOS los periodos disponibles del sistema (2024-1 a 2030-2)
- const periodos = generarPeriodos();
- 
- // Llenar selector con todos los periodos disponibles
- select.innerHTML = '';
- periodos.forEach(periodo => {
- const option = document.createElement('option');
- option.value = periodo;
- option.textContent = periodo + (periodo === periodoActivo ? ' (Activo)' : '');
- if (periodo === periodoActivo) option.selected = true;
- select.appendChild(option);
- });
- 
- if (periodos.length === 0) {
- select.innerHTML = '<option value="">Sin periodos</option>';
+ if (periodoActualElem) {
+ periodoActualElem.textContent = periodoActual;
  }
  
- } catch (error) {
- console.error('Error:', error);
- select.innerHTML = '<option value="">Error al cargar</option>';
+ if (siguientePeriodoElem) {
+ const siguiente = calcularSiguientePeriodo(periodoActual);
+ siguientePeriodoElem.textContent = siguiente;
  }
 }
 
-// Cambiar periodo activo (ejecuta cambio REAL de periodo con avance de alumnos)
-async function cambiarPeriodoActivo() {
- const select = document.getElementById('selectPeriodoActivo');
- const nuevoPeriodo = select.value;
- 
- if (!nuevoPeriodo) {
- alert('Selecciona un periodo válido');
- return;
+// Calcular el siguiente periodo
+function calcularSiguientePeriodo(periodo) {
+ const [year, sem] = periodo.split('-').map(Number);
+ if (sem === 1) {
+ return `${year}-2`;
+ } else {
+ return `${year + 1}-1`;
  }
+}
+
+// Solicitar cambio de periodo con contraseña
+async function solicitarCambioPeriodo() {
+ const siguientePeriodo = calcularSiguientePeriodo(periodoActual);
  
- if (nuevoPeriodo === periodoActual) {
- alert('El periodo seleccionado es el mismo que el actual');
- return;
- }
- 
- // Confirmar cambio de periodo
  const confirmacion = confirm(
- `CONFIRMAR CAMBIO DE PERIODO\n\n` +
- `De: ${periodoActual}\n` +
- `A: ${nuevoPeriodo}\n\n` +
- ` ADVERTENCIA: Esta acción:\n` +
+ `CAMBIO DE PERIODO\n\n` +
+ `Periodo actual: ${periodoActual}\n` +
+ `Siguiente periodo: ${siguientePeriodo}\n\n` +
+ `Esta acción:\n` +
  `- Avanzará TODOS los alumnos activos al siguiente semestre\n` +
  `- Actualizará grupos automáticamente\n` +
  `- Desactivará asignaciones del periodo anterior\n` +
@@ -2315,13 +2433,48 @@ async function cambiarPeriodoActivo() {
  `¿Continuar?`
  );
  
- if (!confirmacion) {
- select.value = periodoActual;
+ if (!confirmacion) return;
+ 
+ // Solicitar contraseña del coordinador
+ const password = prompt('Por seguridad, ingresa tu contraseña de coordinador:');
+ 
+ if (!password) {
+ alert('Cambio cancelado');
  return;
  }
  
  try {
- // Mostrar progreso
+ // Verificar contraseña
+ const user = firebase.auth().currentUser;
+ if (!user) {
+ alert('Error: No hay sesión activa');
+ return;
+ }
+ 
+ // Reautenticar al usuario
+ const credential = firebase.auth.EmailAuthProvider.credential(
+ user.email,
+ password
+ );
+ 
+ await user.reauthenticateWithCredential(credential);
+ 
+ // Si llegamos aquí, la contraseña es correcta
+ await ejecutarCambioPeriodoSecuencial(siguientePeriodo);
+ 
+ } catch (error) {
+ console.error('Error:', error);
+ if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+ alert('Contraseña incorrecta. Cambio cancelado.');
+ } else {
+ alert('Error al verificar contraseña: ' + error.message);
+ }
+ }
+}
+
+// Ejecutar cambio de periodo (solo avanza al siguiente)
+async function ejecutarCambioPeriodoSecuencial(siguientePeriodo) {
+ try {
  const infoPeriodo = document.getElementById('infoPeriodoActual');
  if (infoPeriodo) {
  infoPeriodo.innerHTML = `
@@ -2350,14 +2503,14 @@ async function cambiarPeriodoActivo() {
  const semestreActual = alumno.semestreActual || 1;
  const nuevoSemestre = semestreActual + 1;
  
- // Determinar si el alumno se gradúa
  if (nuevoSemestre > 9) {
  // Graduar alumno
  await alumnoDoc.ref.update({
  activo: false,
  graduado: true,
+ grupoId: 'GRADUADO',
  fechaGraduacion: firebase.firestore.FieldValue.serverTimestamp(),
- periodoGraduacion: nuevoPeriodo
+ periodoGraduacion: siguientePeriodo
  });
  alumnosGraduados++;
  } else {
@@ -2375,7 +2528,7 @@ async function cambiarPeriodoActivo() {
  await alumnoDoc.ref.update({
  semestreActual: nuevoSemestre,
  grupoId: nuevoGrupo,
- periodo: nuevoPeriodo,
+ periodo: siguientePeriodo,
  ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
  });
  alumnosAvanzados++;
@@ -2401,14 +2554,14 @@ async function cambiarPeriodoActivo() {
  
  // 4. Actualizar periodo actual en config
  await db.collection('config').doc('periodoActual').update({
- periodo: nuevoPeriodo,
+ periodo: siguientePeriodo,
  periodoAnterior: periodoActual,
  fechaCambio: firebase.firestore.FieldValue.serverTimestamp()
  });
  
  // 5. Actualizar variable global
- periodoActual = nuevoPeriodo;
- periodoActivo = nuevoPeriodo;
+ periodoActual = siguientePeriodo;
+ periodoActivo = siguientePeriodo;
  
  // 6. Actualizar displays
  const elementos = ['periodoActualDisplay', 'periodoUsuario', 'periodoFooter'];
@@ -2420,11 +2573,11 @@ async function cambiarPeriodoActivo() {
  // 7. Mostrar resultado
  alert(
  `CAMBIO DE PERIODO COMPLETADO\n\n` +
- `Nuevo periodo: ${nuevoPeriodo}\n\n` +
+ `Nuevo periodo: ${siguientePeriodo}\n\n` +
  `Estadísticas:\n` +
- `• Alumnos avanzados: ${alumnosAvanzados}\n` +
- `• Alumnos graduados: ${alumnosGraduados}\n` +
- `• Asignaciones desactivadas: ${asignacionesDesactivadas}\n\n` +
+ `Alumnos avanzados: ${alumnosAvanzados}\n` +
+ `Alumnos graduados: ${alumnosGraduados}\n` +
+ `Asignaciones desactivadas: ${asignacionesDesactivadas}\n\n` +
  `La página se recargará para aplicar los cambios.`
  );
  
@@ -2434,9 +2587,7 @@ async function cambiarPeriodoActivo() {
  } catch (error) {
  console.error('Error:', error);
  alert('Error al cambiar periodo: ' + error.message);
- select.value = periodoActual;
  
- // Restaurar info
  const infoPeriodo = document.getElementById('infoPeriodoActual');
  if (infoPeriodo) {
  infoPeriodo.innerHTML = '<p style="color: red;">Error al cambiar periodo</p>';
