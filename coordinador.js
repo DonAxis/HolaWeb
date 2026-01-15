@@ -2425,9 +2425,7 @@ async function solicitarCambioPeriodo() {
  `Periodo actual: ${periodoActual}\n` +
  `Siguiente periodo: ${siguientePeriodo}\n\n` +
  `Esta acción:\n` +
- `- Avanzará TODOS los alumnos activos al siguiente semestre\n` +
- `- Actualizará grupos automáticamente\n` +
- `- Desactivará asignaciones del periodo anterior\n` +
+ `- Avanzará TODOS los grupos\n` +
  `- Graduará alumnos de último semestre\n` +
  `- NO SE PUEDE DESHACER\n\n` +
  `¿Continuar?`

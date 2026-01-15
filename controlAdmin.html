@@ -124,6 +124,11 @@
       <p>Gestionar carreras, materias, grupos, profesores y alumnos</p>
     </div>
 
+    <div class="opcion" onclick="mostrarControlPeriodos()" style="border: 3px solid #ff9800;">
+      <h3>Control de Periodos (ADMIN)</h3>
+      <p>Cambiar periodo sin restricciones - SOLO PRUEBAS</p>
+    </div>
+
     <div class="opcion" onclick="alert('Próximamente')">
       <h3>Ver Reportes</h3>
       <p>Reportes y estadísticas</p>
@@ -447,6 +452,164 @@
       div.style.background = tipo === 'error' ? '#ffebee' : tipo === 'success' ? '#e8f5e9' : '#e3f2fd';
       div.style.color = tipo === 'error' ? '#c62828' : tipo === 'success' ? '#2e7d32' : '#1565c0';
       div.style.border = `2px solid ${tipo === 'error' ? '#ef5350' : tipo === 'success' ? '#66bb6a' : '#42a5f5'}`;
+    }
+
+    // ===== CONTROL DE PERIODOS (SOLO ADMIN) =====
+    
+    function generarPeriodosAdmin() {
+      const periodos = [];
+      for (let year = 2024; year <= 2030; year++) {
+        periodos.push(`${year}-1`);
+        periodos.push(`${year}-2`);
+      }
+      return periodos;
+    }
+
+    async function mostrarControlPeriodos() {
+      try {
+        // Obtener periodo actual
+        const configDoc = await db.collection('config').doc('periodoActual').get();
+        const periodoActual = configDoc.exists ? configDoc.data().periodo : '2026-1';
+        
+        const periodos = generarPeriodosAdmin();
+        let periodosHtml = '';
+        periodos.forEach(p => {
+          const selected = p === periodoActual ? 'selected' : '';
+          periodosHtml += `<option value="${p}" ${selected}>${p}${p === periodoActual ? ' (ACTUAL)' : ''}</option>`;
+        });
+
+        const modal = document.createElement('div');
+        modal.id = 'modalControlPeriodos';
+        modal.style.cssText = 'display: flex; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 2000; align-items: center; justify-content: center;';
+        
+        modal.innerHTML = `
+          <div style="background: white; padding: 40px; border-radius: 15px; max-width: 700px; width: 90%; box-shadow: 0 20px 60px rgba(0,0,0,0.3);">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+              <h2 style="margin: 0; color: #ff9800;">Control de Periodos (ADMIN)</h2>
+              <button onclick="cerrarModalControlPeriodos()" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: #999;">&times;</button>
+            </div>
+
+            <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ff9800; margin-bottom: 20px;">
+              <strong>ADVERTENCIA:</strong> Este control es SOLO para administradores y pruebas de desarrollo.
+              Permite cambiar el periodo sin avanzar alumnos automáticamente.
+            </div>
+
+            <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+              <h3 style="margin-top: 0; color: #333;">Periodo Actual del Sistema</h3>
+              <div style="font-size: 2rem; font-weight: bold; color: #216A32; margin: 10px 0;">${periodoActual}</div>
+            </div>
+
+            <div style="margin-bottom: 20px;">
+              <label style="display: block; margin-bottom: 8px; font-weight: 600;">Selecciona nuevo periodo:</label>
+              <select id="selectPeriodoAdmin" style="width: 100%; padding: 12px; border: 2px solid #ff9800; border-radius: 8px; font-size: 1.1rem;">
+                ${periodosHtml}
+              </select>
+            </div>
+
+            <div style="background: #ffebee; padding: 15px; border-radius: 8px; border-left: 4px solid #f44336; margin-bottom: 20px;">
+              <strong>IMPORTANTE:</strong>
+              <ul style="margin: 10px 0; padding-left: 20px;">
+                <li>Este cambio NO avanza alumnos automáticamente</li>
+                <li>Los alumnos mantienen su periodo actual</li>
+                <li>Solo cambia el periodo global del sistema</li>
+                <li>Útil para pruebas y resetear el sistema</li>
+              </ul>
+            </div>
+
+            <div style="display: flex; gap: 10px;">
+              <button onclick="cambiarPeriodoAdmin()" 
+                style="flex: 1; padding: 12px; background: linear-gradient(135deg, #ff9800 0%, #f57c00 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Cambiar Periodo (Sin Avanzar Alumnos)
+              </button>
+              <button onclick="cerrarModalControlPeriodos()" 
+                style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+                Cancelar
+              </button>
+            </div>
+
+            <div id="mensajeControlPeriodo" style="margin-top: 15px; padding: 15px; border-radius: 8px; display: none;"></div>
+          </div>
+        `;
+
+        document.body.appendChild(modal);
+        
+      } catch (error) {
+        console.error('Error:', error);
+        alert('Error al cargar control de periodos');
+      }
+    }
+
+    async function cambiarPeriodoAdmin() {
+      const nuevoPeriodo = document.getElementById('selectPeriodoAdmin').value;
+      
+      if (!nuevoPeriodo) {
+        alert('Selecciona un periodo');
+        return;
+      }
+
+      const password = prompt('Por seguridad, ingresa tu contraseña de administrador:');
+      if (!password) {
+        alert('Cambio cancelado');
+        return;
+      }
+
+      try {
+        // Verificar contraseña
+        const user = firebase.auth().currentUser;
+        const credential = firebase.auth.EmailAuthProvider.credential(user.email, password);
+        await user.reauthenticateWithCredential(credential);
+
+        const confirmacion = confirm(
+          `CONFIRMAR CAMBIO DE PERIODO (ADMIN)\n\n` +
+          `Nuevo periodo: ${nuevoPeriodo}\n\n` +
+          `IMPORTANTE:\n` +
+          `- Solo cambia el periodo global\n` +
+          `- NO avanza alumnos automáticamente\n` +
+          `- Los alumnos mantienen su periodo actual\n` +
+          `- Las asignaciones NO se desactivan\n\n` +
+          `Esto es útil para:\n` +
+          `- Resetear el sistema a 2026-1\n` +
+          `- Hacer pruebas de desarrollo\n` +
+          `- Volver a un periodo anterior\n\n` +
+          `¿Continuar?`
+        );
+
+        if (!confirmacion) return;
+
+        // Actualizar solo el periodo global
+        await db.collection('config').doc('periodoActual').set({
+          periodo: nuevoPeriodo,
+          periodoAnterior: null,
+          fechaCambio: firebase.firestore.FieldValue.serverTimestamp(),
+          cambiadoPorAdmin: true,
+          adminUid: user.uid
+        }, { merge: true });
+
+        alert(
+          `Periodo cambiado exitosamente\n\n` +
+          `Nuevo periodo: ${nuevoPeriodo}\n\n` +
+          `IMPORTANTE:\n` +
+          `- El sistema ahora usa el periodo ${nuevoPeriodo}\n` +
+          `- Los alumnos NO se movieron\n` +
+          `- Las asignaciones NO se desactivaron\n\n` +
+          `La página se recargará.`
+        );
+
+        location.reload();
+
+      } catch (error) {
+        console.error('Error:', error);
+        if (error.code === 'auth/wrong-password' || error.code === 'auth/invalid-credential') {
+          alert('Contraseña incorrecta');
+        } else {
+          alert('Error: ' + error.message);
+        }
+      }
+    }
+
+    function cerrarModalControlPeriodos() {
+      const modal = document.getElementById('modalControlPeriodos');
+      if (modal) modal.remove();
     }
   </script>
 </body>
