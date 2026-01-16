@@ -433,44 +433,82 @@
  </div>
  <!-- FIN MODO PROFESOR -->
 
- <!-- SECCIÓN: PERIODOS -->
- <div id="seccionPeriodos" class="seccion-contenido">
- <div class="seccion-header">
- <h2>Periodos Académicos</h2>
- <button onclick="volverMenu()" class="btn-volver">Volver al Menú</button>
- </div>
+ <!-- SECCION: PERIODOS -->
+ <!-- SECCION: PERIODOS -->
+<div id="seccionPeriodos" class="seccion-contenido">
+  <div class="seccion-header">
+    <h2>Periodos Academicos</h2>
+    <button onclick="volverMenu()" class="btn-volver">Volver al Menu</button>
+  </div>
 
- <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
- <h3 style="margin-top: 0;">Información del Periodo Actual</h3>
- <div id="infoPeriodoActual" style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
- <p style="margin: 0;">Cargando información...</p>
- </div>
- </div>
+  <div style="background: white; padding: 20px; border-radius: 10px; margin-bottom: 20px;">
+    <h3 style="margin-top: 0;">Informacion del Periodo Actual</h3>
+    <div id="infoPeriodoActual" style="padding: 15px; background: #f8f9fa; border-radius: 8px;">
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px;">
+        <div>
+          <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Periodo:</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #216A32;" id="periodoActualDisplay">2026-1</div>
+        </div>
+        <div>
+          <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Alumnos Activos:</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #1976d2;" id="alumnosActivosDisplay">0</div>
+        </div>
+        <div>
+          <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Grupos Activos:</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #f57c00;" id="gruposActivosDisplay">0</div>
+        </div>
+        <div>
+          <div style="font-size: 0.85rem; color: #666; margin-bottom: 5px;">Asignaciones Activas:</div>
+          <div style="font-size: 1.8rem; font-weight: bold; color: #7b1fa2;" id="asignacionesActivasDisplay">0</div>
+        </div>
+      </div>
+    </div>
+  </div>
 
- <div style="background: white; padding: 20px; border-radius: 10px;">
- <h3 style="margin-top: 0;">Avanzar al Siguiente Periodo</h3>
- <div style="background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107; margin-bottom: 20px;">
- <strong>ADVERTENCIA:</strong> Esta acción avanzará TODOS los alumnos activos al siguiente semestre automáticamente. Los alumnos de último semestre se graduarán.
- </div>
- 
- <div style="display: flex; align-items: center; gap: 20px; padding: 20px; background: #f8f9fa; border-radius: 8px;">
- <div style="flex: 1;">
- <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Periodo Actual:</div>
- <div style="font-size: 2rem; font-weight: bold; color: #216A32;" id="periodoActualDisplay">2026-1</div>
- </div>
- <div style="font-size: 3rem; color: #999;">→</div>
- <div style="flex: 1;">
- <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Siguiente Periodo:</div>
- <div style="font-size: 2rem; font-weight: bold; color: #1976d2;" id="siguientePeriodoDisplay">2026-2</div>
- </div>
- </div>
- 
- <button onclick="solicitarCambioPeriodo()" 
- style="width: 100%; margin-top: 20px; padding: 15px; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: 600; cursor: pointer;">
- Avanzar al Siguiente Periodo
- </button>
- </div>
- </div>
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; margin-bottom: 20px;">
+    <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #667eea;">
+      <h3 style="margin-top: 0; color: #667eea;">Cambiar Periodo</h3>
+      <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Avanza tu carrera al siguiente periodo academico</p>
+      <button onclick="mostrarCambioPeriodo(usuarioActual.carreraId, periodoActualCarrera)" 
+        style="width: 100%; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+        Cambiar Periodo
+      </button>
+    </div>
+
+    <div style="background: white; padding: 20px; border-radius: 10px; border: 2px solid #4caf50;">
+      <h3 style="margin-top: 0; color: #4caf50;">Historial de Grupos</h3>
+      <p style="color: #666; margin-bottom: 15px; font-size: 0.9rem;">Ver grupos archivados de periodos anteriores</p>
+      <button onclick="verHistorialGrupos(usuarioActual.carreraId)" 
+        style="width: 100%; padding: 12px; background: linear-gradient(135deg, #4caf50 0%, #2e7d32 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+        Ver Historial
+      </button>
+    </div>
+  </div>
+
+  <div style="background: white; padding: 20px; border-radius: 10px;">
+    <h3 style="margin-top: 0;">Informacion Importante</h3>
+    <div style="background: #e8f5e9; border-left: 4px solid #4caf50; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+      <strong>Que sucede al cambiar periodo:</strong>
+      <ul style="margin: 10px 0; padding-left: 20px;">
+        <li>Los alumnos avanzan al siguiente semestre (Ej: 1101-MAT a 1201-MAT)</li>
+        <li>Los alumnos de 9no semestre pasan a GRADUADOS</li>
+        <li>Los grupos actuales se archivan en el historial</li>
+        <li>Las asignaciones de profesores se desactivan</li>
+        <li>Las calificaciones se guardan en el historial</li>
+      </ul>
+    </div>
+    
+    <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 15px;">
+      <strong>Importante:</strong>
+      <p style="margin: 5px 0 0 0;">Esta accion solo afecta a tu carrera. Otras carreras mantienen su periodo independiente.</p>
+    </div>
+    
+    <div style="background: #f8d7da; border-left: 4px solid #dc3545; padding: 15px; border-radius: 4px;">
+      <strong>Advertencia:</strong>
+      <p style="margin: 5px 0 0 0;">El cambio de periodo no se puede deshacer. Asegurate de que todo este correcto antes de continuar.</p>
+    </div>
+  </div>
+</div>
 
  <!-- jsPDF para generar PDFs -->
  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
@@ -483,7 +521,7 @@
  <script src="firebase.js"></script>
  <script src="logoPdf.js"></script>
  <script src="coordinador.js"></script>
- 
+ <script src="cambioPeriodo.js"></script> 
  <!-- Verificar que jsPDF se cargó -->
  <script>
  window.addEventListener('load', () => {
@@ -494,5 +532,6 @@
  }
  });
  </script>
+
 </body>
 </html>
