@@ -209,7 +209,7 @@ async function cerrarSesion() {
 }
 
 // ===== NAVEGACIÓN =====
-function mostrarSeccion(seccion) {
+async function mostrarSeccion(seccion) {
  // Ocultar menú y todas las secciones
  document.getElementById('menuPrincipal').style.display = 'none';
  document.querySelectorAll('.seccion-contenido').forEach(s => s.classList.remove('active'));
