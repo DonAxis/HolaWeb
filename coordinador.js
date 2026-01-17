@@ -1472,7 +1472,7 @@ async function cargarAlumnos() {
  <div class="item-info">
  <h4>${alumno.nombre}</h4>
  <p> Matrícula: ${alumno.matricula || 'N/A'}</p>
- <p>  Grupo: <strong style="color: red;">${grupoNombre}</strong></p>
+ <p>  Grupo: <strong style="color: red;">${grupoNombre}</strong> </p>
  <p> ${alumno.email}</p>
  <p>${alumno.activo ? '<span style="color: #4caf50;"></span> Activo' : '<span style="color: #f44336;"></span> Inactivo'}</p>
  </div>
