@@ -212,14 +212,13 @@ async function cerrarSesion() {
 async function mostrarSeccion(seccion) {
  // Ocultar menú y todas las secciones
  document.getElementById('menuPrincipal').style.display = 'none';
-document.querySelectorAll('.seccion-contenido').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+ document.querySelectorAll('.seccion-contenido').forEach(s => s.classList.remove('active'));
  
  // Mostrar sección seleccionada
  const seccionId = `seccion${seccion.charAt(0).toUpperCase() + seccion.slice(1)}`;
  const elemento = document.getElementById(seccionId);
  if (elemento) {
  elemento.classList.add('active');
- elemento.style.display = 'block';
  
  // Cargar datos de la sección
  switch(seccion) {
