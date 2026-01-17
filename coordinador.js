@@ -1465,14 +1465,14 @@ async function cargarAlumnos() {
  let html = '';
  snapshot.forEach(doc => {
  const alumno = doc.data();
- const grupoNombre = alumno.grupoId ? (gruposMap[alumno.grupoId] || 'Alumno inactivo académico') : 'Sin grupo';
+ const grupoNombre = alumno.grupoId ? (gruposMap[alumno.grupoId] || '<strong style="color: red;">Alumno inactivo académico</strong>') : 'Sin grupo';
  
  html += `
  <div class="item">
  <div class="item-info">
  <h4>${alumno.nombre}</h4>
  <p> Matrícula: ${alumno.matricula || 'N/A'}</p>
- <p>  Grupo: <strong style="color: red;">${grupoNombre}</strong> </p>
+ <p>  Grupo: ${grupoNombre} </p>
  <p> ${alumno.email}</p>
  <p>${alumno.activo ? '<span style="color: #4caf50;"></span> Activo' : '<span style="color: #f44336;"></span> Inactivo'}</p>
  </div>
