@@ -167,7 +167,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     await archivarGrupos(carreraId, periodoActual);
     gruposArchivados = await contarGruposArchivados(carreraId, periodoActual);
     
-    //  1.5 CARGAR GRUPOS EXISTENTES PARA EL NUEVO PERIODO (15%)
+    // 1.5 CARGAR GRUPOS EXISTENTES PARA EL NUEVO PERIODO (15%)
     progressBar.style.width = '15%';
     progressText.textContent = 'Verificando grupos disponibles...';
     
@@ -370,7 +370,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
   }
 }
 
-//  NUEVA FUNCIÓN: Cargar grupos disponibles
+// NUEVA FUNCIÓN: Cargar grupos disponibles
 async function cargarGruposDisponibles(carreraId) {
   try {
     const gruposSnap = await db.collection('grupos')
