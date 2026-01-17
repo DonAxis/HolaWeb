@@ -95,12 +95,12 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <p style="margin: 5px 0 0 0;">Esta accion no se puede deshacer. Verifica que todo este correcto antes de continuar.</p>
       </div>
       
-      <form onsubmit="ejecutarCambioPeriodoCarrera(event, '${carreraId}', '${periodoActual}')">
+      <form onsubmit="ejecutarCambioPeriodoCarrera(event, '${carreraId}', '${periodoActual}', '${siguientePeriodo}')">
         <div style="display: flex; gap: 10px;">
-          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-            Cambiar Periodo
+          <button type="submit" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
+            Avanzar a ${siguientePeriodo}
           </button>
-          <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 14px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
             Cancelar
           </button>
         </div>
@@ -112,16 +112,12 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
   document.getElementById('modalGenerico').style.display = 'flex';
 }
 
-// Ejecutar cambio de periodo
-async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
+// Ejecutar cambio de periodo (CON SIGUIENTE PERIODO YA CALCULADO)
+async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, siguientePeriodo) {
   event.preventDefault();
   
-  const nuevoPeriodo = document.getElementById('nuevoPeriodo').value;
-  
-  if (nuevoPeriodo === periodoActual) {
-    alert('El periodo seleccionado es el mismo que el actual');
-    return;
-  }
+  // El nuevoPeriodo ya viene como parámetro calculado
+  const nuevoPeriodo = siguientePeriodo;
   
   const confirmacion = confirm(
     `CONFIRMAR CAMBIO DE PERIODO\n\n` +
