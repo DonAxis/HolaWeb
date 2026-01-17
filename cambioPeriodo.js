@@ -151,6 +151,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
     
     let alumnosAvanzados = 0;
     let alumnosGraduados = 0;
+    let alumnosInactivos = 0; // NUEVO: contador de inactivos academicos
     let gruposArchivados = 0;
     let asignacionesDesactivadas = 0;
     let calificacionesArchivadas = 0;
@@ -231,17 +232,22 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
         const gruposDisponibles = gruposPorSemestre[nuevoSemestre];
         
         if (!gruposDisponibles || gruposDisponibles.length === 0) {
-          console.error(`No hay grupos para semestre ${nuevoSemestre}, graduando alumno`);
-          // Si no hay grupos, graduar al alumno
+          console.warn(`No hay grupos para semestre ${nuevoSemestre}, marcando como Inactivo Academico`);
+          
+          // Marcar como INACTIVO ACADEMICO (no es graduado, necesita reasignacion)
           await alumnoDoc.ref.update({
             activo: false,
-            graduado: true,
-            grupoId: GRUPO_GRADUADOS,
-            semestreActual: semestreActual,
-            fechaGraduacion: firebase.firestore.FieldValue.serverTimestamp(),
-            periodoGraduacion: nuevoPeriodo
+            inactivoAcademico: true,
+            motivoInactividad: 'Sin grupo disponible para el siguiente semestre',
+            grupoId: null,
+            semestreActual: nuevoSemestre,
+            periodo: nuevoPeriodo,
+            fechaInactivacion: firebase.firestore.FieldValue.serverTimestamp(),
+            ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
           });
-          alumnosGraduados++;
+          
+          alumnosInactivos++;
+          console.log(`Alumno ${alumno.nombre} marcado como Inactivo Academico (semestre ${nuevoSemestre} sin grupos)`);
           continue;
         }
         
@@ -339,9 +345,15 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
         `Nuevo periodo: ${nuevoPeriodo}\n\n` +
         `Alumnos avanzados: ${alumnosAvanzados}\n` +
         `Alumnos graduados: ${alumnosGraduados}\n` +
+        `Alumnos marcados como inactivos academicos: ${alumnosInactivos}\n` +
         `Grupos archivados: ${gruposArchivados}\n` +
         `Calificaciones archivadas: ${calificacionesArchivadas}\n` +
         `Asignaciones desactivadas: ${asignacionesDesactivadas}\n\n` +
+        (alumnosInactivos > 0 
+          ? `ATENCION: ${alumnosInactivos} alumno(s) marcado(s) como "Inactivo Academico".\n` +
+            `Debes asignarles un grupo o eliminarlos.\n` +
+            `Usa el filtro de alumnos para gestionarlos.\n\n`
+          : '') +
         `Puedes armar los nuevos grupos y asignar profesores.`
       );
       

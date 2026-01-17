@@ -900,7 +900,6 @@ async function mostrarFormAsignarProfesor() {
  
  <div class="form-grupo">
  <label>Periodo: *</label>
- <input type="text" id="periodoAsignar" required readonly value="${periodoActualCarrera}" 
  style="background: #f0f0f0; cursor: not-allowed; font-weight: bold; color: #216A32;">
  <small style="color: #666;">Las asignaciones se crean para el periodo actual del sistema</small>
  </div>
@@ -3959,3 +3958,223 @@ async function eliminarAlumnoDesdeEdicion(alumnoId) {
     alert('Error al eliminar alumno');
   }
 }
+// ===== GESTION DE INACTIVOS ACADEMICOS =====
+
+async function gestionarInactivosAcademicos() {
+  try {
+    const snapshot = await db.collection('usuarios')
+      .where('rol', '==', 'alumno')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('inactivoAcademico', '==', true)
+      .get();
+    
+    if (snapshot.empty) {
+      alert('No hay alumnos marcados como Inactivos Academicos en este momento.');
+      return;
+    }
+    
+    const gruposSnap = await db.collection('grupos')
+      .where('carreraId', '==', usuarioActual.carreraId)
+      .where('activo', '==', true)
+      .get();
+    
+    const gruposPorSemestre = {};
+    gruposSnap.forEach(doc => {
+      const grupo = doc.data();
+      if (!gruposPorSemestre[grupo.semestre]) {
+        gruposPorSemestre[grupo.semestre] = [];
+      }
+      gruposPorSemestre[grupo.semestre].push({
+        id: doc.id,
+        nombre: grupo.nombre
+      });
+    });
+    
+    let html = `
+      <div style="max-width: 900px; margin: auto;">
+        <h3 style="color: #dc3545; margin-bottom: 10px;">Alumnos Inactivos Academicos</h3>
+        <p style="color: #666; margin-bottom: 20px; background: #fff3cd; padding: 15px; border-radius: 8px; border-left: 4px solid #ffc107;">
+          <strong>Estos alumnos no tienen grupo asignado para el periodo actual.</strong><br>
+          Puedes asignarles un grupo y reactivarlos, o eliminarlos si ya no forman parte de la institucion.
+        </p>
+        
+        <div style="max-height: 60vh; overflow-y: auto;">
+          <table style="width: 100%; border-collapse: collapse; background: white;">
+            <thead style="position: sticky; top: 0; background: #f5f5f5; box-shadow: 0 2px 4px rgba(0,0,0,0.1);">
+              <tr>
+                <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Alumno</th>
+                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Semestre</th>
+                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd; min-width: 200px;">Asignar Grupo</th>
+                <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody>
+    `;
+    
+    const alumnos = [];
+    snapshot.forEach(doc => {
+      alumnos.push({ id: doc.id, ...doc.data() });
+    });
+    
+    alumnos.sort((a, b) => a.nombre.localeCompare(b.nombre));
+    
+    alumnos.forEach(alumno => {
+      const semestre = alumno.semestreActual || 1;
+      const grupos = gruposPorSemestre[semestre] || [];
+      
+      html += `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 12px;">
+            <strong>${alumno.nombre}</strong><br>
+            <small style="color: #666;">${alumno.matricula}</small>
+          </td>
+          <td style="padding: 12px; text-align: center;">
+            <span style="background: #e3f2fd; padding: 4px 12px; border-radius: 12px; font-weight: 600;">
+              ${semestre}
+            </span>
+          </td>
+          <td style="padding: 12px; text-align: center;">
+      `;
+      
+      if (grupos.length > 0) {
+        html += `
+          <select id="grupo_${alumno.id}" style="width: 100%; padding: 8px; border: 2px solid #ddd; border-radius: 5px;">
+            <option value="">Seleccionar grupo...</option>
+        `;
+        grupos.forEach(grupo => {
+          html += `<option value="${grupo.id}">${grupo.nombre}</option>`;
+        });
+        html += `</select>`;
+      } else {
+        html += `<span style="color: #dc3545;">No hay grupos para semestre ${semestre}</span>`;
+      }
+      
+      html += `
+          </td>
+          <td style="padding: 12px; text-align: center;">
+            <div style="display: flex; gap: 5px; justify-content: center; flex-wrap: wrap;">
+      `;
+      
+      if (grupos.length > 0) {
+        html += `
+          <button onclick="asignarGrupoYReactivar('${alumno.id}')" 
+            style="padding: 6px 12px; background: #4caf50; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+            Asignar y Activar
+          </button>
+        `;
+      }
+      
+      html += `
+              <button onclick="editarAlumno('${alumno.id}')" 
+                style="padding: 6px 12px; background: #2196f3; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                Editar
+              </button>
+              <button onclick="confirmarEliminarAlumnoInactivo('${alumno.id}', '${alumno.nombre}')" 
+                style="padding: 6px 12px; background: #dc3545; color: white; border: none; border-radius: 5px; cursor: pointer; font-weight: 600;">
+                Eliminar
+              </button>
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+    
+    html += `
+            </tbody>
+          </table>
+        </div>
+        
+        <div style="margin-top: 20px; text-align: center;">
+          <button onclick="cerrarModal()" style="padding: 12px 30px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            Cerrar
+          </button>
+        </div>
+      </div>
+    `;
+    
+    document.getElementById('contenidoModal').innerHTML = html;
+    document.getElementById('modalGenerico').style.display = 'flex';
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al cargar inactivos academicos');
+  }
+}
+
+async function asignarGrupoYReactivar(alumnoId) {
+  const selectGrupo = document.getElementById(`grupo_${alumnoId}`);
+  const grupoId = selectGrupo.value;
+  
+  if (!grupoId) {
+    alert('Selecciona un grupo primero');
+    return;
+  }
+  
+  if (!confirm('¿Asignar grupo y reactivar alumno?')) {
+    return;
+  }
+  
+  try {
+    await db.collection('usuarios').doc(alumnoId).update({
+      grupoId: grupoId,
+      activo: true,
+      inactivoAcademico: false,
+      motivoInactividad: null,
+      fechaReactivacion: firebase.firestore.FieldValue.serverTimestamp(),
+      ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    
+    alert('Alumno reactivado exitosamente');
+    cerrarModal();
+    await cargarAlumnos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al reactivar alumno: ' + error.message);
+  }
+}
+
+async function confirmarEliminarAlumnoInactivo(alumnoId, nombreAlumno) {
+  const confirmar = confirm(
+    `¿ELIMINAR ALUMNO?\n\n` +
+    `Alumno: ${nombreAlumno}\n\n` +
+    `Esta accion es PERMANENTE y eliminara:\n` +
+    `- Los datos del alumno\n` +
+    `- Sus calificaciones\n` +
+    `- Su historial\n\n` +
+    `¿Estas seguro?`
+  );
+  
+  if (!confirmar) return;
+  
+  const confirmar2 = prompt('Escribe "ELIMINAR" para confirmar:');
+  if (confirmar2 !== 'ELIMINAR') {
+    alert('Cancelado');
+    return;
+  }
+  
+  try {
+    const calificacionesSnap = await db.collection('calificaciones')
+      .where('alumnoId', '==', alumnoId)
+      .get();
+    
+    const batch = db.batch();
+    calificacionesSnap.forEach(doc => {
+      batch.delete(doc.ref);
+    });
+    
+    batch.delete(db.collection('usuarios').doc(alumnoId));
+    
+    await batch.commit();
+    
+    alert('Alumno eliminado correctamente');
+    cerrarModal();
+    await gestionarInactivosAcademicos();
+    
+  } catch (error) {
+    console.error('Error:', error);
+    alert('Error al eliminar alumno: ' + error.message);
+  }
+}
+
+console.log('Sistema de gestion de Inactivos Academicos cargado');
