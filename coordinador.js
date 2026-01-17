@@ -256,9 +256,19 @@ document.querySelectorAll('.seccion-contenido').forEach(s => { s.classList.remov
  }
 }
 
+
 function volverMenu() {
- document.querySelectorAll('.seccion-contenido').forEach(s => s.classList.remove('active'));
-document.querySelectorAll('.seccion-contenido').forEach(s => { s.classList.remove('active'); s.style.display = 'none'; });
+    // 1. Ocultamos todas las secciones de contenido
+    document.querySelectorAll('.seccion-contenido').forEach(s => { 
+        s.classList.remove('active'); 
+        s.style.display = 'none'; 
+    });
+    
+    // 2. IMPORTANTE: Volvemos a mostrar el menú principal
+    const menu = document.getElementById('menuPrincipal');
+    if (menu) {
+        menu.style.display = 'block'; // O 'grid'/'flex' según uses en tu CSS
+    }
 }
 
 // ===== GESTIÓN DE CARRERAS =====
