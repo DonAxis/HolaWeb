@@ -258,16 +258,29 @@ document.querySelectorAll('.seccion-contenido').forEach(s => { s.classList.remov
 
 
 function volverMenu() {
-    // 1. Ocultamos todas las secciones de contenido
-    document.querySelectorAll('.seccion-contenido').forEach(s => { 
-        s.classList.remove('active'); 
-        s.style.display = 'none'; 
+    console.log("Regresando al menú principal..."); // Para depuración
+
+    // 1. Ocultamos TODAS las secciones de contenido
+    const secciones = document.querySelectorAll('.seccion-contenido');
+    secciones.forEach(s => {
+        s.style.display = 'none';
+        s.classList.remove('active');
     });
-    
-    // 2. IMPORTANTE: Volvemos a mostrar el menú principal
-    const menu = document.getElementById('menuPrincipal');
-    if (menu) {
-        menu.style.display = 'block'; // O 'grid'/'flex' según uses en tu CSS
+
+    // 2. Aseguramos que el contenedor de "Modo Coordinador" esté visible
+    const modoCoord = document.getElementById('modoCoordinador');
+    if (modoCoord) {
+        modoCoord.style.display = 'block';
+    }
+
+    // 3. Mostramos el menú de cuadrícula (las 8 opciones)
+    const menuPrincipal = document.getElementById('menuPrincipal');
+    if (menuPrincipal) {
+        // Usamos 'grid' porque en tu CSS definiste .menu-principal como grid
+        menuPrincipal.style.display = 'grid'; 
+        console.log("Menu Principal restablecido a grid");
+    } else {
+        console.error("No se encontró el elemento menuPrincipal");
     }
 }
 
