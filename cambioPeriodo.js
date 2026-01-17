@@ -1,5 +1,6 @@
-// cambioPeriodo.js
+// cambioPeriodo.js - VERSIÓN CORREGIDA
 // Sistema de Cambio de Periodo Individual por Carrera con Historial
+// FIX: Desactivar automáticamente alumnos sin grupo o "inactivos académicos"
 
 // ===== CONSTANTES =====
 const SEMESTRES_MAXIMOS = 9; // Numero maximo de semestres antes de graduar
@@ -78,7 +79,7 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <ul style="margin: 10px 0; padding-left: 20px;">
           <li>Los alumnos avanzaran al siguiente semestre (Ej: 1101-MAT → 1201-MAT)</li>
           <li>Los alumnos de ultimo semestre pasaran a GRADUADOS</li>
-          <li>Si no hay grupo para el siguiente semestre, se marcaran como Inactivos Academicos</li>
+          <li><strong style="color: #d32f2f;">NUEVO: Si no hay grupo para el siguiente semestre, los alumnos se DESACTIVARÁN automáticamente</strong></li>
           <li>Se archivaran los grupos actuales en el historial</li>
           <li>Las asignaciones de profesores se desactivaran</li>
           <li>Las calificaciones se guardaran en el historial general</li>
@@ -112,7 +113,7 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
   document.getElementById('modalGenerico').style.display = 'flex';
 }
 
-// Ejecutar cambio de periodo (CON SIGUIENTE PERIODO YA CALCULADO)
+// Ejecutar cambio de periodo (CON SIGUIENTE PERIODO YA CALCULADO Y VERIFICACIÓN DE GRUPOS)
 async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, siguientePeriodo) {
   event.preventDefault();
   
@@ -126,6 +127,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     `Esta accion:\n` +
     `- Avanzara todos los alumnos al siguiente semestre\n` +
     `- Actualizara grupos automaticamente\n` +
+    `- DESACTIVARÁ alumnos sin grupo disponible\n` +
     `- Archivara grupos en historial\n` +
     `- Desactivara asignaciones del periodo anterior\n` +
     `- Graduara alumnos de ultimo semestre\n` +
@@ -153,6 +155,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     
     let alumnosAvanzados = 0;
     let alumnosGraduados = 0;
+    let alumnosDesactivados = 0; // NUEVO CONTADOR
     let gruposArchivados = 0;
     let asignacionesDesactivadas = 0;
     let calificacionesArchivadas = 0;
@@ -164,8 +167,15 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     await archivarGrupos(carreraId, periodoActual);
     gruposArchivados = await contarGruposArchivados(carreraId, periodoActual);
     
+    //  1.5 CARGAR GRUPOS EXISTENTES PARA EL NUEVO PERIODO (15%)
+    progressBar.style.width = '15%';
+    progressText.textContent = 'Verificando grupos disponibles...';
+    
+    const gruposDisponibles = await cargarGruposDisponibles(carreraId);
+    console.log('Grupos disponibles:', gruposDisponibles);
+    
     // 2. PROCESAR ALUMNOS (40%)
-    progressBar.style.width = '30%';
+    progressBar.style.width = '20%';
     progressText.textContent = 'Procesando alumnos...';
     
     const alumnosSnap = await db.collection('usuarios')
@@ -196,20 +206,39 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
         alumnosGraduados++;
       } else {
         // Calcular nuevo grupo
-        const nuevoGrupo = calcularNuevoGrupo(alumno.grupoId, nuevoSemestre);
+        const nuevoGrupoId = calcularNuevoGrupo(alumno.grupoId, nuevoSemestre);
         
-        // Actualizar alumno
-        await alumnoDoc.ref.update({
-          semestreActual: nuevoSemestre,
-          grupoId: nuevoGrupo,
-          periodo: nuevoPeriodo,
-          ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alumnosAvanzados++;
+        // VERIFICAR SI EL GRUPO EXISTE
+        const grupoExiste = gruposDisponibles.includes(nuevoGrupoId);
+        
+        if (grupoExiste) {
+          // El grupo existe, actualizar normalmente
+          await alumnoDoc.ref.update({
+            semestreActual: nuevoSemestre,
+            grupoId: nuevoGrupoId,
+            periodo: nuevoPeriodo,
+            ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          alumnosAvanzados++;
+        } else {
+          // El grupo NO existe, DESACTIVAR al alumno
+          await alumnoDoc.ref.update({
+            activo: false, // DESACTIVAR
+            semestreActual: nuevoSemestre,
+            grupoId: nuevoGrupoId, // Mantener el grupo calculado para referencia
+            periodo: nuevoPeriodo,
+            motivoDesactivacion: 'Sin grupo disponible para el siguiente semestre',
+            fechaDesactivacion: firebase.firestore.FieldValue.serverTimestamp(),
+            ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
+          });
+          alumnosDesactivados++;
+          
+          console.log(`Alumno desactivado: ${alumno.nombre} - Grupo esperado: ${nuevoGrupoId} (no existe)`);
+        }
       }
       
       procesados++;
-      const progreso = 30 + (procesados / totalAlumnos) * 30;
+      const progreso = 20 + (procesados / totalAlumnos) * 30;
       progressBar.style.width = `${progreso}%`;
       progressText.textContent = `Procesando alumnos... ${procesados}/${totalAlumnos}`;
     }
@@ -238,50 +267,134 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
       });
       asignacionesDesactivadas++;
     });
+    
     await batch.commit();
     
-    // 5. ACTUALIZAR PERIODO DE LA CARRERA (10%)
-    progressBar.style.width = '90%';
-    progressText.textContent = 'Actualizando configuracion...';
+    // 5. ACTUALIZAR CONFIGURACION DEL PERIODO (10%)
+    progressBar.style.width = '95%';
+    progressText.textContent = 'Actualizando configuración...';
     
     await db.collection('config').doc(`periodo_${carreraId}`).update({
       periodo: nuevoPeriodo,
       periodoAnterior: periodoActual,
-      fechaCambio: firebase.firestore.FieldValue.serverTimestamp(),
-      cambiadoPor: usuarioActual.uid
+      fechaCambio: firebase.firestore.FieldValue.serverTimestamp()
     });
     
-    // 6. COMPLETADO (100%)
+    // 6. COMPLETADO
     progressBar.style.width = '100%';
-    progressText.textContent = 'Completado';
+    progressText.textContent = '¡Cambio completado!';
     
-    // Mostrar resultado
+    // Mostrar resumen
     setTimeout(() => {
-      alert(
-        `CAMBIO DE PERIODO COMPLETADO\n\n` +
-        `Nuevo periodo: ${nuevoPeriodo}\n\n` +
-        `Alumnos avanzados: ${alumnosAvanzados}\n` +
-        `Alumnos graduados: ${alumnosGraduados}\n` +
-        `Grupos archivados: ${gruposArchivados}\n` +
-        `Calificaciones archivadas: ${calificacionesArchivadas}\n` +
-        `Asignaciones desactivadas: ${asignacionesDesactivadas}\n\n` +
-        `Puedes armar los nuevos grupos y asignar profesores.`
-      );
+      const html = `
+        <div style="background: white; padding: 30px; border-radius: 15px; max-width: 600px; margin: 20px auto;">
+          <h3 style="margin: 0 0 20px 0; color: #216A32; text-align: center;">
+            Cambio de Periodo Completado
+          </h3>
+          
+          <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
+            <div style="text-align: center; margin-bottom: 15px;">
+              <div style="font-size: 0.9rem; color: #666;">Periodo actualizado:</div>
+              <div style="font-size: 2rem; font-weight: bold; color: #1976d2;">${nuevoPeriodo}</div>
+            </div>
+          </div>
+          
+          <div style="background: #e8f5e9; border-radius: 8px; padding: 20px; margin-bottom: 15px;">
+            <h4 style="margin: 0 0 15px 0; color: #2e7d32;">Resumen de acciones:</h4>
+            <div style="display: grid; gap: 10px;">
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
+                <span>Alumnos avanzados:</span>
+                <strong style="color: #4caf50;">${alumnosAvanzados}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
+                <span>Alumnos graduados:</span>
+                <strong style="color: #2196f3;">${alumnosGraduados}</strong>
+              </div>
+              ${alumnosDesactivados > 0 ? `
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: #ffebee; border-radius: 4px; border-left: 4px solid #f44336;">
+                <span>Alumnos desactivados (sin grupo):</span>
+                <strong style="color: #d32f2f;">${alumnosDesactivados}</strong>
+              </div>
+              ` : ''}
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
+                <span>Grupos archivados:</span>
+                <strong>${gruposArchivados}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
+                <span>Calificaciones archivadas:</span>
+                <strong>${calificacionesArchivadas}</strong>
+              </div>
+              <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
+                <span>Asignaciones desactivadas:</span>
+                <strong>${asignacionesDesactivadas}</strong>
+              </div>
+            </div>
+          </div>
+          
+          ${alumnosDesactivados > 0 ? `
+          <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <strong>ATENCIÓN:</strong>
+            <p style="margin: 5px 0 0 0;">
+              ${alumnosDesactivados} alumno(s) fueron desactivados porque no hay grupos disponibles para el siguiente semestre.
+              <br><br>
+              Para reactivarlos, primero debes:
+              <br>1. Crear los grupos necesarios para el semestre ${nuevoSemestre}
+              <br>2. Luego reactivar manualmente a los alumnos desde el panel de gestión
+            </p>
+          </div>
+          ` : ''}
+          
+          <button onclick="location.reload()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
+            Actualizar Panel
+          </button>
+        </div>
+      `;
       
-      cerrarModal();
-      location.reload();
-    }, 500);
+      document.getElementById('contenidoModal').innerHTML = html;
+    }, 1000);
     
   } catch (error) {
     console.error('Error al cambiar periodo:', error);
-    alert('Error al cambiar periodo: ' + error.message);
-    cerrarModal();
+    
+    document.getElementById('contenidoModal').innerHTML = `
+      <div style="background: white; padding: 30px; border-radius: 15px; max-width: 500px; margin: 20px auto;">
+        <h3 style="color: #d32f2f; text-align: center; margin: 0 0 20px 0;">Error al Cambiar Periodo</h3>
+        <div style="background: #ffebee; border-left: 4px solid #f44336; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+          <p style="margin: 0; color: #c62828;">${error.message}</p>
+        </div>
+        <button onclick="cerrarModal()" style="width: 100%; padding: 12px; background: #f44336; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          Cerrar
+        </button>
+      </div>
+    `;
   }
 }
 
-// Calcular nuevo grupo basado en el actual
+//  NUEVA FUNCIÓN: Cargar grupos disponibles
+async function cargarGruposDisponibles(carreraId) {
+  try {
+    const gruposSnap = await db.collection('grupos')
+      .where('carreraId', '==', carreraId)
+      .where('activo', '==', true)
+      .get();
+    
+    const gruposIds = [];
+    gruposSnap.forEach(doc => {
+      gruposIds.push(doc.id);
+    });
+    
+    return gruposIds;
+  } catch (error) {
+    console.error('Error al cargar grupos disponibles:', error);
+    return [];
+  }
+}
+
+// Calcular nuevo grupo basado en el semestre
 function calcularNuevoGrupo(grupoActual, nuevoSemestre) {
-  if (!grupoActual) return `1${nuevoSemestre}01-MAT`;
+  if (!grupoActual) {
+    return null;
+  }
   
   // Formato: TSGG-SIGLA (Ej: 1201-MAT)
   const match = grupoActual.match(/^([123])(\d)(\d{2})-(.+)$/);
@@ -291,7 +404,7 @@ function calcularNuevoGrupo(grupoActual, nuevoSemestre) {
     const grupo = match[3];      // 01, 02, etc
     const sigla = match[4];      // MAT, LI, etc
     
-    return `${turno}${nuevoSemestre}${grupo}-${sigla}`;
+    return `${turno}${nuevoSemestre}01-${sigla}`;
   }
   
   // Fallback: mantener turno y sigla originales
@@ -398,20 +511,21 @@ async function verHistorialGrupos(carreraId) {
       
       html += `
         <div style="margin-bottom: 30px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-          <div style="background: #f5f5f5; padding: 15px; font-weight: 600; font-size: 18px;">
-            Periodo: ${periodo} (${grupos.length} grupos)
+          <div style="background: #667eea; color: white; padding: 15px; font-weight: 600; font-size: 18px;">
+            Periodo: ${periodo}
           </div>
           <div style="padding: 15px;">
-            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+            <div style="display: grid; gap: 10px;">
       `;
       
       grupos.forEach(grupo => {
         html += `
-          <div style="background: #f8f9fa; padding: 12px; border-radius: 6px; border-left: 4px solid #667eea;">
-            <div style="font-weight: 600; color: #333;">${grupo.nombre}</div>
-            <div style="font-size: 12px; color: #666; margin-top: 4px;">
-              Semestre: ${grupo.semestre}<br>
-              Turno: ${grupo.turno}
+          <div style="background: #f5f5f5; padding: 12px; border-radius: 6px; border-left: 4px solid #667eea;">
+            <div style="font-weight: 600; margin-bottom: 5px;">${grupo.nombre || grupo.grupoOriginalId}</div>
+            <div style="font-size: 0.85rem; color: #666;">
+              Semestre: ${grupo.semestre || '-'} | 
+              Turno: ${grupo.turno || '-'} |
+              Fecha archivo: ${grupo.fechaArchivado ? new Date(grupo.fechaArchivado.toDate()).toLocaleDateString() : '-'}
             </div>
           </div>
         `;
@@ -435,14 +549,14 @@ async function verHistorialGrupos(carreraId) {
     document.getElementById('modalGenerico').style.display = 'flex';
     
   } catch (error) {
-    console.error('Error al ver historial:', error);
+    console.error('Error al ver historial de grupos:', error);
     alert('Error al cargar historial de grupos');
   }
 }
 
 // ===== HISTORIAL DE CALIFICACIONES =====
 
-// Archivar calificaciones del periodo
+// Archivar calificaciones del periodo actual
 async function archivarCalificaciones(carreraId, periodoActual, nuevoPeriodo) {
   try {
     // Obtener todas las calificaciones del periodo actual
@@ -640,4 +754,4 @@ function mostrarMensajeModal(mensaje, tipo) {
   document.getElementById('modalGenerico').style.display = 'flex';
 }
 
-console.log('Sistema de Cambio de Periodo cargado');
+console.log('Sistema de Cambio de Periodo cargado (VERSIÓN CON AUTO-DESACTIVACIÓN)');
