@@ -900,6 +900,7 @@ async function mostrarFormAsignarProfesor() {
  
  <div class="form-grupo">
  <label>Periodo: *</label>
+ <input type="text" id="periodoAsignar" required readonly value="${periodoActual}" 
  style="background: #f0f0f0; cursor: not-allowed; font-weight: bold; color: #216A32;">
  <small style="color: #666;">Las asignaciones se crean para el periodo actual del sistema</small>
  </div>
