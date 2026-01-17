@@ -1,8 +1,8 @@
 // cambioPeriodo.js
 // Sistema de Cambio de Periodo Individual por Carrera con Historial
+// VERSIÓN CORREGIDA
 
 // ===== CONSTANTES =====
-const SEMESTRES_MAXIMOS = 9; // Numero maximo de semestres antes de graduar
 const GRUPO_GRADUADOS = 'GRADUADOS';
 
 // ===== FUNCIONES DE PERIODO =====
@@ -26,7 +26,6 @@ async function cargarPeriodoCarrera(carreraId) {
     if (doc.exists) {
       return doc.data().periodo || '2026-1';
     } else {
-      // Crear documento inicial si no existe
       await docRef.set({
         carreraId: carreraId,
         periodo: '2026-1',
@@ -41,31 +40,35 @@ async function cargarPeriodoCarrera(carreraId) {
   }
 }
 
-// Mostrar modal de cambio de periodo
+// Mostrar modal de cambio de periodo (CON BOTÓN AUTOMÁTICO)
 async function mostrarCambioPeriodo(carreraId, periodoActual) {
-  const periodos = generarPeriodos();
+  // Calcular siguiente periodo automaticamente
+  const [year, semestre] = periodoActual.split('-').map(n => parseInt(n));
+  let siguientePeriodo;
   
-  let periodosHTML = '';
-  periodos.forEach(p => {
-    const selected = p === periodoActual ? 'selected' : '';
-    periodosHTML += `<option value="${p}" ${selected}>${p}</option>`;
-  });
+  if (semestre === 1) {
+    siguientePeriodo = `${year}-2`;
+  } else {
+    siguientePeriodo = `${year + 1}-1`;
+  }
   
   const html = `
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: 20px auto;">
       <h3 style="margin: 0 0 20px 0; color: #216A32;">Cambiar Periodo Academico</h3>
       
       <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="margin-bottom: 15px;">
-          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Periodo actual:</label>
-          <div style="font-size: 24px; font-weight: bold; color: #216A32;">${periodoActual}</div>
-        </div>
-        
-        <div>
-          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nuevo periodo:</label>
-          <select id="nuevoPeriodo" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
-            ${periodosHTML}
-          </select>
+        <div style="display: flex; align-items: center; justify-content: space-around; gap: 20px;">
+          <div style="text-align: center;">
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Periodo actual:</div>
+            <div style="font-size: 2rem; font-weight: bold; color: #216A32;">${periodoActual}</div>
+          </div>
+          
+          <div style="font-size: 3rem; color: #999;">→</div>
+          
+          <div style="text-align: center;">
+            <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Siguiente periodo:</div>
+            <div style="font-size: 2rem; font-weight: bold; color: #1976d2;">${siguientePeriodo}</div>
+          </div>
         </div>
       </div>
       
@@ -73,7 +76,8 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <strong>Acciones al cambiar periodo:</strong>
         <ul style="margin: 10px 0; padding-left: 20px;">
           <li>Los alumnos avanzaran al siguiente semestre (Ej: 1101-MAT → 1201-MAT)</li>
-          <li>Los alumnos de ultimo semestre (9no) pasaran a GRADUADOS</li>
+          <li>Los alumnos de ultimo semestre pasaran a GRADUADOS</li>
+          <li>Si no hay grupo para el siguiente semestre, se marcaran como Inactivos Academicos</li>
           <li>Se archivaran los grupos actuales en el historial</li>
           <li>Las asignaciones de profesores se desactivaran</li>
           <li>Las calificaciones se guardaran en el historial general</li>
@@ -90,12 +94,12 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <p style="margin: 5px 0 0 0;">Esta accion no se puede deshacer. Verifica que todo este correcto antes de continuar.</p>
       </div>
       
-      <form onsubmit="ejecutarCambioPeriodoCarrera(event, '${carreraId}', '${periodoActual}')">
+      <form onsubmit="ejecutarCambioPeriodoCarrera(event, '${carreraId}', '${periodoActual}', '${siguientePeriodo}')">
         <div style="display: flex; gap: 10px;">
-          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-            Cambiar Periodo
+          <button type="submit" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
+            Avanzar a ${siguientePeriodo}
           </button>
-          <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
+          <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 14px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
             Cancelar
           </button>
         </div>
@@ -107,16 +111,11 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
   document.getElementById('modalGenerico').style.display = 'flex';
 }
 
-// Ejecutar cambio de periodo
-async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
+// Ejecutar cambio de periodo (CON SIGUIENTE PERIODO CALCULADO)
+async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, siguientePeriodo) {
   event.preventDefault();
   
-  const nuevoPeriodo = document.getElementById('nuevoPeriodo').value;
-  
-  if (nuevoPeriodo === periodoActual) {
-    alert('El periodo seleccionado es el mismo que el actual');
-    return;
-  }
+  const nuevoPeriodo = siguientePeriodo;
   
   const confirmacion = confirm(
     `CONFIRMAR CAMBIO DE PERIODO\n\n` +
@@ -128,6 +127,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
     `- Archivara grupos en historial\n` +
     `- Desactivara asignaciones del periodo anterior\n` +
     `- Graduara alumnos de ultimo semestre\n` +
+    `- Marcara como Inactivos Academicos si no hay grupo\n` +
     `- Guardara calificaciones en historial\n\n` +
     `¿Continuar?`
   );
@@ -135,7 +135,6 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
   if (!confirmacion) return;
   
   try {
-    // Mostrar progreso
     document.getElementById('contenidoModal').innerHTML = `
       <div style="background: white; padding: 40px; border-radius: 15px; text-align: center; max-width: 500px; margin: 20px auto;">
         <div style="font-size: 18px; font-weight: 600; margin-bottom: 20px;">Cambiando periodo...</div>
@@ -152,6 +151,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
     
     let alumnosAvanzados = 0;
     let alumnosGraduados = 0;
+    let alumnosInactivos = 0;
     let gruposArchivados = 0;
     let asignacionesDesactivadas = 0;
     let calificacionesArchivadas = 0;
@@ -163,9 +163,41 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
     await archivarGrupos(carreraId, periodoActual);
     gruposArchivados = await contarGruposArchivados(carreraId, periodoActual);
     
-    // 2. PROCESAR ALUMNOS (40%)
+    // 2. PROCESAR ALUMNOS (40%) - LOGICA CORREGIDA
     progressBar.style.width = '30%';
     progressText.textContent = 'Procesando alumnos...';
+    
+    // Obtener todos los grupos activos de la carrera
+    const gruposCarreraSnap = await db.collection('grupos')
+      .where('carreraId', '==', carreraId)
+      .where('activo', '==', true)
+      .get();
+    
+    // Crear un mapa de grupos por semestre
+    const gruposPorSemestre = {};
+    gruposCarreraSnap.forEach(doc => {
+      const grupo = doc.data();
+      if (grupo.semestre) {
+        if (!gruposPorSemestre[grupo.semestre]) {
+          gruposPorSemestre[grupo.semestre] = [];
+        }
+        gruposPorSemestre[grupo.semestre].push({
+          id: doc.id,
+          nombre: grupo.nombre,
+          turno: grupo.turno,
+          semestre: grupo.semestre
+        });
+      }
+    });
+    
+    // Determinar el semestre maximo
+    const semestresDisponibles = Object.keys(gruposPorSemestre).map(s => parseInt(s));
+    const semestreMaximo = semestresDisponibles.length > 0 
+      ? Math.max(...semestresDisponibles)
+      : 9;
+    
+    console.log(`Semestre maximo detectado: ${semestreMaximo}`);
+    console.log(`Semestres disponibles:`, semestresDisponibles.sort((a,b) => a-b));
     
     const alumnosSnap = await db.collection('usuarios')
       .where('rol', '==', 'alumno')
@@ -182,29 +214,76 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
       const semestreActual = alumno.semestreActual || 1;
       const nuevoSemestre = semestreActual + 1;
       
-      // Determinar si se gradua
-      if (nuevoSemestre > SEMESTRES_MAXIMOS) {
-        // Graduar alumno
+      // REGLA: Si esta en el ultimo semestre disponible → GRADUAR
+      if (semestreActual >= semestreMaximo) {
         await alumnoDoc.ref.update({
           activo: false,
           graduado: true,
           grupoId: GRUPO_GRADUADOS,
+          semestreActual: semestreActual,
           fechaGraduacion: firebase.firestore.FieldValue.serverTimestamp(),
           periodoGraduacion: nuevoPeriodo
         });
         alumnosGraduados++;
-      } else {
-        // Calcular nuevo grupo
-        const nuevoGrupo = calcularNuevoGrupo(alumno.grupoId, nuevoSemestre);
+        console.log(`Graduado: ${alumno.nombre} (estaba en semestre ${semestreActual})`);
+      } 
+      // REGLA: Si NO existe el siguiente semestre → INACTIVO ACADEMICO
+      else if (!gruposPorSemestre[nuevoSemestre]) {
+        await alumnoDoc.ref.update({
+          activo: false,
+          inactivoAcademico: true,
+          motivoInactividad: 'Sin grupo disponible para el siguiente semestre',
+          grupoId: null,
+          semestreActual: nuevoSemestre,
+          periodo: nuevoPeriodo,
+          fechaInactivacion: firebase.firestore.FieldValue.serverTimestamp(),
+          ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alumnosInactivos++;
+        console.log(`Inactivo Academico: ${alumno.nombre} (semestre ${nuevoSemestre} sin grupos)`);
+      }
+      // REGLA: Si existe el siguiente semestre → AVANZAR
+      else {
+        const gruposDisponibles = gruposPorSemestre[nuevoSemestre];
         
-        // Actualizar alumno
+        // Intentar mantener el mismo turno y numero de grupo
+        const grupoActualData = alumno.grupoId || '';
+        const turnoMatch = grupoActualData.match(/^([123])/);
+        const grupoNumMatch = grupoActualData.match(/(\d{2})-/);
+        
+        const turnoPreferido = turnoMatch ? turnoMatch[1] : null;
+        const grupoNumPreferido = grupoNumMatch ? grupoNumMatch[1] : '01';
+        
+        let nuevoGrupo = null;
+        
+        // Buscar grupo que coincida con turno preferido
+        if (turnoPreferido) {
+          nuevoGrupo = gruposDisponibles.find(g => 
+            g.nombre.startsWith(turnoPreferido + nuevoSemestre + grupoNumPreferido)
+          );
+        }
+        
+        // Si no encuentra, buscar cualquiera del mismo numero
+        if (!nuevoGrupo) {
+          nuevoGrupo = gruposDisponibles.find(g => 
+            g.nombre.includes(grupoNumPreferido + '-')
+          );
+        }
+        
+        // Si aun no encuentra, tomar el primero disponible
+        if (!nuevoGrupo) {
+          nuevoGrupo = gruposDisponibles[0];
+        }
+        
+        // AVANZAR ALUMNO
         await alumnoDoc.ref.update({
           semestreActual: nuevoSemestre,
-          grupoId: nuevoGrupo,
+          grupoId: nuevoGrupo.id,
           periodo: nuevoPeriodo,
           ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
         });
         alumnosAvanzados++;
+        console.log(`Avanzado: ${alumno.nombre} → semestre ${nuevoSemestre}, grupo ${nuevoGrupo.nombre}`);
       }
       
       procesados++;
@@ -261,9 +340,15 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
         `Nuevo periodo: ${nuevoPeriodo}\n\n` +
         `Alumnos avanzados: ${alumnosAvanzados}\n` +
         `Alumnos graduados: ${alumnosGraduados}\n` +
+        `Alumnos marcados como inactivos academicos: ${alumnosInactivos}\n` +
         `Grupos archivados: ${gruposArchivados}\n` +
         `Calificaciones archivadas: ${calificacionesArchivadas}\n` +
         `Asignaciones desactivadas: ${asignacionesDesactivadas}\n\n` +
+        (alumnosInactivos > 0 
+          ? `ATENCION: ${alumnosInactivos} alumno(s) marcado(s) como "Inactivo Academico".\n` +
+            `Debes asignarles un grupo o eliminarlos.\n` +
+            `Usa el boton "Gestionar Inactivos Academicos".\n\n`
+          : '') +
         `Puedes armar los nuevos grupos y asignar profesores.`
       );
       
@@ -278,34 +363,8 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
   }
 }
 
-// Calcular nuevo grupo basado en el actual
-function calcularNuevoGrupo(grupoActual, nuevoSemestre) {
-  if (!grupoActual) return `1${nuevoSemestre}01-MAT`;
-  
-  // Formato: TSGG-SIGLA (Ej: 1201-MAT)
-  const match = grupoActual.match(/^([123])(\d)(\d{2})-(.+)$/);
-  
-  if (match) {
-    const turno = match[1];      // 1, 2 o 3
-    const grupo = match[3];      // 01, 02, etc
-    const sigla = match[4];      // MAT, LI, etc
-    
-    return `${turno}${nuevoSemestre}${grupo}-${sigla}`;
-  }
-  
-  // Fallback: mantener turno y sigla originales
-  const turnoMatch = grupoActual.match(/^([123])/);
-  const siglaMatch = grupoActual.match(/-(.+)$/);
-  
-  const turno = turnoMatch ? turnoMatch[1] : '1';
-  const sigla = siglaMatch ? siglaMatch[1] : 'MAT';
-  
-  return `${turno}${nuevoSemestre}01-${sigla}`;
-}
+// ===== RESTO DE FUNCIONES (sin cambios) =====
 
-// ===== HISTORIAL DE GRUPOS =====
-
-// Archivar grupos del periodo actual
 async function archivarGrupos(carreraId, periodoActual) {
   try {
     const gruposSnap = await db.collection('grupos')
@@ -318,7 +377,6 @@ async function archivarGrupos(carreraId, periodoActual) {
     for (const grupoDoc of gruposSnap.docs) {
       const grupo = grupoDoc.data();
       
-      // Crear documento en historial
       const historialRef = db.collection('historialGrupos').doc();
       batch.set(historialRef, {
         ...grupo,
@@ -327,7 +385,6 @@ async function archivarGrupos(carreraId, periodoActual) {
         fechaArchivado: firebase.firestore.FieldValue.serverTimestamp()
       });
       
-      // Desactivar grupo actual
       batch.update(grupoDoc.ref, {
         activo: false,
         fechaDesactivacion: firebase.firestore.FieldValue.serverTimestamp()
@@ -343,7 +400,6 @@ async function archivarGrupos(carreraId, periodoActual) {
   }
 }
 
-// Contar grupos archivados
 async function contarGruposArchivados(carreraId, periodo) {
   try {
     const snap = await db.collection('historialGrupos')
@@ -358,7 +414,52 @@ async function contarGruposArchivados(carreraId, periodo) {
   }
 }
 
-// Ver historial de grupos
+async function archivarCalificaciones(carreraId, periodoActual, nuevoPeriodo) {
+  try {
+    const calificacionesSnap = await db.collection('calificaciones')
+      .where('periodo', '==', periodoActual)
+      .get();
+    
+    const batch = db.batch();
+    let contador = 0;
+    
+    for (const calDoc of calificacionesSnap.docs) {
+      const calificacion = calDoc.data();
+      
+      const alumnoDoc = await db.collection('usuarios').doc(calificacion.alumnoId).get();
+      if (!alumnoDoc.exists || alumnoDoc.data().carreraId !== carreraId) {
+        continue;
+      }
+      
+      const historialRef = db.collection('historialCalificaciones').doc();
+      batch.set(historialRef, {
+        ...calificacion,
+        calificacionOriginalId: calDoc.id,
+        periodoArchivado: periodoActual,
+        fechaArchivado: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      
+      contador++;
+      
+      if (contador % 500 === 0) {
+        await batch.commit();
+        const newBatch = db.batch();
+      }
+    }
+    
+    if (contador % 500 !== 0) {
+      await batch.commit();
+    }
+    
+    console.log(`Calificaciones archivadas: ${contador}`);
+    return contador;
+    
+  } catch (error) {
+    console.error('Error al archivar calificaciones:', error);
+    throw error;
+  }
+}
+
 async function verHistorialGrupos(carreraId) {
   try {
     const snap = await db.collection('historialGrupos')
@@ -371,7 +472,6 @@ async function verHistorialGrupos(carreraId) {
       return;
     }
     
-    // Agrupar por periodo
     const gruposPorPeriodo = {};
     snap.forEach(doc => {
       const data = doc.data();
@@ -384,7 +484,6 @@ async function verHistorialGrupos(carreraId) {
       gruposPorPeriodo[periodo].push(data);
     });
     
-    // Construir HTML
     let html = `
       <div style="background: white; padding: 30px; border-radius: 15px; max-width: 900px; margin: 20px auto; max-height: 80vh; overflow-y: auto;">
         <h3 style="margin: 0 0 20px 0; color: #216A32;">Historial de Grupos</h3>
@@ -439,182 +538,6 @@ async function verHistorialGrupos(carreraId) {
   }
 }
 
-// ===== HISTORIAL DE CALIFICACIONES =====
-
-// Archivar calificaciones del periodo
-async function archivarCalificaciones(carreraId, periodoActual, nuevoPeriodo) {
-  try {
-    // Obtener todas las calificaciones del periodo actual
-    const calificacionesSnap = await db.collection('calificaciones')
-      .where('periodo', '==', periodoActual)
-      .get();
-    
-    const batch = db.batch();
-    let contador = 0;
-    
-    for (const calDoc of calificacionesSnap.docs) {
-      const calificacion = calDoc.data();
-      
-      // Verificar que sea de esta carrera
-      const alumnoDoc = await db.collection('usuarios').doc(calificacion.alumnoId).get();
-      if (!alumnoDoc.exists || alumnoDoc.data().carreraId !== carreraId) {
-        continue;
-      }
-      
-      // Crear documento en historial
-      const historialRef = db.collection('historialCalificaciones').doc();
-      batch.set(historialRef, {
-        ...calificacion,
-        calificacionOriginalId: calDoc.id,
-        periodoArchivado: periodoActual,
-        fechaArchivado: firebase.firestore.FieldValue.serverTimestamp()
-      });
-      
-      contador++;
-      
-      // Ejecutar batch cada 500 documentos
-      if (contador % 500 === 0) {
-        await batch.commit();
-        const newBatch = db.batch();
-      }
-    }
-    
-    // Ejecutar batch restante
-    if (contador % 500 !== 0) {
-      await batch.commit();
-    }
-    
-    console.log(`Calificaciones archivadas: ${contador}`);
-    return contador;
-    
-  } catch (error) {
-    console.error('Error al archivar calificaciones:', error);
-    throw error;
-  }
-}
-
-// Ver historial de calificaciones de un alumno
-async function verHistorialCalificacionesAlumno(alumnoId) {
-  try {
-    const snap = await db.collection('historialCalificaciones')
-      .where('alumnoId', '==', alumnoId)
-      .orderBy('fechaArchivado', 'desc')
-      .get();
-    
-    if (snap.empty) {
-      mostrarMensajeModal('No hay calificaciones en el historial', 'info');
-      return;
-    }
-    
-    // Obtener datos del alumno
-    const alumnoDoc = await db.collection('usuarios').doc(alumnoId).get();
-    const alumno = alumnoDoc.data();
-    
-    // Agrupar por periodo
-    const calificacionesPorPeriodo = {};
-    snap.forEach(doc => {
-      const data = doc.data();
-      const periodo = data.periodoArchivado;
-      
-      if (!calificacionesPorPeriodo[periodo]) {
-        calificacionesPorPeriodo[periodo] = [];
-      }
-      
-      calificacionesPorPeriodo[periodo].push(data);
-    });
-    
-    // Construir HTML
-    let html = `
-      <div style="background: white; padding: 30px; border-radius: 15px; max-width: 900px; margin: 20px auto; max-height: 80vh; overflow-y: auto;">
-        <h3 style="margin: 0 0 10px 0; color: #216A32;">Historial de Calificaciones</h3>
-        <div style="margin-bottom: 20px; padding: 15px; background: #f5f5f5; border-radius: 8px;">
-          <strong>Alumno:</strong> ${alumno.nombre}<br>
-          <strong>Matricula:</strong> ${alumno.matricula}
-        </div>
-    `;
-    
-    const periodos = Object.keys(calificacionesPorPeriodo).sort().reverse();
-    
-    for (const periodo of periodos) {
-      const calificaciones = calificacionesPorPeriodo[periodo];
-      
-      html += `
-        <div style="margin-bottom: 30px; border: 1px solid #e0e0e0; border-radius: 8px; overflow: hidden;">
-          <div style="background: #667eea; color: white; padding: 15px; font-weight: 600; font-size: 18px;">
-            Periodo: ${periodo}
-          </div>
-          <div style="overflow-x: auto;">
-            <table style="width: 100%; border-collapse: collapse;">
-              <thead style="background: #f5f5f5;">
-                <tr>
-                  <th style="padding: 12px; text-align: left; border-bottom: 2px solid #ddd;">Materia</th>
-                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Parcial 1</th>
-                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Parcial 2</th>
-                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Parcial 3</th>
-                  <th style="padding: 12px; text-align: center; border-bottom: 2px solid #ddd;">Promedio</th>
-                </tr>
-              </thead>
-              <tbody>
-      `;
-      
-      calificaciones.forEach(cal => {
-        const p1 = cal.parciales?.parcial1 ?? '-';
-        const p2 = cal.parciales?.parcial2 ?? '-';
-        const p3 = cal.parciales?.parcial3 ?? '-';
-        
-        // Calcular promedio
-        let promedio = '-';
-        const tieneNP = p1 === 'NP' || p2 === 'NP' || p3 === 'NP';
-        
-        if (tieneNP) {
-          promedio = '5.0';
-        } else {
-          const cals = [p1, p2, p3]
-            .filter(c => c !== '-' && c !== null && c !== undefined)
-            .map(c => parseFloat(c))
-            .filter(c => !isNaN(c));
-          
-          if (cals.length > 0) {
-            promedio = (cals.reduce((a, b) => a + b, 0) / cals.length).toFixed(1);
-          }
-        }
-        
-        html += `
-          <tr style="border-bottom: 1px solid #eee;">
-            <td style="padding: 12px;">${cal.materiaNombre || 'Sin nombre'}</td>
-            <td style="padding: 12px; text-align: center; font-weight: bold;">${p1}</td>
-            <td style="padding: 12px; text-align: center; font-weight: bold;">${p2}</td>
-            <td style="padding: 12px; text-align: center; font-weight: bold;">${p3}</td>
-            <td style="padding: 12px; text-align: center; font-weight: bold; background: #f0f7ff;">${promedio}</td>
-          </tr>
-        `;
-      });
-      
-      html += `
-              </tbody>
-            </table>
-          </div>
-        </div>
-      `;
-    }
-    
-    html += `
-        <button onclick="cerrarModal()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; margin-top: 20px;">
-          Cerrar
-        </button>
-      </div>
-    `;
-    
-    document.getElementById('contenidoModal').innerHTML = html;
-    document.getElementById('modalGenerico').style.display = 'flex';
-    
-  } catch (error) {
-    console.error('Error al ver historial:', error);
-    alert('Error al cargar historial de calificaciones');
-  }
-}
-
-// Mostrar mensaje en modal
 function mostrarMensajeModal(mensaje, tipo) {
   const colores = {
     info: { bg: '#e3f2fd', border: '#2196f3', text: '#1565c0' },
@@ -639,4 +562,4 @@ function mostrarMensajeModal(mensaje, tipo) {
   document.getElementById('modalGenerico').style.display = 'flex';
 }
 
-console.log('Sistema de Cambio de Periodo cargado');
+console.log('Sistema de Cambio de Periodo cargado (VERSION CORREGIDA)');
