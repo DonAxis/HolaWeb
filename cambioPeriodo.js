@@ -2,7 +2,6 @@
 // Sistema de Cambio de Periodo Individual por Carrera con Historial
 
 // ===== CONSTANTES =====
-const SEMESTRES_MAXIMOS = 9; // Numero maximo de semestres antes de graduar
 const GRUPO_GRADUADOS = 'GRADUADOS';
 
 // ===== FUNCIONES DE PERIODO =====
@@ -167,6 +166,38 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
     progressBar.style.width = '30%';
     progressText.textContent = 'Procesando alumnos...';
     
+    // Obtener todos los grupos activos de la carrera
+    const gruposCarreraSnap = await db.collection('grupos')
+      .where('carreraId', '==', carreraId)
+      .where('activo', '==', true)
+      .get();
+    
+    // Crear un mapa de grupos por semestre
+    const gruposPorSemestre = {};
+    gruposCarreraSnap.forEach(doc => {
+      const grupo = doc.data();
+      if (grupo.semestre) {
+        if (!gruposPorSemestre[grupo.semestre]) {
+          gruposPorSemestre[grupo.semestre] = [];
+        }
+        gruposPorSemestre[grupo.semestre].push({
+          id: doc.id,
+          nombre: grupo.nombre,
+          turno: grupo.turno,
+          semestre: grupo.semestre
+        });
+      }
+    });
+    
+    // Determinar el semestre maximo (ultimo semestre de la carrera)
+    const semestresDisponibles = Object.keys(gruposPorSemestre).map(s => parseInt(s));
+    const semestreMaximo = semestresDisponibles.length > 0 
+      ? Math.max(...semestresDisponibles)
+      : 9; // Fallback a 9 si no hay grupos
+    
+    console.log(`Semestre maximo detectado para esta carrera: ${semestreMaximo}`);
+    console.log(`Semestres disponibles:`, semestresDisponibles.sort((a,b) => a-b));
+    
     const alumnosSnap = await db.collection('usuarios')
       .where('rol', '==', 'alumno')
       .where('carreraId', '==', carreraId)
@@ -182,29 +213,76 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
       const semestreActual = alumno.semestreActual || 1;
       const nuevoSemestre = semestreActual + 1;
       
-      // Determinar si se gradua
-      if (nuevoSemestre > SEMESTRES_MAXIMOS) {
+      // Determinar si se gradua (si ya esta en el ultimo semestre disponible)
+      if (semestreActual >= semestreMaximo || !gruposPorSemestre[nuevoSemestre]) {
         // Graduar alumno
         await alumnoDoc.ref.update({
           activo: false,
           graduado: true,
           grupoId: GRUPO_GRADUADOS,
+          semestreActual: semestreActual, // Mantener su semestre actual
           fechaGraduacion: firebase.firestore.FieldValue.serverTimestamp(),
           periodoGraduacion: nuevoPeriodo
         });
         alumnosGraduados++;
+        console.log(`Alumno ${alumno.nombre} graduado (estaba en semestre ${semestreActual})`);
       } else {
-        // Calcular nuevo grupo
-        const nuevoGrupo = calcularNuevoGrupo(alumno.grupoId, nuevoSemestre);
+        // Buscar un grupo apropiado para el nuevo semestre
+        const gruposDisponibles = gruposPorSemestre[nuevoSemestre];
         
-        // Actualizar alumno
+        if (!gruposDisponibles || gruposDisponibles.length === 0) {
+          console.error(`No hay grupos para semestre ${nuevoSemestre}, graduando alumno`);
+          // Si no hay grupos, graduar al alumno
+          await alumnoDoc.ref.update({
+            activo: false,
+            graduado: true,
+            grupoId: GRUPO_GRADUADOS,
+            semestreActual: semestreActual,
+            fechaGraduacion: firebase.firestore.FieldValue.serverTimestamp(),
+            periodoGraduacion: nuevoPeriodo
+          });
+          alumnosGraduados++;
+          continue;
+        }
+        
+        // Intentar mantener el mismo turno y numero de grupo
+        const grupoActualData = alumno.grupoId || '';
+        const turnoMatch = grupoActualData.match(/^([123])/);
+        const grupoNumMatch = grupoActualData.match(/(\d{2})-/);
+        
+        const turnoPreferido = turnoMatch ? turnoMatch[1] : null;
+        const grupoNumPreferido = grupoNumMatch ? grupoNumMatch[1] : '01';
+        
+        // Buscar grupo que coincida con turno preferido
+        let nuevoGrupo = null;
+        
+        if (turnoPreferido) {
+          nuevoGrupo = gruposDisponibles.find(g => 
+            g.nombre.startsWith(turnoPreferido + nuevoSemestre + grupoNumPreferido)
+          );
+        }
+        
+        // Si no encuentra con turno preferido, buscar cualquiera del mismo numero de grupo
+        if (!nuevoGrupo) {
+          nuevoGrupo = gruposDisponibles.find(g => 
+            g.nombre.includes(grupoNumPreferido + '-')
+          );
+        }
+        
+        // Si aun no encuentra, tomar el primero disponible
+        if (!nuevoGrupo) {
+          nuevoGrupo = gruposDisponibles[0];
+        }
+        
+        // Actualizar alumno con el ID del grupo encontrado
         await alumnoDoc.ref.update({
           semestreActual: nuevoSemestre,
-          grupoId: nuevoGrupo,
+          grupoId: nuevoGrupo.id, // Usar el ID del documento, no el nombre
           periodo: nuevoPeriodo,
           ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
         });
         alumnosAvanzados++;
+        console.log(`Alumno ${alumno.nombre} avanzado a semestre ${nuevoSemestre}, grupo ${nuevoGrupo.nombre}`);
       }
       
       procesados++;
