@@ -104,10 +104,10 @@ async function mostrarSeccionPeriodos() {
   await cargarPeriodoActual();
   await cargarEstadisticasPeriodo();
   
-  // Mostrar seccion
+  // Mostrar seccion usando la misma lógica que las demás secciones
   document.querySelectorAll('.menu-card').forEach(c => c.classList.remove('active'));
-  document.querySelectorAll('.seccion-contenido').forEach(s => s.style.display = 'none');
-  document.getElementById('seccionPeriodos').style.display = 'block';
+  document.querySelectorAll('.seccion-contenido').forEach(s => s.classList.remove('active'));
+  document.getElementById('seccionPeriodos').classList.add('active');
   document.getElementById('menuPrincipal').style.display = 'none';
 }
 
@@ -249,7 +249,7 @@ async function mostrarSeccion(seccion) {
  case 'periodos':
   await cargarPeriodoActual();
   await cargarEstadisticasPeriodo();
-  document.getElementById('seccionPeriodos').style.display = 'block';
+  // No necesitamos hacer nada más aquí, ya se agregó la clase 'active' arriba
   break;
  }
  }
