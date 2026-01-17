@@ -43,33 +43,29 @@ async function cargarPeriodoCarrera(carreraId) {
 
 // Mostrar modal de cambio de periodo
 async function mostrarCambioPeriodo(carreraId, periodoActual) {
-  // Calcular siguiente periodo automaticamente
-  const [year, semestre] = periodoActual.split('-').map(n => parseInt(n));
-  let siguientePeriodo;
+  const periodos = generarPeriodos();
   
-  if (semestre === 1) {
-    siguientePeriodo = `${year}-2`;
-  } else {
-    siguientePeriodo = `${year + 1}-1`;
-  }
+  let periodosHTML = '';
+  periodos.forEach(p => {
+    const selected = p === periodoActual ? 'selected' : '';
+    periodosHTML += `<option value="${p}" ${selected}>${p}</option>`;
+  });
   
   const html = `
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 700px; margin: 20px auto;">
       <h3 style="margin: 0 0 20px 0; color: #216A32;">Cambiar Periodo Academico</h3>
       
       <div style="background: #f8f9fa; padding: 20px; border-radius: 8px; margin-bottom: 20px;">
-        <div style="display: flex; align-items: center; justify-content: space-around; gap: 20px;">
-          <div style="text-align: center;">
-            <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Periodo actual:</div>
-            <div style="font-size: 2rem; font-weight: bold; color: #216A32;">${periodoActual}</div>
-          </div>
-          
-          <div style="font-size: 3rem; color: #999;">→</div>
-          
-          <div style="text-align: center;">
-            <div style="font-size: 0.9rem; color: #666; margin-bottom: 5px;">Siguiente periodo:</div>
-            <div style="font-size: 2rem; font-weight: bold; color: #1976d2;">${siguientePeriodo}</div>
-          </div>
+        <div style="margin-bottom: 15px;">
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Periodo actual:</label>
+          <div style="font-size: 24px; font-weight: bold; color: #216A32;">${periodoActual}</div>
+        </div>
+        
+        <div>
+          <label style="display: block; margin-bottom: 5px; font-weight: 600;">Nuevo periodo:</label>
+          <select id="nuevoPeriodo" style="width: 100%; padding: 12px; border: 2px solid #ddd; border-radius: 8px; font-size: 16px;">
+            ${periodosHTML}
+          </select>
         </div>
       </div>
       
@@ -77,8 +73,7 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <strong>Acciones al cambiar periodo:</strong>
         <ul style="margin: 10px 0; padding-left: 20px;">
           <li>Los alumnos avanzaran al siguiente semestre (Ej: 1101-MAT → 1201-MAT)</li>
-          <li>Los alumnos de ultimo semestre pasaran a GRADUADOS</li>
-          <li>Si no hay grupo para el siguiente semestre, se marcaran como Inactivos Academicos</li>
+          <li>Los alumnos de ultimo semestre (9no) pasaran a GRADUADOS</li>
           <li>Se archivaran los grupos actuales en el historial</li>
           <li>Las asignaciones de profesores se desactivaran</li>
           <li>Las calificaciones se guardaran en el historial general</li>
@@ -95,12 +90,12 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <p style="margin: 5px 0 0 0;">Esta accion no se puede deshacer. Verifica que todo este correcto antes de continuar.</p>
       </div>
       
-      <form onsubmit="ejecutarCambioPeriodoCarrera(event, '${carreraId}', '${periodoActual}', '${siguientePeriodo}')">
+      <form onsubmit="ejecutarCambioPeriodoCarrera(event, '${carreraId}', '${periodoActual}')">
         <div style="display: flex; gap: 10px;">
-          <button type="submit" style="flex: 1; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
-            Avanzar a ${siguientePeriodo}
+          <button type="submit" style="flex: 1; padding: 12px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Cambiar Periodo
           </button>
-          <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 14px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
+          <button type="button" onclick="cerrarModal()" style="flex: 1; padding: 12px; background: #f5f5f5; border: 2px solid #ddd; border-radius: 8px; font-weight: 600; cursor: pointer;">
             Cancelar
           </button>
         </div>
@@ -112,12 +107,16 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
   document.getElementById('modalGenerico').style.display = 'flex';
 }
 
-// Ejecutar cambio de periodo (CON SIGUIENTE PERIODO CALCULADO)
-async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, siguientePeriodo) {
+// Ejecutar cambio de periodo
+async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual) {
   event.preventDefault();
   
-  const nuevoPeriodo = siguientePeriodo;
+  const nuevoPeriodo = document.getElementById('nuevoPeriodo').value;
   
+  if (nuevoPeriodo === periodoActual) {
+    alert('El periodo seleccionado es el mismo que el actual');
+    return;
+  }
   
   const confirmacion = confirm(
     `CONFIRMAR CAMBIO DE PERIODO\n\n` +
