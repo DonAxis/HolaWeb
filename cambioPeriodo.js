@@ -1,10 +1,4 @@
-// cambioPeriodo.js - VERSIÓN CORREGIDA
-// Sistema de Cambio de Periodo Individual por Carrera con Historial
-// FIX: Desactivar automáticamente alumnos sin grupo o "inactivos académicos"
 
-// ===== CONSTANTES =====
-const SEMESTRES_MAXIMOS = 9; // Numero maximo de semestres antes de graduar
-const GRUPO_GRADUADOS = 'GRADUADOS';
 
 // ===== FUNCIONES DE PERIODO =====
 
@@ -78,7 +72,6 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <strong>Acciones al cambiar periodo:</strong>
         <ul style="margin: 10px 0; padding-left: 20px;">
           <li>Los alumnos avanzaran al siguiente semestre (Ej: 1101-MAT → 1201-MAT)</li>
-          <li>Los alumnos de ultimo semestre pasaran a GRADUADOS</li>
           <li>Los alumnos sin grupo disponible se mostraran como "Alumno inactivo académico"</li>
           <li>Se archivaran los grupos actuales en el historial</li>
           <li>Las asignaciones de profesores se desactivaran</li>
@@ -129,7 +122,6 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     `- Actualizara grupos automaticamente\n` +
     `- Archivara grupos en historial\n` +
     `- Desactivara asignaciones del periodo anterior\n` +
-    `- Graduara alumnos de ultimo semestre\n` +
     `- Guardara calificaciones en historial\n\n` +
     `Los alumnos sin grupo disponible se mostraran como "Alumno inactivo academico"\n\n` +
     `¿Continuar?`
@@ -154,7 +146,6 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     const progressText = document.getElementById('progressText');
     
     let alumnosAvanzados = 0;
-    let alumnosGraduados = 0;
     let gruposArchivados = 0;
     let asignacionesDesactivadas = 0;
     let calificacionesArchivadas = 0;
@@ -185,31 +176,18 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
       const semestreActual = alumno.semestreActual || 1;
       const nuevoSemestre = semestreActual + 1;
       
-      // Determinar si se gradua
-      if (nuevoSemestre > SEMESTRES_MAXIMOS) {
-        // Graduar alumno
-        await alumnoDoc.ref.update({
-          activo: false,
-          graduado: true,
-          grupoId: GRUPO_GRADUADOS,
-          fechaGraduacion: firebase.firestore.FieldValue.serverTimestamp(),
-          periodoGraduacion: nuevoPeriodo
-        });
-        alumnosGraduados++;
-      } else {
-        // Calcular nuevo grupo
-        const nuevoGrupoId = calcularNuevoGrupo(alumno.grupoId, nuevoSemestre);
-        
-        // Actualizar alumno (se mantiene ACTIVO incluso si el grupo no existe)
-        // La interfaz mostrará "Alumno inactivo académico" si el grupo no existe
-        await alumnoDoc.ref.update({
-          semestreActual: nuevoSemestre,
-          grupoId: nuevoGrupoId,
-          periodo: nuevoPeriodo,
-          ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
-        });
-        alumnosAvanzados++;
-      }
+      // Calcular nuevo grupo
+      const nuevoGrupoId = calcularNuevoGrupo(alumno.grupoId, nuevoSemestre);
+      
+      // Actualizar alumno (se mantiene ACTIVO incluso si el grupo no existe)
+      // La interfaz mostrará "Alumno inactivo académico" si el grupo no existe
+      await alumnoDoc.ref.update({
+        semestreActual: nuevoSemestre,
+        grupoId: nuevoGrupoId,
+        periodo: nuevoPeriodo,
+        ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
+      });
+      alumnosAvanzados++;
       
       procesados++;
       const progreso = 20 + (procesados / totalAlumnos) * 40;
@@ -256,7 +234,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     
     // 6. COMPLETADO
     progressBar.style.width = '100%';
-    progressText.textContent = '¡Cambio completado!';
+    progressText.textContent = 'Cambio completado!';
     
     // Mostrar resumen
     setTimeout(() => {
@@ -279,10 +257,6 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
               <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
                 <span>Alumnos avanzados:</span>
                 <strong style="color: #4caf50;">${alumnosAvanzados}</strong>
-              </div>
-              <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
-                <span>Alumnos graduados:</span>
-                <strong style="color: #2196f3;">${alumnosGraduados}</strong>
               </div>
               <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
                 <span>Grupos archivados:</span>
