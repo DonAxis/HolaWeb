@@ -3809,7 +3809,7 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr style="background: #667eea; color: white;">
-                <th style="padding: 12px; border: 1px solid #ddd;">Materia</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Materiass</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Periodo</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Parcial 1</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Parcial 2</th>
