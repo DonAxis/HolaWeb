@@ -8,7 +8,8 @@
   <title>Panel de Profesor</title>
   <style>
     .header-profesor {
-      background: linear-gradient(135deg, #1976d2 0%, #0d47a1 100%);
+      /* Cambio de azul a degradado vino/marrón como en el body de alumnos */
+      background: linear-gradient(135deg, #6A2135 0%, #6A3221 100%);
       color: white;
       padding: 20px;
       border-radius: 10px;
@@ -41,7 +42,7 @@
 
     .btn-config:hover {
       background: white;
-      color: #1976d2;
+      color: #6A2135; /* Color principal de alumno */
     }
 
     .menu-profesor {
@@ -66,8 +67,22 @@
     }
 
     .card-profesor h3 {
-      color: #1976d2;
+      color: #6A2135; /* Color principal de alumno */
       margin-bottom: 10px;
+    }
+    
+    /* Estilos adicionales para coherencia con elementos de alumno */
+    .seccion-header h2 {
+      color: #6A2135;
+    }
+
+    #mensajeCalificaciones {
+      /* Estilo similar a info-header de alumno pero informativo */
+      background: #f0f7ff; 
+      padding: 15px; 
+      border-radius: 8px; 
+      margin-bottom: 20px; 
+      border-left: 4px solid #216A32; /* Verde de éxito de alumno */
     }
   </style>
 </head>
