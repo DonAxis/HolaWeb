@@ -341,11 +341,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
           <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
             <strong>ATENCIÓN:</strong>
             <p style="margin: 5px 0 0 0;">
-              ${alumnosDesactivados} alumno(s) fueron desactivados porque no hay grupos disponibles para el siguiente semestre.
-              <br><br>
-              Para reactivarlos, primero debes:
-              <br>1. Crear los grupos necesarios${siguienteSemestreInfo ? ` para el semestre ${siguienteSemestreInfo}` : ''}
-              <br>2. Luego reactivar manualmente a los alumnos desde el panel de gestión
+              ${alumnosDesactivados} alumno(s) fueron desactivados porque llegaron al ultimo semestre o no existe grupo para ellos
             </p>
           </div>
           ` : ''}
