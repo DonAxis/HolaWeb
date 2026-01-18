@@ -159,6 +159,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     let gruposArchivados = 0;
     let asignacionesDesactivadas = 0;
     let calificacionesArchivadas = 0;
+    let siguienteSemestreInfo = ''; // Para el mensaje final
     
     // 1. ARCHIVAR GRUPOS ACTUALES (10%)
     progressBar.style.width = '10%';
@@ -192,6 +193,11 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
       const alumno = alumnoDoc.data();
       const semestreActual = alumno.semestreActual || 1;
       const nuevoSemestre = semestreActual + 1;
+      
+      // Guardar info del siguiente semestre para el mensaje final (solo la primera vez)
+      if (!siguienteSemestreInfo && nuevoSemestre <= SEMESTRES_MAXIMOS) {
+        siguienteSemestreInfo = nuevoSemestre;
+      }
       
       // Determinar si se gradua
       if (nuevoSemestre > SEMESTRES_MAXIMOS) {
@@ -338,7 +344,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
               ${alumnosDesactivados} alumno(s) fueron desactivados porque no hay grupos disponibles para el siguiente semestre.
               <br><br>
               Para reactivarlos, primero debes:
-              <br>1. Crear los grupos necesarios para el semestre ${nuevoSemestre}
+              <br>1. Crear los grupos necesarios${siguienteSemestreInfo ? ` para el semestre ${siguienteSemestreInfo}` : ''}
               <br>2. Luego reactivar manualmente a los alumnos desde el panel de gestión
             </p>
           </div>
@@ -396,15 +402,22 @@ function calcularNuevoGrupo(grupoActual, nuevoSemestre) {
     return null;
   }
   
-  // Formato: TSGG-SIGLA (Ej: 1201-MAT)
+  // Formato: TSGG-SIGLA (Ej: 1201-MAT, 1402-LI)
+  // T = Turno (1, 2 o 3)
+  // S = Semestre (1-9)
+  // GG = Número de grupo (01, 02, 03, etc)
+  // SIGLA = Carrera (MAT, LI, etc)
+  
   const match = grupoActual.match(/^([123])(\d)(\d{2})-(.+)$/);
   
   if (match) {
     const turno = match[1];      // 1, 2 o 3
-    const grupo = match[3];      // 01, 02, etc
+    const semestreViejo = match[2]; // Semestre anterior (no se usa)
+    const numeroGrupo = match[3];   // 01, 02, 03, etc - MANTENER ESTE
     const sigla = match[4];      // MAT, LI, etc
     
-    return `${turno}${nuevoSemestre}01-${sigla}`;
+    // CORREGIDO: Mantener el número de grupo original
+    return `${turno}${nuevoSemestre}${numeroGrupo}-${sigla}`;
   }
   
   // Fallback: mantener turno y sigla originales
