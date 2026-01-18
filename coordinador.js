@@ -3856,13 +3856,13 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     
     // Funcion auxiliar para colores
     const getColorCalif = (calif) => {
-      if (calif === 'NP') return '#ff9800';
-      if (calif === '-') return '#999';
+      if (calif === 'NP') return '#dc3545';
+      if (calif === '-') return '#dc3545';
       const num = parseFloat(calif);
-      if (isNaN(num)) return '#999';
+      if (isNaN(num)) return '#000000';
       if (num === 0) return '#dc3545';
-      if (num < 6) return '#ff9800';
-      return '#4caf50';
+      if (num < 6) return '#000000';
+      return '#000000';
     };
     
     Object.values(materiasMap).forEach(materia => {
