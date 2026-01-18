@@ -302,7 +302,8 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
           <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
             <strong>Nota:</strong>
             <p style="margin: 5px 0 0 0;">
-                ${alumnosDesactivados} alumno(s) fueron desactivados porque llegaron al ultimo semestre o no existe grupo para ellos
+              Los alumnos sin grupo disponible para el siguiente semestre se mostrarán como "Alumno inactivo académico" en la lista.
+              <br>Puedes crearles un grupo y luego editarlos para asignárselo, o desactivarlos manualmente si lo prefieres.
             </p>
           </div>
           
