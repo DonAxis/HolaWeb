@@ -3832,7 +3832,7 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     let html = `
       <div style="background: white; padding: 30px; border-radius: 15px; max-width: 1000px; margin: 20px auto; max-height: 85vh; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
-          <h3 style="margin: 0; color: #667eea;">Historial Academico: ${nombreAlumno}</h3>
+          <h3 style="margin: 0; color: #6A2135;">Historial Academico: ${nombreAlumno}</h3>
           <button onclick="descargarHistorialAlumnoPDF('${alumnoId}', '${nombreAlumno.replace(/'/g, "\\'")}');" 
                   style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
             Descargar PDF
