@@ -1620,7 +1620,7 @@ async function guardarAlumno(event, alumnoId) {
  userData.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
  await db.collection('usuarios').add(userData);
  
- alert(`Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nPeriodo: ${periodoActualCarrera}\nSemestre: ${userData.semestreActual}\n\nEl alumno puede consultar en:\nControlAlumno.html`);
+ alert(`Alumno registrado!\n\nNombre: ${nombre}\nMatrícula: ${matricula}\nPeriodo: ${periodoActualCarrera}\nSemestre: ${userData.semestreActual}`);
  }
  
  cerrarModal();
