@@ -79,7 +79,7 @@ async function mostrarCambioPeriodo(carreraId, periodoActual) {
         <ul style="margin: 10px 0; padding-left: 20px;">
           <li>Los alumnos avanzaran al siguiente semestre (Ej: 1101-MAT → 1201-MAT)</li>
           <li>Los alumnos de ultimo semestre pasaran a GRADUADOS</li>
-          <li><strong style="color: #d32f2f;">NUEVO: Si no hay grupo para el siguiente semestre, los alumnos se DESACTIVARÁN automáticamente</strong></li>
+          <li>Los alumnos sin grupo disponible se mostraran como "Alumno inactivo académico"</li>
           <li>Se archivaran los grupos actuales en el historial</li>
           <li>Las asignaciones de profesores se desactivaran</li>
           <li>Las calificaciones se guardaran en el historial general</li>
@@ -127,11 +127,11 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     `Esta accion:\n` +
     `- Avanzara todos los alumnos al siguiente semestre\n` +
     `- Actualizara grupos automaticamente\n` +
-    `- DESACTIVARÁ alumnos sin grupo disponible\n` +
     `- Archivara grupos en historial\n` +
     `- Desactivara asignaciones del periodo anterior\n` +
     `- Graduara alumnos de ultimo semestre\n` +
     `- Guardara calificaciones en historial\n\n` +
+    `Los alumnos sin grupo disponible se mostraran como "Alumno inactivo academico"\n\n` +
     `¿Continuar?`
   );
   
@@ -155,11 +155,9 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     
     let alumnosAvanzados = 0;
     let alumnosGraduados = 0;
-    let alumnosDesactivados = 0; // NUEVO CONTADOR
     let gruposArchivados = 0;
     let asignacionesDesactivadas = 0;
     let calificacionesArchivadas = 0;
-    let siguienteSemestreInfo = ''; // Para el mensaje final
     
     // 1. ARCHIVAR GRUPOS ACTUALES (10%)
     progressBar.style.width = '10%';
@@ -168,14 +166,7 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
     await archivarGrupos(carreraId, periodoActual);
     gruposArchivados = await contarGruposArchivados(carreraId, periodoActual);
     
-    // 1.5 CARGAR GRUPOS EXISTENTES PARA EL NUEVO PERIODO (15%)
-    progressBar.style.width = '15%';
-    progressText.textContent = 'Verificando grupos disponibles...';
-    
-    const gruposDisponibles = await cargarGruposDisponibles(carreraId);
-    console.log('Grupos disponibles:', gruposDisponibles);
-    
-    // 2. PROCESAR ALUMNOS (40%)
+    // 2. PROCESAR ALUMNOS (50%)
     progressBar.style.width = '20%';
     progressText.textContent = 'Procesando alumnos...';
     
@@ -194,11 +185,6 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
       const semestreActual = alumno.semestreActual || 1;
       const nuevoSemestre = semestreActual + 1;
       
-      // Guardar info del siguiente semestre para el mensaje final (solo la primera vez)
-      if (!siguienteSemestreInfo && nuevoSemestre <= SEMESTRES_MAXIMOS) {
-        siguienteSemestreInfo = nuevoSemestre;
-      }
-      
       // Determinar si se gradua
       if (nuevoSemestre > SEMESTRES_MAXIMOS) {
         // Graduar alumno
@@ -214,43 +200,25 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
         // Calcular nuevo grupo
         const nuevoGrupoId = calcularNuevoGrupo(alumno.grupoId, nuevoSemestre);
         
-        // VERIFICAR SI EL GRUPO EXISTE
-        const grupoExiste = gruposDisponibles.includes(nuevoGrupoId);
-        
-        if (grupoExiste) {
-          // El grupo existe, actualizar normalmente
-          await alumnoDoc.ref.update({
-            semestreActual: nuevoSemestre,
-            grupoId: nuevoGrupoId,
-            periodo: nuevoPeriodo,
-            ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          alumnosAvanzados++;
-        } else {
-          // El grupo NO existe, DESACTIVAR al alumno
-          await alumnoDoc.ref.update({
-            activo: false, // DESACTIVAR
-            semestreActual: nuevoSemestre,
-            grupoId: nuevoGrupoId, // Mantener el grupo calculado para referencia
-            periodo: nuevoPeriodo,
-            motivoDesactivacion: 'Sin grupo disponible para el siguiente semestre',
-            fechaDesactivacion: firebase.firestore.FieldValue.serverTimestamp(),
-            ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
-          });
-          alumnosDesactivados++;
-          
-          console.log(`Alumno desactivado: ${alumno.nombre} - Grupo esperado: ${nuevoGrupoId} (no existe)`);
-        }
+        // Actualizar alumno (se mantiene ACTIVO incluso si el grupo no existe)
+        // La interfaz mostrará "Alumno inactivo académico" si el grupo no existe
+        await alumnoDoc.ref.update({
+          semestreActual: nuevoSemestre,
+          grupoId: nuevoGrupoId,
+          periodo: nuevoPeriodo,
+          ultimoCambio: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        alumnosAvanzados++;
       }
       
       procesados++;
-      const progreso = 20 + (procesados / totalAlumnos) * 30;
+      const progreso = 20 + (procesados / totalAlumnos) * 40;
       progressBar.style.width = `${progreso}%`;
       progressText.textContent = `Procesando alumnos... ${procesados}/${totalAlumnos}`;
     }
     
     // 3. ARCHIVAR CALIFICACIONES (20%)
-    progressBar.style.width = '60%';
+    progressBar.style.width = '65%';
     progressText.textContent = 'Archivando calificaciones...';
     
     calificacionesArchivadas = await archivarCalificaciones(carreraId, periodoActual, nuevoPeriodo);
@@ -316,12 +284,6 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
                 <span>Alumnos graduados:</span>
                 <strong style="color: #2196f3;">${alumnosGraduados}</strong>
               </div>
-              ${alumnosDesactivados > 0 ? `
-              <div style="display: flex; justify-content: space-between; padding: 8px; background: #ffebee; border-radius: 4px; border-left: 4px solid #f44336;">
-                <span>Alumnos desactivados (sin grupo):</span>
-                <strong style="color: #d32f2f;">${alumnosDesactivados}</strong>
-              </div>
-              ` : ''}
               <div style="display: flex; justify-content: space-between; padding: 8px; background: white; border-radius: 4px;">
                 <span>Grupos archivados:</span>
                 <strong>${gruposArchivados}</strong>
@@ -337,14 +299,12 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
             </div>
           </div>
           
-          ${alumnosDesactivados > 0 ? `
-          <div style="background: #fff3cd; border-left: 4px solid #ffc107; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
-            <strong>ATENCIÓN:</strong>
+          <div style="background: #e3f2fd; border-left: 4px solid #2196f3; padding: 15px; border-radius: 4px; margin-bottom: 20px;">
+            <strong>Nota:</strong>
             <p style="margin: 5px 0 0 0;">
-              ${alumnosDesactivados} alumno(s) fueron desactivados porque llegaron al ultimo semestre o no existe grupo para ellos
+                ${alumnosDesactivados} alumno(s) fueron desactivados porque llegaron al ultimo semestre o no existe grupo para ellos
             </p>
           </div>
-          ` : ''}
           
           <button onclick="location.reload()" style="width: 100%; padding: 14px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; font-size: 1.1rem;">
             Actualizar Panel
@@ -369,26 +329,6 @@ async function ejecutarCambioPeriodoCarrera(event, carreraId, periodoActual, sig
         </button>
       </div>
     `;
-  }
-}
-
-// NUEVA FUNCIÓN: Cargar grupos disponibles
-async function cargarGruposDisponibles(carreraId) {
-  try {
-    const gruposSnap = await db.collection('grupos')
-      .where('carreraId', '==', carreraId)
-      .where('activo', '==', true)
-      .get();
-    
-    const gruposIds = [];
-    gruposSnap.forEach(doc => {
-      gruposIds.push(doc.id);
-    });
-    
-    return gruposIds;
-  } catch (error) {
-    console.error('Error al cargar grupos disponibles:', error);
-    return [];
   }
 }
 
@@ -763,4 +703,4 @@ function mostrarMensajeModal(mensaje, tipo) {
   document.getElementById('modalGenerico').style.display = 'flex';
 }
 
-console.log('Sistema de Cambio de Periodo cargado (VERSIÓN CON AUTO-DESACTIVACIÓN)');
+console.log('Sistema de Cambio de Periodo cargado');
