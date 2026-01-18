@@ -52,7 +52,7 @@ async function cargarPeriodoActual() {
     
   } catch (error) {
     console.error('Error al cargar periodo:', error);
-    periodoActualCarrera = '2026-1';
+    periodoActualCarrera = '2026-5';
     const elem = document.getElementById('periodoActualDisplay');
     if (elem) elem.textContent = periodoActualCarrera;
   }
