@@ -3661,12 +3661,12 @@ async function eliminarAlumno(alumnoId) {
 }
 
 
-// ===== HISTORIAL DE ALUMNOS =====
+// ===== HISTORIAL DE ALUMNOS ===== asdas
 
 function mostrarHistorialAlumnos() {
   const html = `
     <div style="background: white; padding: 30px; border-radius: 15px; max-width: 900px; margin: 20px auto;">
-      <h3 style="margin: 0 0 20px 0; color: #667eea;">Historial de Alumnos</h3>
+      <h3 style="margin: 0 0 20px 0; color: #6A2135;">Historial de Alumnos</h3>
       
       <div style="margin-bottom: 20px;">
         <label style="display: block; margin-bottom: 5px; font-weight: 600;">Filtrar por estado:</label>
@@ -3756,7 +3756,7 @@ async function cargarHistorialAlumnos() {
               <p style="margin: 5px 0; color: #666;">Materias cursadas: ${numMaterias}</p>
             </div>
             <button onclick="verDetalleHistorial('${doc.id}', '${alumno.nombre}')" 
-                    style="padding: 10px 20px; background: #667eea; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                    style="padding: 10px 20px; background: #21596A; color: white; border: none; border-radius: 8px; cursor: pointer;">
               Ver Historial Completo
             </button>
           </div>
@@ -3868,13 +3868,13 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     
     // Función auxiliar para colores
     const getColorCalif = (calif) => {
-      if (calif === 'NP') return '#ff9800';
-      if (calif === '-') return '#999';
+      if (calif === 'NP') return '#dc3545';
+      if (calif === '-') return '#dc3545';
       const num = parseFloat(calif);
-      if (isNaN(num)) return '#999';
+      if (isNaN(num)) return '#000000';
       if (num === 0) return '#dc3545'; // CORRECCIÓN 2: Rojo para 0
-      if (num < 6) return '#ff9800';
-      return '#4caf50';
+      if (num < 6) return '#000000';
+      return '#000000';
     };
     
     Object.values(materiasMap).forEach(materia => {
