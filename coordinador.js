@@ -3787,9 +3787,9 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     }
     
     const materiasMap = {};
-    const materiasCache = {}; // CORRECCIÓN 1: Caché para materias
+    const materiasCache = {};
     
-    // CORRECCIÓN 1: Cargar nombres de materias desde la colección 'materias'
+    // Cargar nombres de materias desde la coleccion 'materias'
     for (const calDoc of calificaciones.docs) {
       const cal = calDoc.data();
       const key = `${cal.materiaId}_${cal.periodo}`;
@@ -3798,7 +3798,7 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
       let materiaNombre = cal.materiaNombre || 'Sin nombre';
       let materiaCodigo = cal.materiaCodigo || '';
       
-      // Si no tiene nombre, buscarlo en la colección materias
+      // Si no tiene nombre, buscarlo en la coleccion materias
       if (!cal.materiaNombre && cal.materiaId) {
         if (!materiasCache[cal.materiaId]) {
           try {
@@ -3817,7 +3817,7 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
         }
       }
       
-      // CORRECCIÓN 2: Usar ?? en lugar de || para permitir 0
+      // Usar ?? en lugar de || para permitir 0
       materiasMap[key] = {
         materiaNombre: materiaNombre,
         materiaCodigo: materiaCodigo,
@@ -3829,23 +3829,11 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
       };
     }
     
-    // Obtener información del alumno para el PDF
-    let alumnoData = { nombre: nombreAlumno, id: alumnoId };
-    try {
-      const alumnoDoc = await db.collection('usuarios').doc(alumnoId).get();
-      if (alumnoDoc.exists) {
-        alumnoData = { ...alumnoDoc.data(), id: alumnoId };
-      }
-    } catch (error) {
-      console.error('Error al cargar datos del alumno:', error);
-    }
-    
-    // CORRECCIÓN 3: Agregar botón para descargar PDF
     let html = `
       <div style="background: white; padding: 30px; border-radius: 15px; max-width: 1000px; margin: 20px auto; max-height: 85vh; overflow-y: auto;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
-          <h3 style="margin: 0; color: #667eea;">Historial Académico: ${nombreAlumno}</h3>
-          <button onclick="descargarHistorialAlumnoPDF('${alumnoId}', '${nombreAlumno.replace(/'/g, "\\'")}', ${JSON.stringify(Object.values(materiasMap)).replace(/'/g, "\\'")})" 
+          <h3 style="margin: 0; color: #667eea;">Historial Academico: ${nombreAlumno}</h3>
+          <button onclick="descargarHistorialAlumnoPDF('${alumnoId}', '${nombreAlumno.replace(/'/g, "\\'")}');" 
                   style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
             Descargar PDF
           </button>
@@ -3866,15 +3854,15 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
             <tbody>
     `;
     
-    // Función auxiliar para colores
+    // Funcion auxiliar para colores
     const getColorCalif = (calif) => {
-      if (calif === 'NP') return '#dc3545';
-      if (calif === '-') return '#dc3545';
+      if (calif === 'NP') return '#ff9800';
+      if (calif === '-') return '#999';
       const num = parseFloat(calif);
-      if (isNaN(num)) return '#000000';
-      if (num === 0) return '#dc3545'; // CORRECCIÓN 2: Rojo para 0
-      if (num < 6) return '#000000';
-      return '#000000';
+      if (isNaN(num)) return '#999';
+      if (num === 0) return '#dc3545';
+      if (num < 6) return '#ff9800';
+      return '#4caf50';
     };
     
     Object.values(materiasMap).forEach(materia => {
@@ -3886,7 +3874,7 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
       if (tieneNP) {
         promedio = '5.0';
       } else {
-        // CORRECCIÓN 2: Cálculo que incluye 0 correctamente
+        // Calculo que incluye 0 correctamente
         const cals = [materia.parcial1, materia.parcial2, materia.parcial3]
           .filter(c => c !== '-' && c !== null && c !== undefined && c !== '')
           .map(c => parseFloat(c))
@@ -3933,9 +3921,9 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
           </table>
         </div>
         
-        <div style="margin-top: 20px; display: flex; gap: 10px;">
-          <button onclick="mostrarHistorialAlumnos()" style="flex: 1; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-            ← Volver
+        <div style="margin-top: 20px;">
+          <button onclick="mostrarHistorialAlumnos()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            Volver
           </button>
         </div>
       </div>
@@ -3948,6 +3936,8 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     alert('Error al cargar detalle del historial: ' + error.message);
   }
 }
+
+console.log('Funcion verDetalleHistorial corregida cargada');
 
 // ===== NUEVA FUNCIÓN: Descargar PDF del historial del alumno =====
 async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno, materiasData) {
