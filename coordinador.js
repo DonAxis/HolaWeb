@@ -3773,6 +3773,7 @@ async function cargarHistorialAlumnos() {
   }
 }
 
+// ===== verDetalleHistorial =====
 async function verDetalleHistorial(alumnoId, nombreAlumno) {
   try {
     // Obtener todas las calificaciones del alumno
@@ -3786,30 +3787,75 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     }
     
     const materiasMap = {};
+    const materiasCache = {}; // CORRECCIÓN 1: Caché para materias
     
-    calificaciones.forEach(calDoc => {
+    // CORRECCIÓN 1: Cargar nombres de materias desde la colección 'materias'
+    for (const calDoc of calificaciones.docs) {
       const cal = calDoc.data();
       const key = `${cal.materiaId}_${cal.periodo}`;
       
+      // Obtener nombre de materia
+      let materiaNombre = cal.materiaNombre || 'Sin nombre';
+      let materiaCodigo = cal.materiaCodigo || '';
+      
+      // Si no tiene nombre, buscarlo en la colección materias
+      if (!cal.materiaNombre && cal.materiaId) {
+        if (!materiasCache[cal.materiaId]) {
+          try {
+            const materiaDoc = await db.collection('materias').doc(cal.materiaId).get();
+            if (materiaDoc.exists) {
+              materiasCache[cal.materiaId] = materiaDoc.data();
+            }
+          } catch (error) {
+            console.error('Error al cargar materia:', error);
+          }
+        }
+        
+        if (materiasCache[cal.materiaId]) {
+          materiaNombre = materiasCache[cal.materiaId].nombre;
+          materiaCodigo = materiasCache[cal.materiaId].codigo || '';
+        }
+      }
+      
+      // CORRECCIÓN 2: Usar ?? en lugar de || para permitir 0
       materiasMap[key] = {
-        materiaNombre: cal.materiaNombre || 'Materia',
-        materiaCodigo: cal.materiaCodigo || '',
+        materiaNombre: materiaNombre,
+        materiaCodigo: materiaCodigo,
+        materiaId: cal.materiaId,
         periodo: cal.periodo || 'N/A',
-        parcial1: cal.parciales?.parcial1 || '-',
-        parcial2: cal.parciales?.parcial2 || '-',
-        parcial3: cal.parciales?.parcial3 || '-'
+        parcial1: cal.parciales?.parcial1 ?? '-',
+        parcial2: cal.parciales?.parcial2 ?? '-',
+        parcial3: cal.parciales?.parcial3 ?? '-'
       };
-    });
+    }
     
+    // Obtener información del alumno para el PDF
+    let alumnoData = { nombre: nombreAlumno, id: alumnoId };
+    try {
+      const alumnoDoc = await db.collection('usuarios').doc(alumnoId).get();
+      if (alumnoDoc.exists) {
+        alumnoData = { ...alumnoDoc.data(), id: alumnoId };
+      }
+    } catch (error) {
+      console.error('Error al cargar datos del alumno:', error);
+    }
+    
+    // CORRECCIÓN 3: Agregar botón para descargar PDF
     let html = `
-      <div style="background: white; padding: 30px; border-radius: 15px; max-width: 1000px; margin: 20px auto;">
-        <h3 style="margin: 0 0 20px 0; color: #667eea;">Historial Académico: ${nombreAlumno}</h3>
+      <div style="background: white; padding: 30px; border-radius: 15px; max-width: 1000px; margin: 20px auto; max-height: 85vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; padding-bottom: 15px; border-bottom: 2px solid #e0e0e0;">
+          <h3 style="margin: 0; color: #667eea;">Historial Académico: ${nombreAlumno}</h3>
+          <button onclick="descargarHistorialAlumnoPDF('${alumnoId}', '${nombreAlumno.replace(/'/g, "\\'")}', ${JSON.stringify(Object.values(materiasMap)).replace(/'/g, "\\'")})" 
+                  style="background: #dc3545; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer; font-weight: 600;">
+            Descargar PDF
+          </button>
+        </div>
         
         <div style="overflow-x: auto;">
           <table style="width: 100%; border-collapse: collapse;">
             <thead>
               <tr style="background: #667eea; color: white;">
-                <th style="padding: 12px; border: 1px solid #ddd;">Materiass</th>
+                <th style="padding: 12px; border: 1px solid #ddd;">Materia</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Periodo</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Parcial 1</th>
                 <th style="padding: 12px; border: 1px solid #ddd;">Parcial 2</th>
@@ -3820,45 +3866,66 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
             <tbody>
     `;
     
+    // Función auxiliar para colores
+    const getColorCalif = (calif) => {
+      if (calif === 'NP') return '#ff9800';
+      if (calif === '-') return '#999';
+      const num = parseFloat(calif);
+      if (isNaN(num)) return '#999';
+      if (num === 0) return '#dc3545'; // CORRECCIÓN 2: Rojo para 0
+      if (num < 6) return '#ff9800';
+      return '#4caf50';
+    };
+    
     Object.values(materiasMap).forEach(materia => {
       // REGLA DE NEGOCIO: Si hay NP en cualquier parcial, promedio = 5.0
-      if (materia.parcial1 === 'NP' || materia.parcial2 === 'NP' || materia.parcial3 === 'NP') {
-        const promedio = '5.0';
-        
-        html += '<tr>' +
-          '<td style="padding: 10px; border: 1px solid #ddd;">' + materia.materiaNombre + '</td>' +
-          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.periodo + '</td>' +
-          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial1 + '</td>' +
-          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial2 + '</td>' +
-          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial3 + '</td>' +
-          '<td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">' + promedio + '</td>' +
-          '</tr>';
-        return;
-      }
-      
-      // Cálculo normal si no hay NP
-      const p1 = parseFloat(materia.parcial1);
-      const p2 = parseFloat(materia.parcial2);
-      const p3 = parseFloat(materia.parcial3);
+      const tieneNP = materia.parcial1 === 'NP' || materia.parcial2 === 'NP' || materia.parcial3 === 'NP';
       
       let promedio = '-';
-      const validos = [];
-      if (!isNaN(p1)) validos.push(p1);
-      if (!isNaN(p2)) validos.push(p2);
-      if (!isNaN(p3)) validos.push(p3);
       
-      if (validos.length > 0) {
-        promedio = (validos.reduce((a, b) => a + b, 0) / validos.length).toFixed(1);
+      if (tieneNP) {
+        promedio = '5.0';
+      } else {
+        // CORRECCIÓN 2: Cálculo que incluye 0 correctamente
+        const cals = [materia.parcial1, materia.parcial2, materia.parcial3]
+          .filter(c => c !== '-' && c !== null && c !== undefined && c !== '')
+          .map(c => parseFloat(c))
+          .filter(c => !isNaN(c));
+        
+        if (cals.length > 0) {
+          promedio = (cals.reduce((a, b) => a + b, 0) / cals.length).toFixed(1);
+        }
       }
       
-      html += '<tr>' +
-        '<td style="padding: 10px; border: 1px solid #ddd;">' + materia.materiaNombre + '</td>' +
-        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.periodo + '</td>' +
-        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial1 + '</td>' +
-        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial2 + '</td>' +
-        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center;">' + materia.parcial3 + '</td>' +
-        '<td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold;">' + promedio + '</td>' +
-        '</tr>';
+      // Color del promedio
+      let colorPromedio = '#667eea';
+      if (promedio !== '-') {
+        const promedioNum = parseFloat(promedio);
+        if (promedioNum < 6) colorPromedio = '#dc3545';
+        else if (promedioNum >= 8) colorPromedio = '#4caf50';
+      }
+      
+      html += `
+        <tr style="border-bottom: 1px solid #eee;">
+          <td style="padding: 10px; border: 1px solid #ddd;">
+            <strong>${materia.materiaNombre}</strong>
+            <br><small style="color: #666;">${materia.materiaCodigo}</small>
+          </td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center;">${materia.periodo}</td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: ${getColorCalif(materia.parcial1)};">
+            ${materia.parcial1}
+          </td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: ${getColorCalif(materia.parcial2)};">
+            ${materia.parcial2}
+          </td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; color: ${getColorCalif(materia.parcial3)};">
+            ${materia.parcial3}
+          </td>
+          <td style="padding: 10px; border: 1px solid #ddd; text-align: center; font-weight: bold; font-size: 1.1rem; background: #f8f9fa; color: ${colorPromedio};">
+            ${promedio}
+          </td>
+        </tr>
+      `;
     });
     
     html += `
@@ -3866,9 +3933,9 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
           </table>
         </div>
         
-        <div style="margin-top: 20px;">
-          <button onclick="mostrarHistorialAlumnos()" style="width: 100%; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
-            Volver
+        <div style="margin-top: 20px; display: flex; gap: 10px;">
+          <button onclick="mostrarHistorialAlumnos()" style="flex: 1; padding: 12px; background: #667eea; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">
+            ← Volver
           </button>
         </div>
       </div>
@@ -3878,9 +3945,246 @@ async function verDetalleHistorial(alumnoId, nombreAlumno) {
     
   } catch (error) {
     console.error('Error:', error);
-    alert('Error al cargar detalle del historial');
+    alert('Error al cargar detalle del historial: ' + error.message);
   }
 }
+
+// ===== NUEVA FUNCIÓN: Descargar PDF del historial del alumno =====
+async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno, materiasData) {
+  try {
+    // Verificar que jsPDF esté cargado
+    if (typeof window.jspdf === 'undefined') {
+      alert('Error: jsPDF no está cargado.\n\nAsegúrate de incluir las librerías en el HTML:\n<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>\n<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>');
+      return;
+    }
+    
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    
+    // Fecha actual
+    const fecha = new Date().toLocaleDateString('es-MX', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+    
+    // Agregar logos si existe la función
+    if (typeof agregarLogosAlPDF === 'function') {
+      agregarLogosAlPDF(doc);
+    }
+    
+    // Encabezado
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text('HISTORIAL ACADÉMICO', pageWidth / 2, 25, { align: 'center' });
+    
+    // Línea separadora
+    doc.setLineWidth(0.5);
+    doc.line(20, 30, pageWidth - 20, 30);
+    
+    // Información del alumno
+    doc.setFontSize(11);
+    doc.setFont(undefined, 'normal');
+    
+    let y = 40;
+    
+    doc.text(`Fecha: ${fecha}`, pageWidth - 20, y, { align: 'right' });
+    y += 7;
+    doc.text(`Alumno: ${nombreAlumno}`, 20, y);
+    y += 7;
+    
+    // Cargar datos adicionales del alumno
+    try {
+      const alumnoDoc = await db.collection('usuarios').doc(alumnoId).get();
+      if (alumnoDoc.exists) {
+        const alumno = alumnoDoc.data();
+        
+        if (alumno.matricula) {
+          doc.text(`Matrícula: ${alumno.matricula}`, 20, y);
+          y += 7;
+        }
+        
+        if (alumno.carreraId) {
+          const carreraDoc = await db.collection('carreras').doc(alumno.carreraId).get();
+          if (carreraDoc.exists) {
+            doc.text(`Carrera: ${carreraDoc.data().nombre}`, 20, y);
+            y += 7;
+          }
+        }
+        
+        if (alumno.grupoId) {
+          const grupoDoc = await db.collection('grupos').doc(alumno.grupoId).get();
+          if (grupoDoc.exists) {
+            doc.text(`Grupo: ${grupoDoc.data().nombre}`, 20, y);
+            y += 7;
+          }
+        }
+      }
+    } catch (error) {
+      console.error('Error al cargar datos del alumno:', error);
+    }
+    
+    y += 5;
+    
+    // Agrupar materias por periodo
+    const periodos = {};
+    
+    // Si materiasData es string, parsearlo
+    if (typeof materiasData === 'string') {
+      try {
+        materiasData = JSON.parse(materiasData);
+      } catch (e) {
+        console.error('Error al parsear materiasData:', e);
+        materiasData = [];
+      }
+    }
+    
+    materiasData.forEach(materia => {
+      const periodo = materia.periodo || 'N/A';
+      if (!periodos[periodo]) {
+        periodos[periodo] = [];
+      }
+      periodos[periodo].push(materia);
+    });
+    
+    // Ordenar periodos
+    const periodosOrdenados = Object.keys(periodos).sort().reverse();
+    
+    // Generar tabla por cada periodo
+    for (let i = 0; i < periodosOrdenados.length; i++) {
+      const periodo = periodosOrdenados[i];
+      const materias = periodos[periodo];
+      
+      // Verificar espacio en la página
+      if (i > 0 && y > pageHeight - 80) {
+        doc.addPage();
+        y = 20;
+      }
+      
+      // Título del periodo
+      doc.setFontSize(14);
+      doc.setFont(undefined, 'bold');
+      doc.setTextColor(102, 126, 234); // #667eea
+      doc.text(`Periodo: ${periodo}`, 20, y);
+      doc.setTextColor(0, 0, 0);
+      y += 8;
+      
+      // Preparar datos de la tabla
+      const tableData = [];
+      let sumaPromedios = 0;
+      let countPromedios = 0;
+      
+      materias.forEach(materia => {
+        const p1 = materia.parcial1 ?? '-';
+        const p2 = materia.parcial2 ?? '-';
+        const p3 = materia.parcial3 ?? '-';
+        
+        // Calcular promedio
+        let promedio = '-';
+        const tieneNP = p1 === 'NP' || p2 === 'NP' || p3 === 'NP';
+        
+        if (tieneNP) {
+          promedio = '5.0';
+          sumaPromedios += 5.0;
+          countPromedios++;
+        } else {
+          const cals = [p1, p2, p3]
+            .filter(c => c !== '-' && c !== null && c !== undefined && c !== '')
+            .map(c => parseFloat(c))
+            .filter(c => !isNaN(c));
+          
+          if (cals.length > 0) {
+            const prom = cals.reduce((a, b) => a + b, 0) / cals.length;
+            promedio = prom.toFixed(1);
+            sumaPromedios += prom;
+            countPromedios++;
+          }
+        }
+        
+        tableData.push([
+          materia.materiaNombre || 'Sin nombre',
+          p1,
+          p2,
+          p3,
+          promedio
+        ]);
+      });
+      
+      // Promedio del periodo
+      const promedioPeriodo = countPromedios > 0 
+        ? (sumaPromedios / countPromedios).toFixed(1) 
+        : '-';
+      
+      // Generar tabla
+      doc.autoTable({
+        startY: y,
+        head: [['Materia', 'P1', 'P2', 'P3', 'Promedio']],
+        body: tableData,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [102, 126, 234], // #667eea
+          textColor: 255,
+          fontStyle: 'bold',
+          halign: 'center',
+          fontSize: 10
+        },
+        styles: {
+          fontSize: 9,
+          cellPadding: 4
+        },
+        columnStyles: {
+          0: { halign: 'left', cellWidth: 90 },
+          1: { halign: 'center', cellWidth: 20 },
+          2: { halign: 'center', cellWidth: 20 },
+          3: { halign: 'center', cellWidth: 20 },
+          4: { halign: 'center', cellWidth: 30, fontStyle: 'bold' }
+        }
+      });
+      
+      // Actualizar y
+      y = doc.lastAutoTable.finalY + 5;
+      
+      // Promedio del periodo
+      doc.setFontSize(10);
+      doc.setFont(undefined, 'bold');
+      doc.text(`Promedio del periodo: ${promedioPeriodo}`, 20, y);
+      
+      y += 15;
+    }
+    
+    // Pie de página
+    const numPages = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= numPages; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.setFont(undefined, 'normal');
+      doc.setTextColor(128);
+      doc.text(
+        `Página ${i} de ${numPages}`,
+        pageWidth / 2,
+        pageHeight - 10,
+        { align: 'center' }
+      );
+    }
+    
+    // Nombre del archivo
+    const nombreArchivo = `Historial_${nombreAlumno.replace(/\s+/g, '_')}.pdf`;
+    
+    // Descargar
+    doc.save(nombreArchivo);
+    
+    console.log('PDF generado:', nombreArchivo);
+    
+  } catch (error) {
+    console.error('Error al generar PDF:', error);
+    alert('Error al generar PDF: ' + error.message);
+  }
+}
+
+console.log('Función verDetalleHistorial corregida cargada');
 
 
 
