@@ -1,7 +1,4 @@
 // ===== GENERADOR DE PDF HISTORIAL DE ALUMNO =====
-// Para Panel de Coordinador
-// Uso: descargarHistorialAlumnoPDF(alumnoId, nombreAlumno)
-
 async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
   try {
     // Verificar que jsPDF este cargado
@@ -17,6 +14,7 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
     const pageHeight = doc.internal.pageSize.getHeight();
     
     // Obtener calificaciones del alumno
+    console.log('Buscando calificaciones para alumno:', alumnoId);
     const calificaciones = await db.collection('calificaciones')
       .where('alumnoId', '==', alumnoId)
       .get();
@@ -26,9 +24,11 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
       return;
     }
     
+    console.log('Calificaciones encontradas:', calificaciones.size);
+    
     // Construir mapa de materias con cache
-    const materiasMap = {};
-    const materiasCache = {};
+    const materiasMapPDF = {}; // Nombre unico para evitar conflictos
+    const materiasCachePDF = {};
     
     for (const calDoc of calificaciones.docs) {
       const cal = calDoc.data();
@@ -37,25 +37,27 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
       let materiaNombre = cal.materiaNombre || 'Sin nombre';
       let materiaCodigo = cal.materiaCodigo || '';
       
+      // Si no tiene nombre, buscarlo en la coleccion materias
       if (!cal.materiaNombre && cal.materiaId) {
-        if (!materiasCache[cal.materiaId]) {
+        if (!materiasCachePDF[cal.materiaId]) {
           try {
             const materiaDoc = await db.collection('materias').doc(cal.materiaId).get();
             if (materiaDoc.exists) {
-              materiasCache[cal.materiaId] = materiaDoc.data();
+              materiasCachePDF[cal.materiaId] = materiaDoc.data();
+              console.log('Materia cargada:', cal.materiaId, materiasCachePDF[cal.materiaId]);
             }
           } catch (error) {
             console.error('Error al cargar materia:', error);
           }
         }
         
-        if (materiasCache[cal.materiaId]) {
-          materiaNombre = materiasCache[cal.materiaId].nombre;
-          materiaCodigo = materiasCache[cal.materiaId].codigo || '';
+        if (materiasCachePDF[cal.materiaId]) {
+          materiaNombre = materiasCachePDF[cal.materiaId].nombre;
+          materiaCodigo = materiasCachePDF[cal.materiaId].codigo || '';
         }
       }
       
-      materiasMap[key] = {
+      materiasMapPDF[key] = {
         materiaNombre: materiaNombre,
         materiaCodigo: materiaCodigo,
         periodo: cal.periodo || 'N/A',
@@ -63,6 +65,14 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
         parcial2: cal.parciales?.parcial2 ?? '-',
         parcial3: cal.parciales?.parcial3 ?? '-'
       };
+    }
+    
+    console.log('Materias procesadas:', Object.keys(materiasMapPDF).length);
+    
+    // Verificar que hay materias
+    if (Object.keys(materiasMapPDF).length === 0) {
+      alert('No se pudieron procesar las calificaciones');
+      return;
     }
     
     // Fecha actual
@@ -109,18 +119,26 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
         }
         
         if (alumno.carreraId) {
-          const carreraDoc = await db.collection('carreras').doc(alumno.carreraId).get();
-          if (carreraDoc.exists) {
-            doc.text(`Carrera: ${carreraDoc.data().nombre}`, 20, y);
-            y += 7;
+          try {
+            const carreraDoc = await db.collection('carreras').doc(alumno.carreraId).get();
+            if (carreraDoc.exists) {
+              doc.text(`Carrera: ${carreraDoc.data().nombre}`, 20, y);
+              y += 7;
+            }
+          } catch (error) {
+            console.error('Error al cargar carrera:', error);
           }
         }
         
         if (alumno.grupoId) {
-          const grupoDoc = await db.collection('grupos').doc(alumno.grupoId).get();
-          if (grupoDoc.exists) {
-            doc.text(`Grupo: ${grupoDoc.data().nombre}`, 20, y);
-            y += 7;
+          try {
+            const grupoDoc = await db.collection('grupos').doc(alumno.grupoId).get();
+            if (grupoDoc.exists) {
+              doc.text(`Grupo: ${grupoDoc.data().nombre}`, 20, y);
+              y += 7;
+            }
+          } catch (error) {
+            console.error('Error al cargar grupo:', error);
           }
         }
       }
@@ -131,23 +149,34 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
     y += 5;
     
     // Agrupar materias por periodo
-    const periodos = {};
+    const periodosPDF = {};
     
-    Object.values(materiasMap).forEach(materia => {
+    const materiasArray = Object.values(materiasMapPDF);
+    console.log('Materias a procesar:', materiasArray.length);
+    
+    materiasArray.forEach(materia => {
       const periodo = materia.periodo || 'N/A';
-      if (!periodos[periodo]) {
-        periodos[periodo] = [];
+      if (!periodosPDF[periodo]) {
+        periodosPDF[periodo] = [];
       }
-      periodos[periodo].push(materia);
+      periodosPDF[periodo].push(materia);
     });
     
     // Ordenar periodos
-    const periodosOrdenados = Object.keys(periodos).sort().reverse();
+    const periodosOrdenados = Object.keys(periodosPDF).sort().reverse();
+    console.log('Periodos encontrados:', periodosOrdenados);
+    
+    if (periodosOrdenados.length === 0) {
+      alert('No se encontraron periodos para generar el PDF');
+      return;
+    }
     
     // Generar tabla por cada periodo
     for (let i = 0; i < periodosOrdenados.length; i++) {
       const periodo = periodosOrdenados[i];
-      const materias = periodos[periodo];
+      const materias = periodosPDF[periodo];
+      
+      console.log(`Procesando periodo ${periodo}: ${materias.length} materias`);
       
       // Verificar espacio en la pagina
       if (i > 0 && y > pageHeight - 80) {
@@ -197,9 +226,9 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
         
         tableData.push([
           materia.materiaNombre,
-          p1,
-          p2,
-          p3,
+          p1.toString(),
+          p2.toString(),
+          p3.toString(),
           promedio
         ]);
       });
@@ -267,12 +296,14 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
     // Descargar
     doc.save(nombreArchivo);
     
-    console.log('PDF generado:', nombreArchivo);
+    console.log('PDF generado exitosamente:', nombreArchivo);
     
   } catch (error) {
     console.error('Error al generar PDF:', error);
+    console.error('Stack trace:', error.stack);
     alert('Error al generar PDF: ' + error.message);
   }
 }
 
-console.log('Funcion descargarHistorialAlumnoPDF cargada');
+console.log('Funcion descargarHistorialAlumnoPDF cargada desde HistorialCoorPDF.js');
+
