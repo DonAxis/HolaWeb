@@ -4230,7 +4230,7 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
         body: tableData,
         theme: 'grid',
         headStyles: {
-          fillColor: [102, 126, 234],
+          fillColor: [106, 33, 53],
           textColor: 255,
           fontStyle: 'bold',
           halign: 'center',
