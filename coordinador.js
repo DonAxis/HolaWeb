@@ -4079,13 +4079,13 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
     
     // Linea separadora
     doc.setLineWidth(0.5);
-    doc.line(20, 30, pageWidth - 20, 30);
+    doc.line(30, 40, pageWidth - 30, 40);
     
     // Informacion del alumno
     doc.setFontSize(11);
     doc.setFont(undefined, 'normal');
     
-    let y = 40;
+    let y = 50;
     
     doc.text(`Fecha: ${fecha}`, pageWidth - 20, y, { align: 'right' });
     y += 7;
