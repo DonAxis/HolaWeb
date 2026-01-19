@@ -1,1 +1,0 @@
-www.plantuml.com aqui pones el codigo de los diagramas y listo
