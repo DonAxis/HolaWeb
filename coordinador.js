@@ -2066,13 +2066,13 @@ function descargarActaPDF() {
  
  // Línea separadora
  doc.setLineWidth(0.5);
- doc.line(20, 30, 190, 30);
+ doc.line(30, 38, 180, 38 );
  
  // Información de la materia
  doc.setFontSize(11);
  doc.setFont(undefined, 'normal');
  
- let y = 40;
+ let y = 45;
  
  // Fecha arriba a la derecha
  doc.text(`Fecha: ${fecha}`, pageWidth - 20, y, { align: 'right' });
@@ -4026,13 +4026,51 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
       day: 'numeric'
     });
     
-    // Agregar logos si existe la funcion
-    if (typeof logosEscuela !== 'undefined' && typeof logosEscuela.agregarLogosAlPDF === 'function') {
-      logosEscuela.agregarLogosAlPDF(doc);
-      console.log('Logos agregados al PDF');
+    // ===== CORRECCION DE LOGOS =====
+    // Agregar logos si existen
+    if (typeof logosEscuela !== 'undefined') {
+      console.log('Objeto logosEscuela encontrado');
+      
+      // Verificar si existe la funcion agregarLogosAlPDF (version 1)
+      if (typeof agregarLogosAlPDF === 'function') {
+        console.log('Usando funcion agregarLogosAlPDF');
+        agregarLogosAlPDF(doc);
+      } 
+      // O si esta como metodo del objeto (version 2)
+      else if (typeof logosEscuela.agregarLogosAlPDF === 'function') {
+        console.log('Usando logosEscuela.agregarLogosAlPDF');
+        logosEscuela.agregarLogosAlPDF(doc);
+      }
+      // O agregar logos manualmente desde el objeto
+      else if (logosEscuela.logoIzquierdo || logosEscuela.logoDerecho) {
+        console.log('Agregando logos manualmente desde objeto logosEscuela');
+        
+        try {
+          // Logo izquierdo
+          if (logosEscuela.logoIzquierdo) {
+            doc.addImage(logosEscuela.logoIzquierdo, 'PNG', 15, 8, 25, 15);
+            console.log('Logo izquierdo agregado');
+          }
+        } catch (e) {
+          console.log('Error al cargar logo izquierdo:', e);
+        }
+        
+        try {
+          // Logo derecho
+          if (logosEscuela.logoDerecho) {
+            doc.addImage(logosEscuela.logoDerecho, 'PNG', pageWidth - 40, 8, 25, 15);
+            console.log('Logo derecho agregado');
+          }
+        } catch (e) {
+          console.log('Error al cargar logo derecho:', e);
+        }
+      } else {
+        console.log('logosEscuela existe pero no tiene logos o funcion');
+      }
     } else {
-      console.log('No se encontro logosEscuela.agregarLogosAlPDF');
+      console.log('No se encontro objeto logosEscuela');
     }
+    // ===== FIN CORRECCION DE LOGOS =====
     
     // Encabezado
     doc.setFontSize(18);
@@ -4252,9 +4290,7 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
   }
 }
 
-console.log('Funcion descargarHistorialAlumnoPDF corregida y cargada');
-
-
+console.log('Funcion descargarHistorialAlumnoPDF con logos corregida y cargada');
 // ===== CARGAR GRUPOS EN SELECTORES =====
 
 async function cargarGruposEnSelector(selectId) {
