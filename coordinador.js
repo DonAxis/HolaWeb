@@ -4172,7 +4172,7 @@ async function descargarHistorialAlumnoPDF(alumnoId, nombreAlumno) {
       // Titulo del periodo
       doc.setFontSize(14);
       doc.setFont(undefined, 'bold');
-      doc.setTextColor(102, 126, 234);
+      doc.setTextColor(106, 33, 53);  //color IPN
       doc.text(`Periodo: ${periodo}`, 20, y);
       doc.setTextColor(0, 0, 0);
       y += 8;
